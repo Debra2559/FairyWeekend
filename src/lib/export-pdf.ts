@@ -16,6 +16,7 @@ export async function elementToPdfBlob(el: HTMLElement): Promise<Blob> {
     useCORS: true,
     logging: false,
     windowWidth: el.scrollWidth,
+    windowHeight: el.scrollHeight,
   });
 
   const imgWidth = A4_W_MM;
@@ -36,15 +37,18 @@ export async function elementToPdfBlob(el: HTMLElement): Promise<Blob> {
   return pdf.output("blob");
 }
 
-export function downloadBlob(blob: Blob, filename: string) {
+export function downloadBlob(blob: Blob, filename: string): string {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
   document.body.appendChild(a);
   a.click();
   a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTimeout(() => URL.revokeObjectURL(url), 5 * 60 * 1000);
+  return url;
 }
 
 export async function elementToImageBlob(
