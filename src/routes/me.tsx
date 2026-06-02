@@ -1307,7 +1307,7 @@ function ReviewPosterPage({
       </section>
 
       <section className="rounded-[26px] border border-[#ead8d0] bg-[#fffaf2]/92 p-3">
-        <UserPhotoCard variant="compact" />
+        <UserPhotoCard variant="inline" />
       </section>
 
       <div className="relative">
