@@ -106,9 +106,16 @@ export async function runQuest(input: QuestInput): Promise<QuestOutput> {
   console.log(`[${timestamp}][Quest] 🚀 开始执行 Quest`);
   console.log("=".repeat(60));
 
+  // 不再默认上海。要么有城市名，要么有坐标，否则直接报错
+  const hasCoords = typeof input.lat === "number" && typeof input.lng === "number";
+  const cityInput = (input.city || "").trim();
+  if (!cityInput && !hasCoords) {
+    throw new Error("缺少定位信息：请先选择城市或开启定位");
+  }
+
   const initialState = {
     card: input.card,
-    city: input.city || "上海",
+    city: cityInput,
     lat: input.lat,
     lng: input.lng,
     playerKey: input.playerKey,
@@ -127,10 +134,11 @@ export async function runQuest(input: QuestInput): Promise<QuestOutput> {
   log("📋 输入参数", {
     identity: input.card.identity,
     rarity: input.card.rarity,
-    city: input.city || "上海",
-    hasCoords: !!(input.lat && input.lng),
+    city: cityInput || "(无 · 用坐标)",
+    hasCoords,
     playerKey: input.playerKey || "无",
   });
+
 
   const startTime = Date.now();
 
