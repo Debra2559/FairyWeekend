@@ -136,80 +136,90 @@ function CardPage() {
     setLocating(true);
     setError(null);
     setNeedLocationHint(false);
+    setLocatedName(null);
 
-    // 两轮尝试：先快速低精度，失败再高精度长超时，提高定位稳定性
-    const attempt = (highAccuracy: boolean, timeout: number, onFail: (err: GeolocationPositionError) => void) => {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          coordsRef.current = { lat, lng };
-          setHasCoords(true);
-          setAutoLocated(true);
-          setCity("");
-          setLocating(false);
-          setLocatedName("正在识别…");
-          try {
-            let name = "";
-            let cityName = "";
-            try {
-              const r = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=zh-CN&zoom=12`,
-                { headers: { Accept: "application/json" } },
-              );
-              const j = await r.json();
-              const a = j.address || {};
-              cityName = a.city || a.town || a.county || a.state || "";
-              const parts = [a.state, cityName, a.city_district || a.district || a.suburb].filter(Boolean);
-              name = Array.from(new Set(parts)).join(" · ");
-            } catch { /* fallback below */ }
-
-            if (!name) {
-              const r2 = await fetch(
-                `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=zh-CN`,
-              );
-              const j2 = await r2.json();
-              cityName = j2.city || j2.locality || cityName;
-              const parts = [
-                j2.principalSubdivision,
-                cityName,
-                j2.localityInfo?.administrative?.find((a: { adminLevel?: number; name?: string }) => a.adminLevel === 6)?.name,
-              ].filter(Boolean);
-              name = Array.from(new Set(parts)).join(" · ") || cityName || "我的位置";
-            }
-            setLocatedName(toSimplified(name));
-            if (cityName) setCity(toSimplified(cityName));
-          } catch {
-            // 反向地理编码失败也无妨：坐标已拿到，可以继续下一步
-            setLocatedName(`我的位置（${lat.toFixed(3)}, ${lng.toFixed(3)}）`);
-          }
-        },
-        onFail,
-        { enableHighAccuracy: highAccuracy, timeout, maximumAge: 600000 },
-      );
+    // 并行策略：先要一个 10 分钟内的缓存定位（瞬时返回），同时启动高精度真实定位。
+    // 谁先成功就用谁，避免手机端等 GPS 锁定的几秒空白。
+    let settled = false;
+    const finish = (pos: GeolocationPosition) => {
+      if (settled) return;
+      settled = true;
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      coordsRef.current = { lat, lng };
+      setHasCoords(true);
+      setAutoLocated(true);
+      setCity("");
+      setLocating(false);
+      setLocatedName("正在识别…");
+      // 反向地理编码不阻塞主流程，失败也已经拿到坐标
+      void reverseGeocode(lat, lng);
     };
 
-    attempt(false, 8000, (err) => {
-      // 第一次失败：超时 / 位置不可用时自动重试一次（高精度、更长超时）
-      if (err.code === 2 || err.code === 3) {
-        attempt(true, 15000, (err2) => {
-          setLocating(false);
-          const reason =
-            err2.code === 1 ? (inIframe ? "预览窗口禁止了定位权限（在新标签页打开后可用）" : "你拒绝了定位权限")
-            : err2.code === 2 ? "暂时拿不到位置信号，可以手动选一个城市"
-            : err2.code === 3 ? "定位超时，可以手动选一个城市"
-            : "定位失败";
-          setError(reason);
-        });
-        return;
-      }
+    const fail = (err: GeolocationPositionError) => {
+      if (settled) return;
+      settled = true;
       setLocating(false);
       const reason =
         err.code === 1 ? (inIframe ? "预览窗口禁止了定位权限（在新标签页打开后可用）" : "你拒绝了定位权限")
+        : err.code === 2 ? "暂时拿不到位置信号，可以手动选一个城市"
+        : err.code === 3 ? "定位超时，可以手动选一个城市"
         : "定位失败";
-      setError(`${reason}，挑一个城市吧`);
-    });
+      setError(reason);
+    };
+
+    // 1) 先要缓存（5分钟内），低精度即可 —— 通常 <100ms 返回
+    navigator.geolocation.getCurrentPosition(
+      finish,
+      () => { /* 缓存失败不上报，让高精度兜底 */ },
+      { enableHighAccuracy: false, timeout: 3000, maximumAge: 300000 },
+    );
+
+    // 2) 同时启动高精度真实定位，兜底
+    navigator.geolocation.getCurrentPosition(
+      finish,
+      fail,
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 },
+    );
   }
+
+  async function reverseGeocode(lat: number, lng: number) {
+    try {
+      // 先用 BigDataCloud（无需 key、CDN 节点多，国内更快）
+      let name = "";
+      let cityName = "";
+      try {
+        const r = await fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=zh-CN`,
+        );
+        const j = await r.json();
+        cityName = j.city || j.locality || "";
+        const parts = [
+          j.principalSubdivision,
+          cityName,
+          j.localityInfo?.administrative?.find((a: { adminLevel?: number; name?: string }) => a.adminLevel === 6)?.name,
+        ].filter(Boolean);
+        name = Array.from(new Set(parts)).join(" · ");
+      } catch { /* fallback */ }
+
+      if (!name) {
+        const r2 = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=zh-CN&zoom=12`,
+          { headers: { Accept: "application/json" } },
+        );
+        const j2 = await r2.json();
+        const a = j2.address || {};
+        cityName = a.city || a.town || a.county || a.state || cityName;
+        const parts = [a.state, cityName, a.city_district || a.district || a.suburb].filter(Boolean);
+        name = Array.from(new Set(parts)).join(" · ") || cityName || "我的位置";
+      }
+      setLocatedName(toSimplified(name));
+      if (cityName) setCity(toSimplified(cityName));
+    } catch {
+      setLocatedName(`我的位置（${lat.toFixed(3)}, ${lng.toFixed(3)}）`);
+    }
+  }
+
 
 
   useEffect(() => {
