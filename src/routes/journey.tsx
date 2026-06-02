@@ -194,7 +194,7 @@ function BundleCard({
       />
       <div className="flex items-center justify-between">
         <div className="display italic text-[10px] tracking-[0.3em] text-[var(--ink-soft)]">
-          {purchased ? "✓ ALREADY UNLOCKED" : "✦ TODAY ONLY · BUNDLE"}
+          {purchased ? "✓ PASS ACTIVATED" : "✦ TODAY ONLY · ONE-DAY PASS"}
         </div>
         <div className="display italic text-[10px] text-[var(--ink-soft)]/70">#{bundle.dealId}</div>
       </div>
@@ -202,19 +202,34 @@ function BundleCard({
       <h3 className="cn-serif text-[18px] text-[var(--ink)] mt-2 leading-snug">{bundle.title}</h3>
       <div className="cn-serif text-[12.5px] italic text-[var(--ink-soft)] mt-0.5">{bundle.subtitle}</div>
 
+      {/* 通行证元信息 · 像车票上的小字 */}
+      <div className="mt-2.5 flex items-center gap-2 cn-serif text-[11px] text-[var(--ink-soft)]">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-dashed border-[var(--border)]">
+          🎟 一日通行证
+        </span>
+        <span>今日有效</span>
+        <span className="opacity-50">·</span>
+        <span>{bundle.highlights.length} 站全程</span>
+        <span className="opacity-50">·</span>
+        <span>一码核销</span>
+      </div>
+
       <div className="flex flex-wrap gap-1.5 mt-3">
         {bundle.highlights.map((h, i) => (
           <span
             key={i}
             className="cn-serif text-[11px] px-2 py-0.5 rounded-full bg-[var(--muted)] text-[var(--ink)]"
           >
-            {h}
+            {i + 1}. {h}
           </span>
         ))}
       </div>
 
-      {/* 分隔虚线 */}
-      <div className="mt-4 border-t border-dashed border-[var(--border)]" />
+      {/* 分隔虚线 —— 像票根的撕口 */}
+      <div className="mt-4 relative border-t border-dashed border-[var(--border)]">
+        <span className="absolute -left-3 -top-1.5 w-3 h-3 rounded-full bg-[var(--background)] border-r border-[var(--border)]" />
+        <span className="absolute -right-3 -top-1.5 w-3 h-3 rounded-full bg-[var(--background)] border-l border-[var(--border)]" />
+      </div>
 
       <div className="flex items-end justify-between mt-3">
         <div>
@@ -229,15 +244,16 @@ function BundleCard({
             </span>
             {!purchased && (
               <span className="display italic text-[10px] tracking-[0.15em] text-[oklch(0.55_0.13_50)]">
-                省 ¥{save}
+                省 ¥{save} · 单买更贵
               </span>
             )}
           </div>
         </div>
         <div className="cn-serif text-[12px] px-4 py-2 rounded-full bg-[var(--ink)] text-[var(--card)]">
-          {purchased ? "查看核销 →" : "锁定 →"}
+          {purchased ? "查看通行证 →" : "领取通行证 →"}
         </div>
       </div>
+
     </button>
   );
 }
