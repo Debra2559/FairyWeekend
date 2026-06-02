@@ -177,10 +177,11 @@ export async function runQuest(input: QuestInput): Promise<QuestOutput> {
 
     return {
       journey: undefined,
-      city: input.city || "上海",
+      city: (input.city || "").trim(),
       poiCount: 0,
       keywords: [],
       error: String(e),
     };
+
   }
 }
