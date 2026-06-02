@@ -486,19 +486,22 @@ function CardPage() {
       )}
 
       <div className="mt-8 flex flex-col items-center gap-3">
-        <button onClick={handleStart} disabled={generating} className="btn-soft w-full justify-center">
+        <button onClick={handleStart} disabled={generating || locating} className="btn-soft w-full justify-center">
           {generating ? (
             <span className="cursor-blink">{LOADING_LINES[loadingIdx]}</span>
+          ) : locating ? (
+            <span className="opacity-80">📍 正在确认你在哪…</span>
           ) : (
             "开始今日剧情 →"
           )}
         </button>
-        {!generating && (
+        {!generating && !locating && (
           <button onClick={() => navigate({ to: "/" })} className="btn-ghost">
             再抽一次
           </button>
         )}
       </div>
+
     </div>
   );
 }
