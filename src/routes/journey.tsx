@@ -96,7 +96,9 @@ function JourneyPage() {
           scenes={journey.scenes}
           completed={completedSceneOrders}
           onPick={(s) => setOpenScene(s)}
+          cardId={card.id}
         />
+
       </div>
 
       {/* Legend / progress */}
