@@ -536,24 +536,182 @@ function BundleSheet({
 
 /* ============ Map ============ */
 
+type MapThemeId = "forest" | "bloom" | "coast" | "dusk_city" | "sepia_alley" | "moonlit";
+
+interface MapTheme {
+  id: MapThemeId;
+  bg: string;                  // container gradient
+  hills: { d: string; fill: string; opacity: number }[];
+  dotShades: string[];
+  pathStroke: string;          // edge
+  pathFillFrom: string;
+  pathFillTo: string;
+  pathDash: string;
+  sun?: { cx: number; cy: number; r: number; core: string; halo: string };
+  moon?: { cx: number; cy: number; r: number; color: string };
+  pond?: { cx: number; cy: number; rx: number; ry: number; outer: string; inner: string };
+  extras?: "waves" | "buildings" | "lanterns" | "petals" | "stars" | "fireflies";
+  birdsColor?: string;
+}
+
+const FOREST: MapTheme = {
+  id: "forest",
+  bg: "linear-gradient(180deg, #eaf0df 0%, #d6e2c5 100%)",
+  hills: [
+    { d: "M 60 130 Q 130 60, 200 110 T 320 130 L 320 200 L 60 200 Z", fill: "#b8c9a0", opacity: 0.55 },
+    { d: "M 30 200 Q 110 130, 200 180 T 340 190 L 340 280 L 30 280 Z", fill: "#9fb487", opacity: 0.6 },
+    { d: "M 0 290 Q 100 240, 200 280 T 360 290 L 360 380 L 0 380 Z", fill: "#86a26f", opacity: 0.55 },
+    { d: "M 0 400 Q 120 360, 200 400 T 360 410 L 360 560 L 0 560 Z", fill: "#739158", opacity: 0.45 },
+  ],
+  dotShades: ["#6f8a55", "#5d7846", "#88a36b", "#7a9560"],
+  pathStroke: "#c9bf9e",
+  pathFillFrom: "#fff8e8",
+  pathFillTo: "#f3ead0",
+  pathDash: "#fffdf3",
+  sun: { cx: 200, cy: 30, r: 14, core: "#e8794a", halo: "#f4a261" },
+  pond: { cx: 120, cy: 500, rx: 55, ry: 20, outer: "#a8c7d6", inner: "#bcd6e2" },
+  birdsColor: "#5d7846",
+};
+
+const BLOOM: MapTheme = {
+  id: "bloom",
+  bg: "linear-gradient(180deg, #fbeaf0 0%, #f5d8e4 60%, #ead4e8 100%)",
+  hills: [
+    { d: "M 60 130 Q 130 60, 200 110 T 320 130 L 320 200 L 60 200 Z", fill: "#f3c3d4", opacity: 0.55 },
+    { d: "M 30 200 Q 110 130, 200 180 T 340 190 L 340 280 L 30 280 Z", fill: "#e8a8c0", opacity: 0.6 },
+    { d: "M 0 290 Q 100 240, 200 280 T 360 290 L 360 380 L 0 380 Z", fill: "#d88aae", opacity: 0.5 },
+    { d: "M 0 400 Q 120 360, 200 400 T 360 410 L 360 560 L 0 560 Z", fill: "#c47a9e", opacity: 0.4 },
+  ],
+  dotShades: ["#e89ab8", "#d47ea4", "#f3b8cf", "#c46a92"],
+  pathStroke: "#e8c2d2",
+  pathFillFrom: "#fff5fa",
+  pathFillTo: "#f8dfe9",
+  pathDash: "#fffdf3",
+  sun: { cx: 280, cy: 50, r: 16, core: "#f5a8c0", halo: "#fbd0de" },
+  pond: { cx: 110, cy: 500, rx: 55, ry: 20, outer: "#e8c2d2", inner: "#f5d8e4" },
+  extras: "petals",
+  birdsColor: "#b8688a",
+};
+
+const COAST: MapTheme = {
+  id: "coast",
+  bg: "linear-gradient(180deg, #e0eef5 0%, #c8def0 50%, #a8c8e0 100%)",
+  hills: [
+    { d: "M 60 110 Q 130 50, 200 100 T 320 120 L 320 180 L 60 180 Z", fill: "#d8c8a8", opacity: 0.55 },
+    { d: "M 0 190 Q 120 150, 200 180 T 360 195 L 360 260 L 0 260 Z", fill: "#e8d8b8", opacity: 0.6 },
+    // sandy beach
+    { d: "M 0 260 Q 180 240, 360 270 L 360 340 L 0 340 Z", fill: "#f3e8c8", opacity: 0.85 },
+    // sea
+    { d: "M 0 330 Q 180 320, 360 340 L 360 560 L 0 560 Z", fill: "#7fb0d0", opacity: 0.7 },
+  ],
+  dotShades: ["#a8b88a", "#8aa873", "#c4b890", "#9ab080"],
+  pathStroke: "#e8d8b0",
+  pathFillFrom: "#fff8e0",
+  pathFillTo: "#f3e0b8",
+  pathDash: "#fffdf3",
+  sun: { cx: 290, cy: 40, r: 18, core: "#ff9e6a", halo: "#ffce9a" },
+  extras: "waves",
+  birdsColor: "#3a5a78",
+};
+
+const DUSK_CITY: MapTheme = {
+  id: "dusk_city",
+  bg: "linear-gradient(180deg, #3a2a4a 0%, #6a4a6a 40%, #d88a78 80%, #f5c89a 100%)",
+  hills: [
+    { d: "M 0 360 Q 100 330, 200 350 T 360 360 L 360 560 L 0 560 Z", fill: "#2a1a3a", opacity: 0.75 },
+  ],
+  dotShades: ["#ffe09a", "#ffc070", "#fff0c0", "#f5a878"],
+  pathStroke: "#3a2a4a",
+  pathFillFrom: "#fff5d8",
+  pathFillTo: "#f5b878",
+  pathDash: "#fffdf3",
+  moon: { cx: 290, cy: 50, r: 14, color: "#fff5d8" },
+  extras: "buildings",
+  birdsColor: "#2a1a3a",
+};
+
+const SEPIA_ALLEY: MapTheme = {
+  id: "sepia_alley",
+  bg: "linear-gradient(180deg, #f3e6d0 0%, #e8d0b0 60%, #d8b890 100%)",
+  hills: [
+    { d: "M 60 130 Q 130 60, 200 110 T 320 130 L 320 200 L 60 200 Z", fill: "#c8a878", opacity: 0.5 },
+    { d: "M 0 200 Q 100 160, 200 195 T 360 210 L 360 290 L 0 290 Z", fill: "#b89868", opacity: 0.55 },
+    { d: "M 0 300 Q 120 260, 200 295 T 360 310 L 360 390 L 0 390 Z", fill: "#a08858", opacity: 0.5 },
+    { d: "M 0 410 Q 120 370, 200 410 T 360 420 L 360 560 L 0 560 Z", fill: "#8c7448", opacity: 0.4 },
+  ],
+  dotShades: ["#8c7448", "#6e5a38", "#a08858", "#7e6a40"],
+  pathStroke: "#8c7448",
+  pathFillFrom: "#fff0d8",
+  pathFillTo: "#e8c890",
+  pathDash: "#fffdf3",
+  sun: { cx: 200, cy: 40, r: 18, core: "#c46a3a", halo: "#e8a878" },
+  extras: "lanterns",
+  birdsColor: "#6e5a38",
+};
+
+const MOONLIT: MapTheme = {
+  id: "moonlit",
+  bg: "linear-gradient(180deg, #1a2440 0%, #2a3a5a 50%, #4a5a78 100%)",
+  hills: [
+    { d: "M 60 130 Q 130 60, 200 110 T 320 130 L 320 200 L 60 200 Z", fill: "#3a4a6a", opacity: 0.55 },
+    { d: "M 30 200 Q 110 130, 200 180 T 340 190 L 340 280 L 30 280 Z", fill: "#2c3c5c", opacity: 0.6 },
+    { d: "M 0 290 Q 100 240, 200 280 T 360 290 L 360 380 L 0 380 Z", fill: "#1f2f50", opacity: 0.65 },
+    { d: "M 0 400 Q 120 360, 200 400 T 360 410 L 360 560 L 0 560 Z", fill: "#15243f", opacity: 0.65 },
+  ],
+  dotShades: ["#3a4a6a", "#2c3c5c", "#5a6a8a", "#4a5a78"],
+  pathStroke: "#3a4a6a",
+  pathFillFrom: "#e8e0f5",
+  pathFillTo: "#b8b0d8",
+  pathDash: "#fffdf3",
+  moon: { cx: 290, cy: 55, r: 16, color: "#f5efdc" },
+  pond: { cx: 120, cy: 500, rx: 55, ry: 20, outer: "#3a5a78", inner: "#5a7a98" },
+  extras: "stars",
+  birdsColor: "#8a9ab8",
+};
+
+const THEMES: Record<MapThemeId, MapTheme> = {
+  forest: FOREST,
+  bloom: BLOOM,
+  coast: COAST,
+  dusk_city: DUSK_CITY,
+  sepia_alley: SEPIA_ALLEY,
+  moonlit: MOONLIT,
+};
+
+// 按人设卡映射地图主题
+const CARD_THEME: Record<string, MapThemeId> = {
+  card_001: "forest",       // 治愈/自然
+  card_002: "sepia_alley",  // 慵懒短时
+  card_003: "dusk_city",    // 好奇热闹
+  card_004: "coast",        // 冒险/燥
+  card_005: "moonlit",      // 脆弱修复
+  card_006: "sepia_alley",  // 怀旧释然
+  card_007: "bloom",        // 感性记录
+  card_008: "dusk_city",    // 紧张好奇
+  card_009: "bloom",        // 想笑大声
+  card_010: "moonlit",      // 慢一点
+};
+
+function getMapTheme(cardId: string): MapTheme {
+  return THEMES[CARD_THEME[cardId] ?? "forest"];
+}
+
 function JourneyMap({
-  scenes, completed, onPick,
+  scenes, completed, onPick, cardId,
 }: {
   scenes: JourneyScene[];
   completed: number[];
   onPick: (s: JourneyScene) => void;
+  cardId: string;
 }) {
-  // Vertical winding path through the canvas. Scene nodes positioned along it.
   const W = 360;
   const H = 560;
+  const theme = getMapTheme(cardId);
 
-  // Path d (S-curve top→bottom)
   const pathD = "M 200 40 C 110 110, 280 180, 180 250 S 90 360, 200 430 S 280 510, 170 540";
 
-  // Sample points along path for scene markers
   const points = useMemo(() => {
     const n = scenes.length;
-    // approximate evenly along path using SVGPathElement in DOM (client only)
     if (typeof document === "undefined") {
       return scenes.map((_, i) => ({ x: 180 + (i % 2 === 0 ? -40 : 40), y: 80 + (i * 420) / (n - 1 || 1) }));
     }
@@ -570,54 +728,137 @@ function JourneyMap({
     });
   }, [scenes]);
 
+  // 按主题决定圆点遮罩区域（避免压在沙滩/海/天空上）
+  const dotYMax = theme.extras === "waves" ? 340 : theme.extras === "buildings" ? 350 : 530;
+  const dotYMin = theme.extras === "stars" || theme.extras === "buildings" ? 200 : 90;
+
   return (
-    <div className="relative rounded-3xl overflow-hidden shadow-[0_20px_50px_-30px_rgba(80,90,60,0.5)]"
-         style={{ background: "linear-gradient(180deg, #eaf0df 0%, #d6e2c5 100%)" }}>
+    <div
+      className="relative rounded-3xl overflow-hidden shadow-[0_20px_50px_-30px_rgba(80,90,60,0.5)]"
+      style={{ background: theme.bg }}
+    >
       <svg viewBox={`0 0 ${W} ${H}`} className="block w-full h-auto">
         <defs>
-          <radialGradient id="sun" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#f4a261" stopOpacity="1" />
-            <stop offset="100%" stopColor="#f4a261" stopOpacity="0" />
+          <radialGradient id={`sun-${theme.id}`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={theme.sun?.halo ?? "#f4a261"} stopOpacity="1" />
+            <stop offset="100%" stopColor={theme.sun?.halo ?? "#f4a261"} stopOpacity="0" />
           </radialGradient>
-          <linearGradient id="pathGrad" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#fff8e8" />
-            <stop offset="100%" stopColor="#f3ead0" />
+          <linearGradient id={`pathGrad-${theme.id}`} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor={theme.pathFillFrom} />
+            <stop offset="100%" stopColor={theme.pathFillTo} />
           </linearGradient>
         </defs>
 
-        {/* Distant hills */}
-        <ellipse cx="200" cy="30" r="14" fill="url(#sun)" />
-        <circle cx="200" cy="30" r="6" fill="#e8794a" opacity="0.85" />
-
-        <path d="M 60 130 Q 130 60, 200 110 T 320 130 L 320 200 L 60 200 Z" fill="#b8c9a0" opacity="0.55" />
-        <path d="M 30 200 Q 110 130, 200 180 T 340 190 L 340 280 L 30 280 Z" fill="#9fb487" opacity="0.6" />
-        <path d="M 0 290 Q 100 240, 200 280 T 360 290 L 360 380 L 0 380 Z" fill="#86a26f" opacity="0.55" />
-        <path d="M 0 400 Q 120 360, 200 400 T 360 410 L 360 560 L 0 560 Z" fill="#739158" opacity="0.45" />
-
-        {/* Tree dots scattered */}
-        {Array.from({ length: 40 }).map((_, i) => {
-          const x = 20 + ((i * 53) % 320);
-          const y = 90 + ((i * 71) % 440);
-          const r = 4 + ((i * 7) % 5);
-          const shades = ["#6f8a55", "#5d7846", "#88a36b", "#7a9560"];
-          return <circle key={i} cx={x} cy={y} r={r} fill={shades[i % shades.length]} opacity="0.7" />;
+        {/* 星星（夜空主题） */}
+        {theme.extras === "stars" && Array.from({ length: 32 }).map((_, i) => {
+          const x = 10 + ((i * 47) % 340);
+          const y = 20 + ((i * 31) % 170);
+          const r = 0.6 + ((i * 13) % 8) / 10;
+          return <circle key={`s-${i}`} cx={x} cy={y} r={r} fill="#fff5d8" opacity={0.55 + (i % 5) * 0.08} />;
         })}
 
-        {/* Winding path: dark stroke for road edge then light fill */}
-        <path d={pathD} stroke="#c9bf9e" strokeWidth="22" fill="none" strokeLinecap="round" opacity="0.6" />
-        <path d={pathD} stroke="url(#pathGrad)" strokeWidth="14" fill="none" strokeLinecap="round" />
-        <path d={pathD} stroke="#fffdf3" strokeWidth="2" strokeDasharray="2 8" fill="none" strokeLinecap="round" opacity="0.7" />
+        {/* 太阳 / 月亮 */}
+        {theme.sun && (
+          <>
+            <ellipse cx={theme.sun.cx} cy={theme.sun.cy} rx={theme.sun.r * 2.4} ry={theme.sun.r * 2.4} fill={`url(#sun-${theme.id})`} />
+            <circle cx={theme.sun.cx} cy={theme.sun.cy} r={theme.sun.r * 0.5} fill={theme.sun.core} opacity={0.9} />
+          </>
+        )}
+        {theme.moon && (
+          <>
+            <circle cx={theme.moon.cx} cy={theme.moon.cy} r={theme.moon.r * 1.6} fill={theme.moon.color} opacity={0.18} />
+            <circle cx={theme.moon.cx} cy={theme.moon.cy} r={theme.moon.r} fill={theme.moon.color} />
+            <circle cx={theme.moon.cx + theme.moon.r * 0.35} cy={theme.moon.cy - theme.moon.r * 0.15} r={theme.moon.r * 0.95} fill={theme.bg.includes("1a2440") ? "#1a2440" : "#3a2a4a"} />
+          </>
+        )}
 
-        {/* Small pond */}
-        <ellipse cx="120" cy="500" rx="55" ry="20" fill="#a8c7d6" opacity="0.7" />
-        <ellipse cx="120" cy="500" rx="40" ry="13" fill="#bcd6e2" opacity="0.6" />
+        {/* 山形 */}
+        {theme.hills.map((h, i) => (
+          <path key={`h-${i}`} d={h.d} fill={h.fill} opacity={h.opacity} />
+        ))}
 
-        {/* Birds */}
-        <path d="M 70 90 q 4 -4 8 0 q 4 -4 8 0" stroke="#5d7846" strokeWidth="1.2" fill="none" />
-        <path d="M 290 220 q 3 -3 6 0 q 3 -3 6 0" stroke="#5d7846" strokeWidth="1.2" fill="none" />
+        {/* 城市建筑剪影 */}
+        {theme.extras === "buildings" && (
+          <g opacity="0.85">
+            {[
+              { x: 20, h: 70 }, { x: 50, h: 110 }, { x: 78, h: 85 }, { x: 105, h: 140 },
+              { x: 135, h: 95 }, { x: 165, h: 165 }, { x: 200, h: 120 }, { x: 235, h: 175 },
+              { x: 270, h: 100 }, { x: 300, h: 145 }, { x: 332, h: 90 },
+            ].map((b, i) => (
+              <g key={`b-${i}`}>
+                <rect x={b.x} y={350 - b.h} width={22} height={b.h} fill="#1a0e26" />
+                {Array.from({ length: Math.floor(b.h / 18) }).map((_, j) => (
+                  <rect key={j} x={b.x + 4 + ((i + j) % 2) * 9} y={350 - b.h + 8 + j * 18} width={4} height={5} fill="#ffe09a" opacity={(i * j) % 3 === 0 ? 0.95 : 0.5} />
+                ))}
+              </g>
+            ))}
+          </g>
+        )}
+
+        {/* 灯笼（旧巷主题） */}
+        {theme.extras === "lanterns" && Array.from({ length: 6 }).map((_, i) => {
+          const x = 40 + i * 55;
+          const y = 70 + (i % 2) * 18;
+          return (
+            <g key={`l-${i}`}>
+              <line x1={x} y1={50} x2={x} y2={y - 6} stroke="#6e5a38" strokeWidth="0.8" />
+              <ellipse cx={x} cy={y} rx={6} ry={8} fill="#e8794a" opacity="0.9" />
+              <ellipse cx={x} cy={y} rx={9} ry={11} fill="#f5a878" opacity="0.25" />
+            </g>
+          );
+        })}
+
+        {/* 花瓣 */}
+        {theme.extras === "petals" && Array.from({ length: 18 }).map((_, i) => {
+          const x = 15 + ((i * 67) % 340);
+          const y = 30 + ((i * 41) % 500);
+          return <circle key={`p-${i}`} cx={x} cy={y} r={1.8} fill="#f5b8c4" opacity={0.7} />;
+        })}
+
+        {/* 树点 */}
+        {Array.from({ length: 36 }).map((_, i) => {
+          const x = 20 + ((i * 53) % 320);
+          const yRaw = 90 + ((i * 71) % 440);
+          const y = Math.min(Math.max(yRaw, dotYMin), dotYMax);
+          const r = 3 + ((i * 7) % 5);
+          return <circle key={`d-${i}`} cx={x} cy={y} r={r} fill={theme.dotShades[i % theme.dotShades.length]} opacity={0.7} />;
+        })}
+
+        {/* 海浪线（海边主题） */}
+        {theme.extras === "waves" && Array.from({ length: 5 }).map((_, i) => (
+          <path
+            key={`w-${i}`}
+            d={`M 0 ${380 + i * 35} Q 90 ${370 + i * 35}, 180 ${380 + i * 35} T 360 ${380 + i * 35}`}
+            stroke="#fffdf3"
+            strokeWidth="1.2"
+            fill="none"
+            opacity={0.4 - i * 0.05}
+          />
+        ))}
+
+        {/* 路径 */}
+        <path d={pathD} stroke={theme.pathStroke} strokeWidth="22" fill="none" strokeLinecap="round" opacity="0.6" />
+        <path d={pathD} stroke={`url(#pathGrad-${theme.id})`} strokeWidth="14" fill="none" strokeLinecap="round" />
+        <path d={pathD} stroke={theme.pathDash} strokeWidth="2" strokeDasharray="2 8" fill="none" strokeLinecap="round" opacity="0.7" />
+
+        {/* 池塘 */}
+        {theme.pond && (
+          <>
+            <ellipse cx={theme.pond.cx} cy={theme.pond.cy} rx={theme.pond.rx} ry={theme.pond.ry} fill={theme.pond.outer} opacity="0.7" />
+            <ellipse cx={theme.pond.cx} cy={theme.pond.cy} rx={theme.pond.rx * 0.72} ry={theme.pond.ry * 0.65} fill={theme.pond.inner} opacity="0.6" />
+          </>
+        )}
+
+        {/* 飞鸟 */}
+        {theme.birdsColor && (
+          <>
+            <path d="M 70 90 q 4 -4 8 0 q 4 -4 8 0" stroke={theme.birdsColor} strokeWidth="1.2" fill="none" />
+            <path d="M 290 220 q 3 -3 6 0 q 3 -3 6 0" stroke={theme.birdsColor} strokeWidth="1.2" fill="none" />
+          </>
+        )}
       </svg>
 
-      {/* Scene markers as absolute-positioned buttons */}
+      {/* Scene markers */}
       {points.map((pt, i) => {
         const scene = scenes[i];
         const done = completed.includes(scene.order);
@@ -630,7 +871,6 @@ function JourneyMap({
             style={{ left: `${(pt.x / W) * 100}%`, top: `${(pt.y / H) * 100}%` }}
           >
             <div className="relative flex flex-col items-center">
-              {/* venue illustration with cushion */}
               <div
                 className="relative rounded-full transition-transform group-hover:scale-110"
                 style={{
@@ -641,7 +881,6 @@ function JourneyMap({
                 }}
               >
                 <VenueIcon kind={kind} size={56} />
-                {/* order pill */}
                 <div
                   className="absolute -top-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center display text-[10px]"
                   style={{
@@ -664,10 +903,10 @@ function JourneyMap({
           </button>
         );
       })}
-
     </div>
   );
 }
+
 
 /* ============ Scene bottom sheet ============ */
 
