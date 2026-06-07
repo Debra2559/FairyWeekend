@@ -198,6 +198,8 @@ function JourneyPage() {
           setOpenScene(null);
         }}
       />
+
+      <JourneyInviteFab run={run} />
     </div>
   );
 }
