@@ -1302,6 +1302,102 @@ function SceneSheet({
   );
 }
 
+/* ============ Reservation card ============ */
+
+function ReservationCard({
+  kind, scene, city, record, onUpdated,
+}: {
+  kind: string;
+  scene: JourneyScene;
+  city?: string;
+  record?: SceneRecord;
+  onUpdated: () => void;
+}) {
+  const [justReserved, setJustReserved] = useState(false);
+  const reserved = record?.reserved ?? false;
+  const meituanHref = buildMeituanReserveHref(scene.meituan_keyword || scene.location_name, city);
+  const dianpingHref = buildDianpingReserveHref(scene.meituan_keyword || scene.location_name, city);
+
+  function markReserved() {
+    reserveScene(scene.order, true);
+    setJustReserved(true);
+    setTimeout(() => setJustReserved(false), 2000);
+    onUpdated();
+    toast.success("已标记预约 ✓", { description: `「${scene.location_name}」记得按时到店` });
+  }
+
+  function cancelReserved() {
+    reserveScene(scene.order, false);
+    onUpdated();
+    toast("已取消预约标记");
+  }
+
+  return (
+    <div
+      className="mt-3 p-4 rounded-2xl border"
+      style={{
+        background: reserved
+          ? "linear-gradient(135deg, #e8f5e9 0%, #d4edda 100%)"
+          : "linear-gradient(135deg, #fff8e1 0%, #fff3e0 100%)",
+        borderColor: reserved ? "#c8e6c9" : "#ffe0b2",
+      }}
+    >
+      <div className="flex items-start gap-3">
+        <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-lg"
+          style={{ background: reserved ? "#a5d6a7" : "#ffcc80" }}>
+          {reserved ? "✓" : "⏰"}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="cn-serif text-[13px] text-[var(--ink)]">
+            {reserved ? `已预约 · ${getReservationLabel(kind)}` : `建议提前${getReservationLabel(kind)}`}
+          </div>
+          <div className="cn-serif text-[11.5px] text-[var(--ink-soft)] mt-0.5">
+            {getReservationHint(kind)}
+          </div>
+
+          {!reserved ? (
+            <div className="flex items-center gap-2 mt-2.5">
+              <a
+                href={meituanHref}
+                target="_blank"
+                rel="noreferrer"
+                onClick={markReserved}
+                className="cn-serif text-[12px] px-3 py-1.5 rounded-full transition hover:opacity-90"
+                style={{ background: "#e85d3a", color: "#fff" }}
+              >
+                在美团{getReservationLabel(kind)} →
+              </a>
+              <a
+                href={dianpingHref}
+                target="_blank"
+                rel="noreferrer"
+                onClick={markReserved}
+                className="cn-serif text-[12px] px-3 py-1.5 rounded-full transition hover:opacity-90"
+                style={{ background: "#ff9900", color: "#fff" }}
+              >
+                在大众{getReservationLabel(kind)} →
+              </a>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 mt-2.5">
+              <span className="cn-serif text-[12px] px-3 py-1.5 rounded-full"
+                style={{ background: "#c8e6c9", color: "#2e7d32" }}>
+                {justReserved ? "刚刚标记 ✓" : "已完成预约"}
+              </span>
+              <button
+                onClick={cancelReserved}
+                className="cn-serif text-[11px] text-[var(--ink-soft)] underline-offset-4 hover:underline"
+              >
+                取消标记
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ============ Per-scene deals & recommendations ============ */
 
 function SceneDeals({
