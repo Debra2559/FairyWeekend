@@ -196,8 +196,10 @@ export function DualAgentOverlay({ visible }: { visible: boolean }) {
           </div>
         </div>
       </div>
+      </div>
 
       <style>{`
+
         @keyframes agent-mote-drift {
           0%   { transform: translate3d(0, 0, 0) scale(1);   opacity: 0; }
           15%  { opacity: 0.55; }
