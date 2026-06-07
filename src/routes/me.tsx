@@ -42,6 +42,7 @@ import {
 } from "@/lib/persona-store";
 import { VenueIcon, detectVenue } from "@/components/VenueIcon";
 import { UserPhotoCard } from "@/components/UserPhotoCard";
+import { RouteOverviewMap } from "@/components/RouteOverviewMap";
 import type * as ExportPdf from "@/lib/export-pdf";
 const loadExportPdf = () => import("@/lib/export-pdf");
 const elementToImageBlob: typeof ExportPdf.elementToImageBlob = (...args) =>
