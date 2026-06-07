@@ -1556,7 +1556,6 @@ function CollectionSearch({
   const filters: Array<[CollectionKind, string]> = [
     ["all", "全部"],
     ["planned", "待出行"],
-    ["routes", "路线"],
     ["places", "地点"],
     ["activities", "活动"],
   ];
