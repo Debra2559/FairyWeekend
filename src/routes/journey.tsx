@@ -1411,12 +1411,11 @@ function SceneSheet({
 /* ============ Reservation card ============ */
 
 function ReservationCard({
-  kind, scene, city, card, record, onUpdated,
+  kind, scene, city, record, onUpdated,
 }: {
   kind: import("@/components/VenueIcon").VenueKind;
   scene: JourneyScene;
   city?: string;
-  card?: PersonaCard;
   record?: SceneRecord;
   onUpdated: () => void;
 }) {
