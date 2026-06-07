@@ -4,6 +4,7 @@ import { PERSONA_CARDS, drawCard, RARITY_LABEL, preloadAllCovers } from "@/lib/c
 import { savePendingCard } from "@/lib/persona-store";
 import type { PersonaCard } from "@/lib/persona-types";
 import { AgentChatView } from "@/components/AgentChatView";
+import { OnboardingTour } from "@/components/OnboardingTour";
 import { getUserPhoto, subscribeUserPhoto } from "@/lib/user-photo";
 
 export const Route = createFileRoute("/")({ component: Index });
