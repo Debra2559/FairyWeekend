@@ -1987,26 +1987,24 @@ function CheckInPanel({
         className="mt-6 rounded-2xl border p-5 fade-up text-center"
         style={{ background: "linear-gradient(160deg,#fffdf6 0%,#fdf3ea 100%)", borderColor: "#f0e1c8" }}
       >
-        <div className="cn-serif text-[11px] tracking-[0.3em] text-[var(--ink-soft)] mb-3">
+        <div className="cn-serif text-[11px] tracking-[0.3em] text-[var(--ink-soft)] mb-2">
           CHECK IN · 来过这里
         </div>
-        <button
-          onClick={save}
-          disabled={busy}
-          className="btn-soft w-full justify-center"
-        >
-          完成打卡 ✦
-        </button>
+        <p className="cn-serif text-[12.5px] text-[var(--ink-soft)] leading-relaxed mb-3">
+          留下一点心情、几张照片，这一站才算真的来过。
+        </p>
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="cn-serif text-[12px] text-[var(--ink-soft)] mt-3 underline-offset-4 hover:underline"
+          className="btn-soft w-full justify-center"
         >
-          顺便记录一下 · 心情 / 随笔 / 照片 ↓
+          留下今天的痕迹 ✦
         </button>
       </div>
     );
   }
+
+
 
   // ============ Recap view (done & not editing) ============
   if (done && !editing) {
