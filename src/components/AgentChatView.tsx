@@ -151,7 +151,7 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
   }, [msgs, typing]);
 
   function handleChip(step: Step, label: string, tag: string, submit?: boolean) {
-    // 如果是提交类型的气泡，直接提交
+    // 提交类气泡：直接送出
     if (submit) {
       setMsgs((m) =>
         m.map((x) =>
@@ -162,12 +162,19 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
       advance(step, tags, freeText);
       return;
     }
-    // 否则追加到输入框（已有内容则用空格分隔）
-    setInput((prev) => (prev ? `${prev} ${label}` : label));
-    // 记录 tag（用于推荐匹配）
-    if (tag) setTags((prev) => [...prev, tag]);
-    // 不隐藏 chips，不提交，让用户继续选或编辑
+    // 单选 chip：切换选中态；选中时把 label 同步到输入框,再点同一个取消
+    setPickedSingle((prev) => {
+      const next = prev === label ? null : label;
+      setInput(next ?? "");
+      // tag 也跟随切换:再点取消时移除该 tag
+      if (tag) {
+        if (next) setTags((p) => (p.includes(tag) ? p : [...p, tag]));
+        else setTags((p) => p.filter((t) => t !== tag));
+      }
+      return next;
+    });
   }
+
 
   function handleMultiSubmit(step: Step, chips: { label: string; tag: string }[]) {
     if (picked.length === 0) return;
