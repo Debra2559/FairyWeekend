@@ -36,8 +36,11 @@ const STEPS = [
 export function OnboardingTour() {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
+  const stepRef = useRef(0);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
   const wheelLock = useRef(0);
   const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
