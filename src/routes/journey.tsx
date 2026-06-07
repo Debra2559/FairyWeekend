@@ -169,9 +169,38 @@ function JourneyPage() {
           city={city}
           onClose={() => setOpenScene(null)}
           onUpdated={refresh}
+          onCheckedIn={() => {
+            const justOrder = openScene.order;
+            setOpenScene(null);
+            // 计算下一站（未打卡且 order 更大；找不到则从头找任一未打卡）
+            const doneNow = Array.from(new Set([...completedSceneOrders, justOrder]));
+            const remaining = journey.scenes.filter((s) => !doneNow.includes(s.order));
+            const next =
+              remaining.find((s) => s.order > justOrder) ?? remaining[0];
+            if (next) {
+              toast.success("打卡完成 ✦", {
+                description: `下一站 · 「${next.scene_name}」${next.location_name}`,
+                action: {
+                  label: "去下一站 →",
+                  onClick: () => setOpenScene(next),
+                },
+                duration: 5000,
+              });
+            } else {
+              toast.success("今天的剧本走完了 ✶", {
+                description: "今日结语已经为你浮现",
+                action: {
+                  label: "解锁结语 ✶",
+                  onClick: () => navigate({ to: "/finale" }),
+                },
+                duration: 6000,
+              });
+            }
+          }}
           bundlePurchased={bundlePurchased}
         />
       )}
+
 
       {/* Bundle purchase sheet */}
       {bundleOpen && (
