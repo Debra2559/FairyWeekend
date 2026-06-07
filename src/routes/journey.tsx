@@ -8,6 +8,7 @@ import { buildBundle, isBundlePurchased, markBundlePurchased, type JourneyBundle
 import { getSceneDeals, type SceneDeal } from "@/lib/scene-deals";
 import { needsReservation, getReservationHint, getReservationLabel, buildMeituanReserveHref, buildDianpingReserveHref } from "@/lib/reservation";
 import { toast } from "sonner";
+import { JourneyChatPanel } from "@/components/JourneyChatPanel";
 
 
 export const Route = createFileRoute("/journey")({ component: JourneyPage });
