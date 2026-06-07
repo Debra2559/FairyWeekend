@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
-import { loadRun, recordScene, clearSceneRecord } from "@/lib/persona-store";
+import { loadRun, recordScene, clearSceneRecord, reserveScene } from "@/lib/persona-store";
 import type { JourneyRunState, JourneyScene, SceneRecord } from "@/lib/persona-types";
 import { VenueIcon, detectVenue } from "@/components/VenueIcon";
 import { getVenuePhotos } from "@/lib/venue-gallery";
 import { buildBundle, isBundlePurchased, markBundlePurchased, type JourneyBundle } from "@/lib/bundle";
 import { getSceneDeals, type SceneDeal } from "@/lib/scene-deals";
+import { needsReservation, getReservationHint, getReservationLabel, buildMeituanReserveHref, buildDianpingReserveHref } from "@/lib/reservation";
 import { toast } from "sonner";
 
 
