@@ -560,6 +560,8 @@ function MainTabs({ active, onChange }: { active: MainTab; onChange: (tab: MainT
   );
 }
 
+type OverviewDetailKey = "chapters" | "scenes" | "enhanced";
+
 function OverviewStats({
   stats,
   syncLabel,
@@ -569,10 +571,17 @@ function OverviewStats({
   syncLabel: string;
   sagas: ArchivedChapter[];
 }) {
-  const items = [
-    { icon: <RouteIcon size={16} strokeWidth={1.7} />, value: stats.chapters, label: "条路线", hint: "已经走完并归档的路线条数" },
-    { icon: <MapPinned size={16} strokeWidth={1.7} />, value: stats.scenes, label: "已打卡", hint: "累计打卡的地点数（每去一次记一次）" },
-    { icon: <PenLine size={16} strokeWidth={1.7} />, value: stats.enhanced, label: "已补记", hint: "已经上传照片或写下文字记录的地点数" },
+  const [detail, setDetail] = useState<OverviewDetailKey | null>(null);
+  const items: Array<{
+    key: OverviewDetailKey;
+    icon: JSX.Element;
+    value: number;
+    label: string;
+    hint: string;
+  }> = [
+    { key: "chapters", icon: <RouteIcon size={16} strokeWidth={1.7} />, value: stats.chapters, label: "条路线", hint: "已经走完并归档的路线条数 · 点击查看" },
+    { key: "scenes", icon: <MapPinned size={16} strokeWidth={1.7} />, value: stats.scenes, label: "已打卡", hint: "累计打卡的地点数 · 点击查看" },
+    { key: "enhanced", icon: <PenLine size={16} strokeWidth={1.7} />, value: stats.enhanced, label: "已补记", hint: "已上传照片或写下文字的地点数 · 点击查看" },
   ];
   return (
     <section className="rounded-[22px] border border-[#ead8d0] bg-[#fffaf2]/90 px-3 py-3">
@@ -584,23 +593,174 @@ function OverviewStats({
       </div>
       <div className="grid grid-cols-3 gap-2">
         {items.map((item) => (
-          <div
+          <button
             key={item.label}
+            type="button"
             title={item.hint}
-            className="flex min-h-14 items-center justify-center gap-2 rounded-[18px] border border-[#eee0d8] bg-white/60 px-2"
+            onClick={() => setDetail(item.key)}
+            className="flex min-h-14 items-center justify-center gap-2 rounded-[18px] border border-[#eee0d8] bg-white/60 px-2 text-left transition active:scale-[0.98] hover:border-[#d9c3b8] hover:bg-white/80"
           >
             <span className="text-[#6f5850]">{item.icon}</span>
             <div className="min-w-0">
               <div className="display text-[18px] leading-none text-[var(--ink)]">{item.value}</div>
               <div className="cn-serif text-[10px] text-[var(--ink-soft)]">{item.label}</div>
             </div>
-          </div>
+          </button>
         ))}
       </div>
       <RouteOverviewMap sagas={sagas} />
+      {detail && (
+        <OverviewDetailSheet
+          mode={detail}
+          sagas={sagas}
+          onClose={() => setDetail(null)}
+        />
+      )}
     </section>
   );
 }
+
+function OverviewDetailSheet({
+  mode,
+  sagas,
+  onClose,
+}: {
+  mode: OverviewDetailKey;
+  sagas: ArchivedChapter[];
+  onClose: () => void;
+}) {
+  const title =
+    mode === "chapters" ? "全部路线" : mode === "scenes" ? "打卡地点" : "补记记录";
+  const subtitle =
+    mode === "chapters"
+      ? "已经走完并归档的路线"
+      : mode === "scenes"
+        ? "累计打卡的地点（按路线分组）"
+        : "上传过照片或写过文字的地点";
+
+  // build rows based on mode
+  type Row = {
+    key: string;
+    title: string;
+    meta: string;
+    note?: string;
+    photo?: string;
+  };
+  const groups: Array<{ chapterTitle: string; date: string; rows: Row[] }> = [];
+
+  for (const ch of sagas) {
+    const date = formatArchiveDate(ch.createdAt);
+    const chapterTitle = `${ch.card.identity}${ch.city ? " · " + ch.city : ""}`;
+    if (mode === "chapters") {
+      const { done, total, pct } = routeCompletion(ch);
+      groups.push({
+        chapterTitle,
+        date,
+        rows: [{ key: ch.chapterId, title: chapterTitle, meta: `${done}/${total} 打卡 · ${pct}%` }],
+      });
+    } else {
+      const completedOrders = [...ch.completedSceneOrders].sort((a, b) => a - b);
+      const rows: Row[] = [];
+      for (const ord of completedOrders) {
+        const scene = ch.journey.scenes.find((s) => s.order === ord);
+        if (!scene) continue;
+        const rec = ch.sceneRecords?.[ord];
+        if (mode === "enhanced" && !(rec?.note || rec?.photo)) continue;
+        rows.push({
+          key: `${ch.chapterId}-${ord}`,
+          title: scene.location_name,
+          meta: scene.scene_name || scene.location_type || "",
+          note: rec?.note,
+          photo: rec?.photo,
+        });
+      }
+      if (rows.length > 0) groups.push({ chapterTitle, date, rows });
+    }
+  }
+
+  const totalCount = groups.reduce((s, g) => s + g.rows.length, 0);
+
+  return (
+    <div
+      className="fixed inset-0 z-[120] flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center"
+      onClick={onClose}
+    >
+      <div
+        className="max-h-[80vh] w-full max-w-[440px] overflow-hidden rounded-t-[24px] border border-[#ead8d0] bg-[#fffaf2] shadow-2xl sm:rounded-[24px]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between border-b border-[#f0e2da] px-4 py-3">
+          <div>
+            <div className="display text-[18px] leading-tight text-[var(--ink)]">{title}</div>
+            <div className="cn-serif text-[11px] text-[var(--ink-soft)]">
+              {subtitle} · 共 {totalCount} 条
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="关闭"
+            className="rounded-full p-1.5 text-[var(--ink-soft)] hover:bg-[#f3e7df]"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <div className="max-h-[60vh] overflow-y-auto px-4 py-3">
+          {groups.length === 0 ? (
+            <div className="py-10 text-center cn-serif text-[12px] text-[var(--ink-soft)]">
+              {mode === "enhanced" ? "还没有补记 · 走完路线后可以写下感受或上传照片" : "暂无记录"}
+            </div>
+          ) : (
+            <ul className="space-y-4">
+              {groups.map((g, gi) => (
+                <li key={gi}>
+                  <div className="mb-1.5 flex items-baseline justify-between">
+                    <div className="cn-serif text-[12px] text-[var(--ink)]">{g.chapterTitle}</div>
+                    <div className="cn-serif text-[10px] text-[var(--ink-soft)]">{g.date}</div>
+                  </div>
+                  <ul className="space-y-1.5">
+                    {g.rows.map((r) => (
+                      <li
+                        key={r.key}
+                        className="rounded-[14px] border border-[#eee0d8] bg-white/70 px-3 py-2"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="cn-serif text-[13px] text-[var(--ink)] truncate">
+                              {r.title}
+                            </div>
+                            {r.meta && (
+                              <div className="cn-serif text-[10px] text-[var(--ink-soft)] truncate">
+                                {r.meta}
+                              </div>
+                            )}
+                          </div>
+                          {r.photo && (
+                            <img
+                              src={r.photo}
+                              alt=""
+                              className="h-10 w-10 flex-shrink-0 rounded-[8px] object-cover"
+                            />
+                          )}
+                        </div>
+                        {r.note && (
+                          <div className="mt-1.5 cn-serif text-[11px] leading-relaxed text-[var(--ink-soft)] line-clamp-3">
+                            {r.note}
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 function RouteSummaryCard({
   chapter,
