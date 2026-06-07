@@ -131,6 +131,38 @@ function FinalePage() {
           ✶ 分享今日故事
         </button>
         <button
+          onClick={async () => {
+            if (bookExporting) return;
+            setBookExporting(true);
+            try {
+              const chapters = loadSagas();
+              if (chapters.length === 0) {
+                toast.error("还没有可生成的章节", {
+                  description: "再走一段路，就能翻开第一章",
+                });
+                return;
+              }
+              toast("📖 正在装订你的连载故事书…", {
+                description: `共 ${chapters.length} 章 · 稍等几秒钟`,
+              });
+              const result = await exportSeriesStorybook(chapters, "download");
+              toast.success(
+                result === "shared" ? "已分享你的连载故事书 ✦" : "📖 连载故事书已生成",
+                { description: `共 ${chapters.length} 章 · 已保存到本地` },
+              );
+            } catch (e) {
+              toast.error("生成失败", { description: (e as Error).message });
+            } finally {
+              setBookExporting(false);
+            }
+          }}
+          disabled={bookExporting}
+          className="btn-soft w-full justify-center disabled:opacity-60"
+        >
+          {bookExporting ? "📖 正在装订…" : "📖 一键生成连载故事书 (PDF)"}
+        </button>
+
+        <button
           onClick={() => navigate({ to: "/library" })}
           className="btn-soft w-full justify-center"
         >
