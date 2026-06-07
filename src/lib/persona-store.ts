@@ -258,6 +258,8 @@ export function replaceJourney(journey: Journey) {
     run.sceneRecords = next;
   }
   saveRun(run);
+}
+
 
 export function completeScene(order: number) {
   const run = loadRun();
