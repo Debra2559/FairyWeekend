@@ -230,16 +230,24 @@ export function loadPendingCard(): PersonaCard | null {
   try { return JSON.parse(raw) as PersonaCard; } catch { return null; }
 }
 
-export function startRun(card: PersonaCard, journey: Journey, city?: string): JourneyRunState {
+export function startRun(card: PersonaCard, journey: Journey, city?: string, groupMode?: JourneyRunState["groupMode"]): JourneyRunState {
   const run: JourneyRunState = {
     card,
     city,
     journey,
     completedSceneOrders: [],
     createdAt: Date.now(),
+    groupMode: groupMode ?? "solo",
   };
   saveRun(run);
   return run;
+}
+
+export function setRunPartyId(partyId: string) {
+  const run = loadRun();
+  if (!run) return;
+  run.partyId = partyId;
+  saveRun(run);
 }
 
 export function replaceJourney(journey: Journey) {

@@ -9,6 +9,8 @@ import { getSceneDeals, type SceneDeal } from "@/lib/scene-deals";
 import { needsReservation, getReservationHint, getReservationLabel, buildMeituanReserveHref, buildDianpingReserveHref } from "@/lib/reservation";
 import { toast } from "sonner";
 import { JourneyChatPanel } from "@/components/JourneyChatPanel";
+import { JourneyInviteFab } from "@/components/JourneyInviteFab";
+import { groupPreset, type GroupMode } from "@/lib/group-mode";
 
 
 export const Route = createFileRoute("/journey")({ component: JourneyPage });
@@ -68,8 +70,12 @@ function JourneyPage() {
       {/* Title */}
       <div className="max-w-xl mx-auto px-5 mt-4">
         <h1 className="cn-serif text-[22px] text-[var(--ink)] leading-snug">{card.identity}</h1>
-        <div className="cn-serif text-[13px] text-[var(--ink-soft)] mt-1">
-          「{card.mission}」{city && <span className="display italic text-[11px] ml-1.5">· {city}</span>}
+        <div className="cn-serif text-[13px] text-[var(--ink-soft)] mt-1 flex items-center gap-2 flex-wrap">
+          <span>「{card.mission}」</span>
+          {city && <span className="display italic text-[11px]">· {city}</span>}
+          <span className="display italic text-[11px] px-2 py-0.5 rounded-full bg-[var(--card)] border border-[var(--border)] text-[var(--ink)]">
+            {groupPreset((run.groupMode as GroupMode) ?? "solo").emoji} {groupPreset((run.groupMode as GroupMode) ?? "solo").label}
+          </span>
         </div>
         <p
           onClick={skipOpening}
@@ -192,6 +198,8 @@ function JourneyPage() {
           setOpenScene(null);
         }}
       />
+
+      <JourneyInviteFab run={run} />
     </div>
   );
 }

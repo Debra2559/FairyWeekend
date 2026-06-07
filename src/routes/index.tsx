@@ -5,6 +5,7 @@ import { savePendingCard } from "@/lib/persona-store";
 import type { PersonaCard } from "@/lib/persona-types";
 import { AgentChatView } from "@/components/AgentChatView";
 import { OnboardingTour } from "@/components/OnboardingTour";
+import { GroupModeSelector } from "@/components/GroupModeSelector";
 import { getUserPhoto, subscribeUserPhoto } from "@/lib/user-photo";
 
 export const Route = createFileRoute("/")({ component: Index });
@@ -87,6 +88,10 @@ function Index() {
           抽一张最像今天的你的卡，AI 顺着这个人设，为你写一条今天就能走的城市路线。
         </p>
       </header>
+
+      <GroupModeSelector className="mb-6" />
+
+
 
 
       {/* Mode switch */}

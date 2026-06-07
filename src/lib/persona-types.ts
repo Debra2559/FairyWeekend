@@ -59,4 +59,6 @@ export interface JourneyRunState {
   completedSceneOrders: number[];
   sceneRecords?: Record<number, SceneRecord>;
   createdAt: number;
+  groupMode?: "solo" | "couple" | "friends" | "family";
+  partyId?: string;
 }

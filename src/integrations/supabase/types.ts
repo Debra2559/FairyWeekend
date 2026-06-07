@@ -44,6 +44,42 @@ export type Database = {
         }
         Relationships: []
       }
+      journey_parties: {
+        Row: {
+          card: Json
+          city: string | null
+          created_at: string
+          group_mode: string
+          host_key: string
+          id: string
+          journey: Json
+          members: Json
+          updated_at: string
+        }
+        Insert: {
+          card: Json
+          city?: string | null
+          created_at?: string
+          group_mode?: string
+          host_key?: string
+          id: string
+          journey: Json
+          members?: Json
+          updated_at?: string
+        }
+        Update: {
+          card?: Json
+          city?: string | null
+          created_at?: string
+          group_mode?: string
+          host_key?: string
+          id?: string
+          journey?: Json
+          members?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       postchain_consents: {
         Row: {
           auth_level: string
