@@ -15,6 +15,7 @@ import { Route as JourneyRouteImport } from './routes/journey'
 import { Route as FinaleRouteImport } from './routes/finale'
 import { Route as CardRouteImport } from './routes/card'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PartyIdRouteImport } from './routes/party.$id'
 import { Route as ApiPublicSceneBuzzRouteImport } from './routes/api/public/scene-buzz'
 import { Route as ApiPublicPersonalizeIntroRouteImport } from './routes/api/public/personalize-intro'
 import { Route as ApiPublicPersonalizeCardRouteImport } from './routes/api/public/personalize-card'
@@ -49,6 +50,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PartyIdRoute = PartyIdRouteImport.update({
+  id: '/party/$id',
+  path: '/party/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicSceneBuzzRoute = ApiPublicSceneBuzzRouteImport.update({
   id: '/api/public/scene-buzz',
   path: '/api/public/scene-buzz',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/journey': typeof JourneyRoute
   '/me': typeof MeRoute
   '/share': typeof ShareRoute
+  '/party/$id': typeof PartyIdRoute
   '/api/public/personalize-card': typeof ApiPublicPersonalizeCardRoute
   '/api/public/personalize-intro': typeof ApiPublicPersonalizeIntroRoute
   '/api/public/scene-buzz': typeof ApiPublicSceneBuzzRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/journey': typeof JourneyRoute
   '/me': typeof MeRoute
   '/share': typeof ShareRoute
+  '/party/$id': typeof PartyIdRoute
   '/api/public/personalize-card': typeof ApiPublicPersonalizeCardRoute
   '/api/public/personalize-intro': typeof ApiPublicPersonalizeIntroRoute
   '/api/public/scene-buzz': typeof ApiPublicSceneBuzzRoute
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/journey': typeof JourneyRoute
   '/me': typeof MeRoute
   '/share': typeof ShareRoute
+  '/party/$id': typeof PartyIdRoute
   '/api/public/personalize-card': typeof ApiPublicPersonalizeCardRoute
   '/api/public/personalize-intro': typeof ApiPublicPersonalizeIntroRoute
   '/api/public/scene-buzz': typeof ApiPublicSceneBuzzRoute
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/journey'
     | '/me'
     | '/share'
+    | '/party/$id'
     | '/api/public/personalize-card'
     | '/api/public/personalize-intro'
     | '/api/public/scene-buzz'
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/journey'
     | '/me'
     | '/share'
+    | '/party/$id'
     | '/api/public/personalize-card'
     | '/api/public/personalize-intro'
     | '/api/public/scene-buzz'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/journey'
     | '/me'
     | '/share'
+    | '/party/$id'
     | '/api/public/personalize-card'
     | '/api/public/personalize-intro'
     | '/api/public/scene-buzz'
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   JourneyRoute: typeof JourneyRoute
   MeRoute: typeof MeRoute
   ShareRoute: typeof ShareRoute
+  PartyIdRoute: typeof PartyIdRoute
   ApiPublicPersonalizeCardRoute: typeof ApiPublicPersonalizeCardRoute
   ApiPublicPersonalizeIntroRoute: typeof ApiPublicPersonalizeIntroRoute
   ApiPublicSceneBuzzRoute: typeof ApiPublicSceneBuzzRoute
@@ -193,6 +206,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/party/$id': {
+      id: '/party/$id'
+      path: '/party/$id'
+      fullPath: '/party/$id'
+      preLoaderRoute: typeof PartyIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/scene-buzz': {
       id: '/api/public/scene-buzz'
       path: '/api/public/scene-buzz'
@@ -224,6 +244,7 @@ const rootRouteChildren: RootRouteChildren = {
   JourneyRoute: JourneyRoute,
   MeRoute: MeRoute,
   ShareRoute: ShareRoute,
+  PartyIdRoute: PartyIdRoute,
   ApiPublicPersonalizeCardRoute: ApiPublicPersonalizeCardRoute,
   ApiPublicPersonalizeIntroRoute: ApiPublicPersonalizeIntroRoute,
   ApiPublicSceneBuzzRoute: ApiPublicSceneBuzzRoute,
