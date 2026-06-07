@@ -1307,7 +1307,7 @@ function SceneSheet({
 function ReservationCard({
   kind, scene, city, record, onUpdated,
 }: {
-  kind: string;
+  kind: import("@/components/VenueIcon").VenueKind;
   scene: JourneyScene;
   city?: string;
   record?: SceneRecord;
