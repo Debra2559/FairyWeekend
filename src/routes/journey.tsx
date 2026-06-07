@@ -1102,9 +1102,30 @@ function SceneSheet({
             </div>
           )}
 
-          <div className="flex gap-2 mt-6">
-            <a href={mapHref} target="_blank" rel="noreferrer" className="btn-ghost flex-1 justify-center">🧭 导航</a>
-            <a href={meituanHref} target="_blank" rel="noreferrer" className="btn-ghost flex-1 justify-center">🥡 美团</a>
+          <div className="mt-6 space-y-2">
+            <a
+              href={mapHref}
+              target="_blank"
+              rel="noreferrer"
+              className="group flex items-center justify-between gap-3 px-5 py-4 rounded-2xl bg-[var(--ink)] text-[var(--paper)] shadow-[0_8px_24px_-12px_var(--ink)] hover:opacity-95 transition"
+            >
+              <span className="flex items-center gap-3">
+                <span className="text-lg">🧭</span>
+                <span className="flex flex-col leading-tight">
+                  <span className="text-[15px] font-medium">去这里</span>
+                  <span className="cn-serif text-[11px] opacity-70">打开地图导航</span>
+                </span>
+              </span>
+              <span className="text-base transition-transform group-hover:translate-x-1">→</span>
+            </a>
+            <a
+              href={meituanHref}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-center gap-1.5 text-[12px] text-[var(--ink-soft)] hover:text-[var(--ink)] transition py-1"
+            >
+              在美团查看店铺详情 <span className="opacity-60">↗</span>
+            </a>
           </div>
 
           <CheckInPanel
