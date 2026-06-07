@@ -66,7 +66,7 @@ export const searchPoiTool = tool(
           url.searchParams.set("keywords", keyword);
           url.searchParams.set("city", city || "北京");
         }
-        url.searchParams.set("offset", "10");
+        url.searchParams.set("offset", "5"); // 减少API返回数量
         url.searchParams.set("extensions", "base");
 
         const res = await fetch(url.toString()).then((r) => r.json());
@@ -83,7 +83,7 @@ export const searchPoiTool = tool(
         }
 
         const pois: POI[] = res.pois
-          .slice(0, 8)
+          .slice(0, 3) // 每个关键词最多返回3个结果
           .map((p: Record<string, unknown>) => ({
             name: String(p.name ?? ""),
             type: String(p.type ?? "").split(";")[0] || "",
