@@ -777,31 +777,63 @@ function JourneyMap({
     });
   }, [scenes]);
 
-  // 段距离（米）+ 步行分钟，基于稳定 hash
+  // 交通偏好（来自 agent 对话）
+  const [transport, setTransport] = useState<string>(() => {
+    if (typeof window === "undefined") return "步行";
+    return localStorage.getItem("today.transport") || "步行";
+  });
+  const [copied, setCopied] = useState(false);
+
+  const transportMeta = useMemo(() => {
+    switch (transport) {
+      case "骑行": return { label: "骑行", icon: "🚲", travelmode: "bicycling", speedMps: 4.2 };
+      case "公交": return { label: "公交", icon: "🚇", travelmode: "transit", speedMps: 6.5 };
+      case "打车": return { label: "打车", icon: "🚖", travelmode: "driving", speedMps: 8.5 };
+      case "自驾": return { label: "自驾", icon: "🚗", travelmode: "driving", speedMps: 8.5 };
+      default: return { label: "步行", icon: "🚶", travelmode: "walking", speedMps: 1.25 };
+    }
+  }, [transport]);
+
+  // 段距离（米）+ 到达分钟，基于稳定 hash + 当前交通方式
   const segments = useMemo(() => {
     return scenes.slice(0, -1).map((s, i) => {
       const next = scenes[i + 1];
       const h = seedHash(`${cardId}-${s.location_name}-${next.location_name}`);
       const meters = 300 + (h % 1100); // 300~1400m
-      const minutes = Math.max(4, Math.round(meters / 75));
+      const minutes = Math.max(2, Math.round(meters / (transportMeta.speedMps * 60)));
       const label = meters >= 1000 ? `${(meters / 1000).toFixed(1)}km` : `${Math.round(meters / 10) * 10}m`;
       return { meters, minutes, label };
     });
-  }, [scenes, cardId]);
+  }, [scenes, cardId, transportMeta]);
 
   const totalMeters = segments.reduce((s, x) => s + x.meters, 0);
   const totalMinutes = segments.reduce((s, x) => s + x.minutes, 0);
   const totalLabel = totalMeters >= 1000 ? `${(totalMeters / 1000).toFixed(1)}km` : `${totalMeters}m`;
 
-  // 一键打开完整路线（高德 / Google）
+  // 一键打开完整路线
   const routeHref = useMemo(() => {
     if (scenes.length === 0) return "#";
     const names = scenes.map((s) => `${city ?? ""}${s.location_name}`).filter(Boolean);
     const origin = encodeURIComponent(names[0]);
     const destination = encodeURIComponent(names[names.length - 1]);
     const waypoints = names.slice(1, -1).map(encodeURIComponent).join("|");
-    return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints ? `&waypoints=${waypoints}` : ""}&travelmode=walking`;
-  }, [scenes, city]);
+    return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints ? `&waypoints=${waypoints}` : ""}&travelmode=${transportMeta.travelmode}`;
+  }, [scenes, city, transportMeta]);
+
+  async function shareRoute() {
+    const text = `我的今日路线 · ${transportMeta.icon}${transportMeta.label}\n${scenes.map((s, i) => `${i + 1}. ${s.location_name}`).join("\n")}\n${routeHref}`;
+    try {
+      if (typeof navigator !== "undefined" && (navigator as any).share) {
+        await (navigator as any).share({ title: "今日路线", text, url: routeHref });
+        return;
+      }
+    } catch {}
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {}
+  }
 
   // 按主题决定圆点遮罩区域（避免压在沙滩/海/天空上）
   const dotYMax = theme.extras === "waves" ? 340 : theme.extras === "buildings" ? 350 : 530;
