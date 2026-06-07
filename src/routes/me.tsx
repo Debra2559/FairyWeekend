@@ -16,6 +16,7 @@ import {
   Heart,
   Image as ImageIcon,
   Stamp,
+  BookMarked,
   MapPinned,
   MoreHorizontal,
   PenLine,
