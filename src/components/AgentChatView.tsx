@@ -254,8 +254,13 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
   function stopVoice() {
     if (recognitionRef.current) {
       manualStopRef.current = true;
-      try { recognitionRef.current.stop(); } catch {}
-      try { recognitionRef.current.abort?.(); } catch {}
+      const rec = recognitionRef.current;
+      // 先摘掉回调，避免 stop/abort 之后仍有 onresult/onend 把文本写回输入框
+      try { rec.onresult = null; } catch {}
+      try { rec.onend = null; } catch {}
+      try { rec.onerror = null; } catch {}
+      try { rec.stop(); } catch {}
+      try { rec.abort?.(); } catch {}
       recognitionRef.current = null;
     }
     baselineRef.current = "";
@@ -267,6 +272,8 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
     if (!text) return;
     stopVoice();
     setInput("");
+    // 防止异步 onresult 在清空之后又把文本写回来
+    setTimeout(() => setInput(""), 0);
     setPicked([]);
     setMsgs((m) =>
       m.map((x) =>
