@@ -1276,7 +1276,6 @@ function SceneSheet({
               kind={kind}
               scene={scene}
               city={city}
-              card={card}
               record={record}
               onUpdated={onUpdated}
             />
