@@ -2449,6 +2449,123 @@ function ProfilePage({
   );
 }
 
+function SerialStorybookSection({ sagas }: { sagas: ArchivedChapter[] }) {
+  const sorted = useMemo(
+    () => [...sagas].sort((a, b) => (b.archivedAt ?? b.createdAt) - (a.archivedAt ?? a.createdAt)),
+    [sagas],
+  );
+  const [bookExporting, setBookExporting] = useState(false);
+  const [chapterExporting, setChapterExporting] = useState<string | null>(null);
+
+  async function handleExportAll() {
+    if (bookExporting || sorted.length === 0) return;
+    setBookExporting(true);
+    try {
+      toast("📖 正在装订你的连载故事书…", { description: `共 ${sorted.length} 本 · 稍等几秒钟` });
+      const result = await exportSeriesStorybook(sorted, "download");
+      toast.success(result === "shared" ? "已分享你的连载故事书 ✦" : "📖 连载故事书已生成", {
+        description: `共 ${sorted.length} 本 · 已保存到本地`,
+      });
+    } catch (e) {
+      toast.error("生成失败", { description: (e as Error).message });
+    } finally {
+      setBookExporting(false);
+    }
+  }
+
+  async function handleExportOne(chapter: ArchivedChapter) {
+    if (chapterExporting) return;
+    setChapterExporting(chapter.chapterId);
+    try {
+      toast("📖 正在装订本期…", { description: chapter.card.identity });
+      const result = await exportSeriesStorybook([chapter], "download");
+      toast.success(result === "shared" ? "已分享本期 ✦" : "📖 本期已生成", {
+        description: `${chapter.card.identity} · 已保存到本地`,
+      });
+    } catch (e) {
+      toast.error("生成失败", { description: (e as Error).message });
+    } finally {
+      setChapterExporting(null);
+    }
+  }
+
+  return (
+    <section className="rounded-[26px] border border-[#ead8d0] bg-[#fffaf2]/92 p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="cn-serif text-[16px] text-[var(--ink)]">连载故事书</div>
+          <div className="mt-0.5 cn-serif text-[11px] text-[var(--ink-soft)]">
+            把走过的连载装订成可翻阅的 PDF 故事书
+          </div>
+        </div>
+        <div className="rounded-full bg-[#fff4ec] px-3 py-1 cn-serif text-[10px] text-[#8f5f68]">
+          {sorted.length} 本
+        </div>
+      </div>
+
+      {sorted.length === 0 ? (
+        <div className="mt-4 rounded-[20px] border border-dashed border-[#e0c89c] bg-white/60 p-5 text-center cn-serif text-[12.5px] text-[var(--ink-soft)] leading-relaxed">
+          走完第一条路线后，这里会出现你的第一本故事书。
+        </div>
+      ) : (
+        <>
+          <button
+            onClick={handleExportAll}
+            disabled={bookExporting}
+            className="mt-4 w-full rounded-2xl px-4 py-3.5 flex items-center justify-center gap-2 cn-serif text-[13px] text-[var(--bg)] transition disabled:opacity-60"
+            style={{
+              background: "linear-gradient(135deg, #6f5850 0%, #8a6a48 100%)",
+              boxShadow: "0 6px 18px -8px rgba(111,88,80,0.55), inset 0 1px 0 rgba(255,255,255,0.18)",
+            }}
+          >
+            <BookMarked className="w-4 h-4" />
+            {bookExporting
+              ? "正在装订连载故事书…"
+              : `📖 一键装订连载故事书（${sorted.length} 本 · PDF）`}
+          </button>
+
+          <div className="mt-4">
+            <div className="cn-serif text-[12.5px] text-[var(--ink-soft)] mb-2">单本导出</div>
+            <div className="grid gap-2">
+              {sorted.slice(0, 8).map((chapter) => {
+                const busy = chapterExporting === chapter.chapterId;
+                return (
+                  <div
+                    key={chapter.chapterId}
+                    className="flex items-center gap-3 rounded-[18px] border border-[#ead8d0] bg-white/72 px-3 py-2.5"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="cn-serif text-[13px] text-[var(--ink)] truncate">
+                        {chapter.card.identity}
+                      </div>
+                      <div className="cn-serif text-[11px] text-[var(--ink-soft)] truncate">
+                        {chapter.city || "某座城市"} · {formatArchiveDate(chapter.archivedAt ?? chapter.createdAt)}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleExportOne(chapter)}
+                      disabled={busy}
+                      className="shrink-0 h-8 px-3 rounded-full bg-[#fff4ec] hover:bg-[#fce4d0] flex items-center gap-1 cn-serif text-[11px] text-[#7f4f5c] disabled:opacity-60"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      {busy ? "装订中…" : "导出"}
+                    </button>
+                  </div>
+                );
+              })}
+              {sorted.length > 8 && (
+                <div className="cn-serif text-[11px] text-[var(--ink-soft)] text-center mt-1">
+                  还有 {sorted.length - 8} 本 · 去「书架」查看全部
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
 function ProfilePosterCollection({
   sagas,
   onNotify,
