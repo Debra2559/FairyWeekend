@@ -1576,7 +1576,7 @@ function CollectionSearch({
         <input
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="搜索路线、地点、关键词"
+          placeholder="搜索地点、活动或关键词"
           className="h-12 w-full rounded-[20px] border border-[#e3ddd4] bg-[#fffaf2]/92 pl-11 pr-4 cn-serif text-[13px] text-[var(--ink)] outline-none placeholder:text-[var(--ink-soft)]"
         />
       </div>
