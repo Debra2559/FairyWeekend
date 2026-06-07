@@ -1256,7 +1256,7 @@ function SceneSheet({
               href={mapHref}
               target="_blank"
               rel="noreferrer"
-              className="group flex items-center justify-between gap-3 px-5 py-4 rounded-2xl bg-[var(--ink)] text-[var(--paper)] shadow-[0_8px_24px_-12px_var(--ink)] hover:opacity-95 transition"
+              className="group flex items-center justify-between gap-3 px-5 py-4 rounded-2xl bg-[var(--ink)] text-[var(--card)] shadow-[0_8px_24px_-12px_var(--ink)] hover:opacity-95 transition"
             >
               <span className="flex items-center gap-3">
                 <span className="text-lg">🧭</span>
