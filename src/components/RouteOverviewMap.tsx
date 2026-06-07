@@ -60,6 +60,7 @@ export function RouteOverviewMap({
   const mapRef = useRef<any>(null);
   const AMapRef = useRef<any>(null);
   const locatedRef = useRef<Array<Stop & { lng: number; lat: number }>>([]);
+  const focusRef = useRef<MapFocus>(focus);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "empty" | "error">("idle");
   const [located, setLocated] = useState(0);
   const [totalPins, setTotalPins] = useState(0);
@@ -83,6 +84,7 @@ export function RouteOverviewMap({
       fitTargets.forEach((m: any) => map.remove(m));
     } catch {}
   }
+
 
   // Init (one-time per sagas change)
   useEffect(() => {
