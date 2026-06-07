@@ -639,11 +639,12 @@ function RouteSummaryCard({
           onError={(event) => {
             event.currentTarget.style.display = "none";
           }}
-          className="absolute inset-0 h-full w-full object-cover [filter:saturate(1.12)_brightness(1.08)_sepia(0.08)] transition duration-500 group-hover:scale-[1.025]"
+          className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
         />
       )}
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(72,44,38,0.66)_0%,rgba(112,67,56,0.38)_45%,rgba(245,184,196,0.10)_100%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,244,236,0.02)_0%,rgba(255,244,236,0.26)_100%)]" />
+      {/* 强对比暗化层，保证白字在任何封面上都可读 */}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(35,22,18,0.30)_0%,rgba(35,22,18,0.55)_55%,rgba(20,12,10,0.78)_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,12,10,0.55)_0%,rgba(20,12,10,0.15)_60%,rgba(20,12,10,0.0)_100%)]" />
       <button
         onClick={onOpen}
         className={`relative flex min-h-[inherit] w-full flex-col justify-end p-4 text-left text-white ${
@@ -651,23 +652,23 @@ function RouteSummaryCard({
         }`}
       >
         <div className="mb-auto flex items-start justify-between gap-3">
-          <span className="rounded-full border border-white/30 bg-white/22 px-2.5 py-1 cn-serif text-[10px] text-white backdrop-blur">
+          <span className="rounded-full border border-white/40 bg-black/35 px-2.5 py-1 cn-serif text-[10px] text-white backdrop-blur">
             {chapter.card.rarity}
           </span>
-          <ChevronRight size={18} strokeWidth={1.7} className="text-white/78" />
+          <ChevronRight size={18} strokeWidth={1.7} className="text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]" />
         </div>
-        <div className="max-w-[78%]">
-          <div className="cn-serif text-[10px] text-white/78">
+        <div className="max-w-[78%]" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.55)" }}>
+          <div className="cn-serif text-[10px] text-white/90">
             {chapter.city || "城市"} · {date}
           </div>
           <h3
-            className={`mt-1 line-clamp-2 cn-serif leading-snug text-white drop-shadow ${
+            className={`mt-1 line-clamp-2 cn-serif leading-snug text-white ${
               compact ? "text-[16px]" : "text-[20px]"
             }`}
           >
             {chapter.card.identity}
           </h3>
-          <div className="mt-1 cn-serif text-[11px] text-white/82">
+          <div className="mt-1 cn-serif text-[11px] text-white/95">
             已打卡 {done}/{total} 处 · {pct}%
           </div>
           {!compact && visited.length > 0 && (
