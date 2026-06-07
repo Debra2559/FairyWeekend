@@ -2448,7 +2448,201 @@ function ProfilePage({
   );
 }
 
+function StorybookPreview({ chapters }: { chapters: ArchivedChapter[] }) {
+  const [idx, setIdx] = useState(0);
+  const total = chapters.length;
+  const safeIdx = Math.min(idx, total - 1);
+  const ch = chapters[safeIdx];
+  if (!ch) return null;
+
+  const date = new Date(ch.createdAt);
+  const dateStr = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+  const chapterNo = total - safeIdx;
+  const firstScene = ch.journey.scenes[0];
+  const opening = ch.journey.story_opening || "";
+  const cover = ch.card.cover;
+  const c0 = ch.card.colors?.[0] || "#b89a72";
+  const c1 = ch.card.colors?.[1] || "#6f5850";
+
+  const prev = () => setIdx((i) => Math.min(total - 1, i + 1));
+  const next = () => setIdx((i) => Math.max(0, i - 1));
+
+  return (
+    <div className="mt-4">
+      <div className="flex items-center justify-between mb-2">
+        <div className="display text-[10px] tracking-[0.32em] text-[#8f5f68]">
+          STORYBOOK PREVIEW · 翻阅预览
+        </div>
+        <div className="cn-serif text-[11px] text-[var(--ink-soft)]">
+          第 {chapterNo} 章 / 共 {total} 章
+        </div>
+      </div>
+
+      <div
+        className="relative rounded-[18px] overflow-hidden"
+        style={{
+          aspectRatio: "3 / 2",
+          background:
+            "linear-gradient(180deg, #f5ecd9 0%, #ead8b8 100%)",
+          boxShadow:
+            "0 22px 44px -22px rgba(80,55,40,0.55), 0 2px 0 rgba(255,255,255,0.5) inset",
+          padding: 10,
+        }}
+      >
+        {/* Two-page spread */}
+        <div className="relative w-full h-full flex rounded-[12px] overflow-hidden">
+          {/* Left page · COVER */}
+          <div
+            className="relative w-1/2 h-full overflow-hidden"
+            style={{
+              background: `linear-gradient(135deg, ${c0}, ${c1})`,
+              borderRight: "1px solid rgba(80,55,40,0.18)",
+            }}
+          >
+            {cover && (
+              <img
+                src={cover}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ opacity: 0.92 }}
+              />
+            )}
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.55) 100%)",
+              }}
+            />
+            {/* spine shadow */}
+            <div
+              className="absolute right-0 top-0 bottom-0 w-3 pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(to left, rgba(0,0,0,0.35), rgba(0,0,0,0))",
+              }}
+            />
+            <div className="absolute inset-0 p-4 flex flex-col text-white">
+              <div className="flex items-center justify-between display text-[9px] tracking-[0.3em] opacity-90">
+                <span>✦ {ch.card.rarity}</span>
+                <span>CH.{String(chapterNo).padStart(2, "0")}</span>
+              </div>
+              <div className="mt-auto">
+                <div className="display italic text-[10px] opacity-85">
+                  {dateStr}
+                  {ch.city ? ` · ${ch.city}` : ""}
+                </div>
+                <div className="cn-serif text-[15px] leading-tight mt-1 line-clamp-2">
+                  「{ch.card.identity}」
+                </div>
+                <div className="cn-serif italic text-[11px] opacity-90 mt-0.5 line-clamp-1">
+                  {ch.card.mood}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right page · OPENING */}
+          <div
+            className="relative w-1/2 h-full overflow-hidden"
+            style={{
+              background:
+                "linear-gradient(180deg, #fffaf0 0%, #fdf2e0 100%)",
+            }}
+          >
+            {/* spine shadow */}
+            <div
+              className="absolute left-0 top-0 bottom-0 w-3 pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(to right, rgba(80,55,40,0.22), rgba(0,0,0,0))",
+              }}
+            />
+            <div className="absolute inset-0 p-4 flex flex-col">
+              <div className="display text-[8.5px] tracking-[0.3em] text-[#a07a3e]">
+                序章 · OPENING
+              </div>
+              <div className="mt-2 cn-serif text-[11.5px] leading-[1.85] text-[#5a4736] flex-1 overflow-hidden">
+                <span
+                  className="block"
+                  style={{
+                    display: "-webkit-box",
+                    WebkitLineClamp: 6,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {opening}
+                </span>
+              </div>
+              {firstScene && (
+                <div className="mt-2 pt-2 border-t border-dashed border-[#e0c89c]">
+                  <div className="display text-[8.5px] tracking-[0.3em] text-[#a07a3e]">
+                    § 1 · {firstScene.scene_name}
+                  </div>
+                  <div className="mt-1 cn-serif italic text-[10.5px] text-[#7a5e44] line-clamp-2">
+                    {firstScene.persona_narrative}
+                  </div>
+                </div>
+              )}
+              <div className="mt-2 flex items-center justify-between display text-[8.5px] tracking-[0.28em] text-[#a07a3e]">
+                <span>
+                  SCENES {ch.completedSceneOrders.length}/{ch.journey.scenes.length}
+                </span>
+                <span>P. {String(chapterNo * 2 - 1).padStart(2, "0")}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Center spine highlight */}
+        <div
+          className="absolute top-[10px] bottom-[10px] left-1/2 -translate-x-1/2 w-[2px] pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(to bottom, rgba(80,55,40,0), rgba(80,55,40,0.35), rgba(80,55,40,0))",
+          }}
+        />
+      </div>
+
+      {/* Flip controls */}
+      {total > 1 && (
+        <div className="mt-3 flex items-center justify-between">
+          <button
+            onClick={prev}
+            disabled={safeIdx >= total - 1}
+            className="h-8 px-3 rounded-full bg-[#fff4ec] hover:bg-[#fce4d0] cn-serif text-[11px] text-[#7f4f5c] disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            ← 上一章
+          </button>
+          <div className="flex items-center gap-1.5">
+            {chapters.slice(0, Math.min(total, 8)).map((_, i) => (
+              <span
+                key={i}
+                className="block rounded-full transition"
+                style={{
+                  width: i === safeIdx ? 14 : 5,
+                  height: 5,
+                  background: i === safeIdx ? "#8a6a48" : "rgba(138,106,72,0.3)",
+                }}
+              />
+            ))}
+          </div>
+          <button
+            onClick={next}
+            disabled={safeIdx <= 0}
+            className="h-8 px-3 rounded-full bg-[#fff4ec] hover:bg-[#fce4d0] cn-serif text-[11px] text-[#7f4f5c] disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            下一章 →
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SerialStorybookSection({ sagas }: { sagas: ArchivedChapter[] }) {
+
   const sorted = useMemo(
     () => [...sagas].sort((a, b) => (b.archivedAt ?? b.createdAt) - (a.archivedAt ?? a.createdAt)),
     [sagas],
@@ -2508,6 +2702,8 @@ function SerialStorybookSection({ sagas }: { sagas: ArchivedChapter[] }) {
         </div>
       ) : (
         <>
+          <StorybookPreview chapters={sorted} />
+
           <button
             onClick={handleExportAll}
             disabled={bookExporting}
@@ -2522,6 +2718,7 @@ function SerialStorybookSection({ sagas }: { sagas: ArchivedChapter[] }) {
               ? "正在装订连载故事书…"
               : `📖 一键装订连载故事书（${sorted.length} 本 · PDF）`}
           </button>
+
 
           <div className="mt-4">
             <div className="cn-serif text-[12.5px] text-[var(--ink-soft)] mb-2">单本导出</div>
