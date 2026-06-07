@@ -1,10 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, BookOpen, Calendar, MapPin, Sparkles, X, BookMarked, Download } from "lucide-react";
+import { ArrowLeft, BookOpen, Calendar, MapPin, Sparkles, X } from "lucide-react";
 import { loadSagas, hydrateSagasFromCloud, type ArchivedChapter } from "@/lib/persona-store";
 import { PERSONA_CARDS } from "@/lib/cards";
-import { exportSeriesStorybook } from "@/lib/series-export";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/library")({
   component: LibraryPage,
