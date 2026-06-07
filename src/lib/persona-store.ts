@@ -230,17 +230,44 @@ export function loadPendingCard(): PersonaCard | null {
   try { return JSON.parse(raw) as PersonaCard; } catch { return null; }
 }
 
-export function startRun(card: PersonaCard, journey: Journey, city?: string): JourneyRunState {
+export function startRun(card: PersonaCard, journey: Journey, city?: string, groupMode?: JourneyRunState["groupMode"]): JourneyRunState {
   const run: JourneyRunState = {
     card,
     city,
     journey,
     completedSceneOrders: [],
     createdAt: Date.now(),
+    groupMode: groupMode ?? "solo",
   };
   saveRun(run);
   return run;
 }
+
+export function setRunPartyId(partyId: string) {
+  const run = loadRun();
+  if (!run) return;
+  run.partyId = partyId;
+  saveRun(run);
+}
+
+export function replaceJourney(journey: Journey) {
+  const run = loadRun();
+  if (!run) return;
+  // 保留已完成的 scene order，但过滤掉新 journey 里不存在的
+  const validOrders = new Set(journey.scenes.map((s) => s.order));
+  run.journey = journey;
+  run.completedSceneOrders = run.completedSceneOrders.filter((o) => validOrders.has(o));
+  if (run.sceneRecords) {
+    const next: Record<number, SceneRecord> = {};
+    for (const [k, v] of Object.entries(run.sceneRecords)) {
+      const order = Number(k);
+      if (validOrders.has(order)) next[order] = v;
+    }
+    run.sceneRecords = next;
+  }
+  saveRun(run);
+}
+
 
 export function completeScene(order: number) {
   const run = loadRun();
@@ -265,6 +292,20 @@ export function recordScene(order: number, patch: Partial<Omit<SceneRecord, "com
   if (!run.completedSceneOrders.includes(order)) {
     run.completedSceneOrders.push(order);
   }
+  saveRun(run);
+}
+
+export function reserveScene(order: number, reserved: boolean) {
+  const run = loadRun();
+  if (!run) return;
+  const records = run.sceneRecords ?? {};
+  const prev = records[order] ?? { completedAt: Date.now() };
+  records[order] = {
+    ...prev,
+    reserved,
+    reservedAt: reserved ? Date.now() : undefined,
+  };
+  run.sceneRecords = records;
   saveRun(run);
 }
 

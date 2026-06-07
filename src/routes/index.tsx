@@ -5,6 +5,7 @@ import { savePendingCard } from "@/lib/persona-store";
 import type { PersonaCard } from "@/lib/persona-types";
 import { AgentChatView } from "@/components/AgentChatView";
 import { OnboardingTour } from "@/components/OnboardingTour";
+import { GroupModeSelector } from "@/components/GroupModeSelector";
 import { getUserPhoto, subscribeUserPhoto } from "@/lib/user-photo";
 
 export const Route = createFileRoute("/")({ component: Index });
@@ -79,10 +80,18 @@ function Index() {
         <h1 className="display text-5xl md:text-6xl text-[var(--ink)] leading-[1.05]">
           今日<span className="italic">人设</span>
         </h1>
-        <p className="cn-serif mt-4 text-[15px] text-[var(--ink-soft)]">
-          抽一张人设卡，AI 为你生成一条今天就能走的城市路线。
+        <p className="cn-serif mt-4 text-[15px] text-[var(--ink-soft)] leading-relaxed">
+          今天想成为谁？<br className="hidden sm:block" />
+          是<span className="italic text-[var(--ink)]">深夜买醉的诗人</span>、<span className="italic text-[var(--ink)]">周末发呆的猫</span>，还是<span className="italic text-[var(--ink)]">迷路也开心的旅人</span>——
+        </p>
+        <p className="cn-serif mt-2 text-[14px] text-[var(--ink-soft)]">
+          抽一张最像今天的你的卡，AI 顺着这个人设，为你写一条今天就能走的城市路线。
         </p>
       </header>
+
+      <GroupModeSelector className="mb-6" />
+
+
 
 
       {/* Mode switch */}

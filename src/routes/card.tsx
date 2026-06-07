@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { loadPendingCard, startRun } from "@/lib/persona-store";
+import { loadGroupMode } from "@/lib/group-mode";
 import { RARITY_LABEL } from "@/lib/cards";
 import type { PersonaCard, Journey } from "@/lib/persona-types";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +14,7 @@ import {
 } from "@/lib/user-photo";
 import { toSimplified } from "@/lib/zh-simplify";
 import { pickEmoji } from "@/lib/text-emoji";
+import { DualAgentOverlay } from "@/components/DualAgentOverlay";
 
 export const Route = createFileRoute("/card")({ component: CardPage });
 
@@ -275,7 +277,7 @@ function CardPage() {
       const journey = (data as { journey?: Journey })?.journey;
       const resolvedCity = (data as { city?: string })?.city;
       if (!journey) throw new Error("空响应");
-      startRun(card, journey, resolvedCity);
+      startRun(card, journey, resolvedCity, loadGroupMode());
       navigate({ to: "/journey" });
     } catch (e) {
       console.error(e);
@@ -290,6 +292,7 @@ function CardPage() {
 
   return (
     <div className="min-h-screen px-5 pt-10 pb-16 max-w-xl mx-auto fade-up">
+      <DualAgentOverlay visible={generating} />
       <button
         onClick={() => navigate({ to: "/" })}
         className="display text-[11px] tracking-[0.3em] text-[var(--ink-soft)] mb-6"
