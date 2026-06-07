@@ -1136,9 +1136,9 @@ function JourneyMap({
             <span>📍</span>
             <span>一键添加到地图</span>
           </a>
-        </div>
       </div>
     </div>
+
   );
 }
 
