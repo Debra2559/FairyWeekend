@@ -482,15 +482,15 @@ function completedScenes(chapter: ArchivedChapter) {
 
 function imageForChapter(chapter?: ArchivedChapter | null) {
   return (
-    chapter?.card.cover ||
     getCoverById(chapter?.card.id) ||
+    chapter?.card.cover ||
     chapter?.sceneRecords?.[chapter.completedSceneOrders[0]]?.photo ||
     ""
   );
 }
 
 function imageForCard(card?: ArchivedChapter["card"] | null, photo?: string) {
-  return card?.cover || getCoverById(card?.id) || photo || "";
+  return getCoverById(card?.id) || card?.cover || photo || "";
 }
 
 function PrimaryActionButton({
