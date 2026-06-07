@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
-import { loadRun, recordScene, clearSceneRecord } from "@/lib/persona-store";
+import { loadRun, recordScene, clearSceneRecord, reserveScene } from "@/lib/persona-store";
 import type { JourneyRunState, JourneyScene, SceneRecord } from "@/lib/persona-types";
 import { VenueIcon, detectVenue } from "@/components/VenueIcon";
 import { getVenuePhotos } from "@/lib/venue-gallery";
 import { buildBundle, isBundlePurchased, markBundlePurchased, type JourneyBundle } from "@/lib/bundle";
 import { getSceneDeals, type SceneDeal } from "@/lib/scene-deals";
+import { needsReservation, getReservationHint, getReservationLabel, buildMeituanReserveHref, buildDianpingReserveHref } from "@/lib/reservation";
 import { toast } from "sonner";
 
 
@@ -87,6 +88,16 @@ function JourneyPage() {
           bundle={bundle}
           purchased={bundlePurchased}
           onOpen={() => setBundleOpen(true)}
+        />
+      </div>
+
+      {/* ✦ 预订清单 */}
+      <div className="max-w-xl mx-auto px-5 mt-4">
+        <ReservationSummaryCard
+          scenes={journey.scenes}
+          sceneRecords={run.sceneRecords ?? {}}
+          city={city}
+          onPick={(s) => setOpenScene(s)}
         />
       </div>
 
@@ -1171,6 +1182,16 @@ function SceneSheet({
             </div>
           )}
 
+          {needsReservation(kind) && (
+            <ReservationCard
+              kind={kind}
+              scene={scene}
+              city={city}
+              record={record}
+              onUpdated={onUpdated}
+            />
+          )}
+
           {bundlePurchased && (
             <div
               className="mt-3 px-3 py-2 rounded-2xl flex items-center justify-between gap-2"
@@ -1288,6 +1309,205 @@ function SceneSheet({
       </div>
     </div>
 
+  );
+}
+
+/* ============ Reservation card ============ */
+
+function ReservationCard({
+  kind, scene, city, record, onUpdated,
+}: {
+  kind: import("@/components/VenueIcon").VenueKind;
+  scene: JourneyScene;
+  city?: string;
+  record?: SceneRecord;
+  onUpdated: () => void;
+}) {
+  const [justReserved, setJustReserved] = useState(false);
+  const reserved = record?.reserved ?? false;
+  const meituanHref = buildMeituanReserveHref(scene.meituan_keyword || scene.location_name, city);
+  const dianpingHref = buildDianpingReserveHref(scene.meituan_keyword || scene.location_name, city);
+
+  function markReserved() {
+    reserveScene(scene.order, true);
+    setJustReserved(true);
+    setTimeout(() => setJustReserved(false), 2000);
+    onUpdated();
+    toast.success("已标记预约 ✓", { description: `「${scene.location_name}」记得按时到店` });
+  }
+
+  function cancelReserved() {
+    reserveScene(scene.order, false);
+    onUpdated();
+    toast("已取消预约标记");
+  }
+
+  return (
+    <div
+      className="mt-3 p-4 rounded-2xl border"
+      style={{
+        background: reserved
+          ? "linear-gradient(135deg, #e8f5e9 0%, #d4edda 100%)"
+          : "linear-gradient(135deg, #fff8e1 0%, #fff3e0 100%)",
+        borderColor: reserved ? "#c8e6c9" : "#ffe0b2",
+      }}
+    >
+      <div className="flex items-start gap-3">
+        <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-lg"
+          style={{ background: reserved ? "#a5d6a7" : "#ffcc80" }}>
+          {reserved ? "✓" : "⏰"}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="cn-serif text-[13px] text-[var(--ink)]">
+            {reserved ? `已预约 · ${getReservationLabel(kind)}` : `建议提前${getReservationLabel(kind)}`}
+          </div>
+          <div className="cn-serif text-[11.5px] text-[var(--ink-soft)] mt-0.5">
+            {getReservationHint(kind)}
+          </div>
+
+          {!reserved ? (
+            <div className="flex items-center gap-2 mt-2.5">
+              <a
+                href={meituanHref}
+                target="_blank"
+                rel="noreferrer"
+                onClick={markReserved}
+                className="cn-serif text-[12px] px-3 py-1.5 rounded-full transition hover:opacity-90"
+                style={{ background: "#e85d3a", color: "#fff" }}
+              >
+                在美团{getReservationLabel(kind)} →
+              </a>
+              <a
+                href={dianpingHref}
+                target="_blank"
+                rel="noreferrer"
+                onClick={markReserved}
+                className="cn-serif text-[12px] px-3 py-1.5 rounded-full transition hover:opacity-90"
+                style={{ background: "#ff9900", color: "#fff" }}
+              >
+                在大众{getReservationLabel(kind)} →
+              </a>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 mt-2.5">
+              <span className="cn-serif text-[12px] px-3 py-1.5 rounded-full"
+                style={{ background: "#c8e6c9", color: "#2e7d32" }}>
+                {justReserved ? "刚刚标记 ✓" : "已完成预约"}
+              </span>
+              <button
+                onClick={cancelReserved}
+                className="cn-serif text-[11px] text-[var(--ink-soft)] underline-offset-4 hover:underline"
+              >
+                取消标记
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============ Reservation summary (global checklist) ============ */
+
+function ReservationSummaryCard({
+  scenes, sceneRecords, city, onPick,
+}: {
+  scenes: JourneyScene[];
+  sceneRecords: Record<number, SceneRecord>;
+  city?: string;
+  onPick: (scene: JourneyScene) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  const items = useMemo(() => {
+    return scenes
+      .map((s) => ({ scene: s, kind: detectVenue(s.location_type, s.location_name) }))
+      .filter(({ kind }) => needsReservation(kind))
+      .map(({ scene, kind }) => ({
+        scene,
+        kind,
+        reserved: !!sceneRecords[scene.order]?.reserved,
+      }));
+  }, [scenes, sceneRecords]);
+
+  if (items.length === 0) return null;
+
+  const reservedCount = items.filter((i) => i.reserved).length;
+  const allDone = reservedCount === items.length;
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden border transition"
+      style={{
+        background: allDone
+          ? "linear-gradient(135deg, #e8f5e9 0%, #d4edda 100%)"
+          : "linear-gradient(135deg, #fff8f0 0%, #fdf0e8 100%)",
+        borderColor: allDone ? "#c8e6c9" : "var(--border)",
+        boxShadow: "0 1px 0 rgba(0,0,0,0.02), 0 8px 24px -16px rgba(60,40,30,0.18)",
+      }}
+    >
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left"
+      >
+        <div className="flex items-center gap-3">
+          <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-base"
+            style={{ background: allDone ? "#a5d6a7" : "#ffcc80" }}>
+            {allDone ? "✓" : "⏰"}
+          </div>
+          <div>
+            <div className="cn-serif text-[14px] text-[var(--ink)]">
+              {allDone ? "今日预约已全部完成" : `今日有 ${items.length} 处建议预约`}
+            </div>
+            <div className="cn-serif text-[11px] text-[var(--ink-soft)] mt-0.5">
+              {allDone
+                ? "出发吧，一切已就绪 ✦"
+                : `已完成 ${reservedCount}/${items.length} · 点击展开清单`}
+            </div>
+          </div>
+        </div>
+        <span className="text-[var(--ink-soft)] transition-transform" style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}>
+          ▼
+        </span>
+      </button>
+
+      {expanded && (
+        <div className="px-4 pb-4 space-y-2">
+          {items.map(({ scene, kind, reserved }) => (
+            <button
+              key={scene.order}
+              onClick={() => onPick(scene)}
+              className="w-full flex items-center gap-3 p-3 rounded-xl text-left transition hover:bg-white/60"
+              style={{ background: "rgba(255,255,255,0.5)" }}
+            >
+              <div className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[11px]"
+                style={{
+                  background: reserved ? "#c8e6c9" : "#ffe0b2",
+                  color: reserved ? "#2e7d32" : "#e65100",
+                }}>
+                {reserved ? "✓" : scene.order}
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="cn-serif text-[13px] text-[var(--ink)] truncate">{scene.location_name}</div>
+                <div className="cn-serif text-[11px] text-[var(--ink-soft)]">
+                  {getReservationLabel(kind)} · {scene.scene_name}
+                </div>
+              </div>
+              {!reserved && (
+                <span className="shrink-0 cn-serif text-[11px] px-2 py-0.5 rounded-full"
+                  style={{ background: "#fff3e0", color: "#e65100" }}>
+                  待预约
+                </span>
+              )}
+            </button>
+          ))}
+          <div className="cn-serif text-[11px] text-[var(--ink-soft)] text-center pt-1">
+            点击场景可直接跳转预约 · 美团 / 大众点评
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -268,6 +268,20 @@ export function recordScene(order: number, patch: Partial<Omit<SceneRecord, "com
   saveRun(run);
 }
 
+export function reserveScene(order: number, reserved: boolean) {
+  const run = loadRun();
+  if (!run) return;
+  const records = run.sceneRecords ?? {};
+  const prev = records[order] ?? { completedAt: Date.now() };
+  records[order] = {
+    ...prev,
+    reserved,
+    reservedAt: reserved ? Date.now() : undefined,
+  };
+  run.sceneRecords = records;
+  saveRun(run);
+}
+
 export function clearSceneRecord(order: number) {
   const run = loadRun();
   if (!run) return;
