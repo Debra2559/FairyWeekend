@@ -13,6 +13,7 @@ import {
 } from "@/lib/user-photo";
 import { toSimplified } from "@/lib/zh-simplify";
 import { pickEmoji } from "@/lib/text-emoji";
+import { DualAgentOverlay } from "@/components/DualAgentOverlay";
 
 export const Route = createFileRoute("/card")({ component: CardPage });
 
