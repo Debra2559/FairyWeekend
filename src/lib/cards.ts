@@ -9,6 +9,12 @@ import cover007 from "@/assets/persona/card_007.webp";
 import cover008 from "@/assets/persona/card_008.webp";
 import cover009 from "@/assets/persona/card_009.webp";
 import cover010 from "@/assets/persona/card_010.webp";
+import cover017 from "@/assets/persona/card_017.webp";
+import cover018 from "@/assets/persona/card_018.webp";
+import cover019 from "@/assets/persona/card_019.webp";
+import cover021 from "@/assets/persona/card_021.webp";
+import cover022 from "@/assets/persona/card_022.webp";
+import cover023 from "@/assets/persona/card_023.webp";
 
 const COVERS: Record<string, string> = {
   card_001: cover001,
@@ -21,7 +27,15 @@ const COVERS: Record<string, string> = {
   card_008: cover008,
   card_009: cover009,
   card_010: cover010,
+  card_017: cover017,
+  card_018: cover018,
+  card_019: cover019,
+  card_021: cover021,
+  card_022: cover022,
+  card_023: cover023,
 };
+
+
 
 const _PERSONA_CARDS_BASE: PersonaCard[] = [
   {
@@ -115,19 +129,19 @@ const _PERSONA_CARDS_BASE: PersonaCard[] = [
   {
     id: "card_005",
     rarity: "SR",
-    identity: "刚失恋三天，决定重新爱上生活的人",
-    mood: "脆弱但在修复",
+    identity: "今天决定先把自己当回事的人",
+    mood: "有点脆弱，但想被温柔对待",
     mission: "给自己买一样平时舍不得买的东西",
     colors: ["#fce4ec", "#f48fb1", "#fdf0f5"],
-    illustration_keyword: "healing_soul",
-    story: "眼泪流够了。今天 TA 决定先把自己当回事——不为谁，只为提醒自己：值得被认真对待的人，首先是自己。",
+    illustration_keyword: "self_treat",
+    story: "最近被生活推搡得有点累。今天 TA 决定先把自己当回事——不为谁，只为提醒自己：值得被认真对待的人，首先是自己。",
     catchphrase: "今天我请我自己。",
     soundtrack: "陈绮贞《旅行的意义》/ Adele 任意一首",
     best_time: "下午 3 点到夜里 10 点，慢慢花一天",
-    companion: "一个人，全程不要回复任何前任的消息",
-    avoid: "别翻旧照片、别走两人去过的路线",
-    gift_from_city: "一阵恰好吹散眼泪的风",
-    keywords: ["疗愈", "宠自己", "失恋", "重启", "仪式感"],
+    companion: "一个人，今天屏蔽所有打扰",
+    avoid: "别翻让自己难受的旧消息、别比惨",
+    gift_from_city: "一阵恰好把心事吹散的风",
+    keywords: ["疗愈", "宠自己", "重启", "仪式感", "独处"],
     routes: [
       "走进一家平时只敢看橱窗的店，买点什么",
       "做一次按摩或 SPA，让别人替你温柔一下自己",
@@ -203,23 +217,23 @@ const _PERSONA_CARDS_BASE: PersonaCard[] = [
   {
     id: "card_009",
     rarity: "R",
-    identity: "想被朋友包围的人",
-    mood: "今天不想一个人，想笑得大声一点",
-    mission: "约一个许久没见的朋友，吃顿饭再散散步",
+    identity: "想被熟人包围、笑得大声一点的人",
+    mood: "今天不想一个人",
+    mission: "约一个许久没见的人，吃顿饭再散散步",
     colors: ["#ffe0d6", "#ffb38a", "#fff1ea"],
-    illustration_keyword: "friends_gathering",
-    story: "TA 突然意识到：上次和朋友面对面笑出眼泪，已经是好几个月前的事了。今天不想再让聊天框代替见面，TA 想要真实的拥抱和真实的菜。",
+    illustration_keyword: "reunion",
+    story: "TA 突然意识到：上次和熟人面对面笑出眼泪，已经是好几个月前的事了。今天不想再让聊天框代替见面，TA 想要真实的拥抱和真实的菜。",
     catchphrase: "聊天框不算见面。",
     soundtrack: "五月天《知足》/ 任贤齐《对面的女孩看过来》",
     best_time: "傍晚到深夜，吃饭聊到打烊",
-    companion: "1-3 个老朋友，越久没见越好",
-    avoid: "别看手机、别工作群里聊正事",
+    companion: "1-3 个老熟人，越久没见越好",
+    avoid: "别看手机、别在工作群里聊正事",
     gift_from_city: "一张笑到模糊的合照",
-    keywords: ["朋友", "饭局", "重逢", "热闹", "夜晚"],
+    keywords: ["重逢", "饭局", "热闹", "夜晚", "聊天"],
     routes: [
       "约一顿火锅或烧烤，吃到油亮亮地走出来",
-      "去一个有院子或屋顶的酒馆，聊到打烊",
-      "拉上朋友去玩点幼稚的：桌游、KTV、夹娃娃",
+      "去一个有院子或屋顶的小馆，聊到打烊",
+      "拉上对方去玩点幼稚的：桌游、KTV、夹娃娃",
     ],
   },
   {
@@ -244,6 +258,138 @@ const _PERSONA_CARDS_BASE: PersonaCard[] = [
       "找一家开了二十年以上的老咖啡馆，坐到打烊",
     ],
   },
+  {
+    id: "card_017",
+    rarity: "SR",
+    identity: "下班后偷一小时给自己的人",
+    mood: "累，但还不想立刻回家",
+    mission: "在公司一公里内找一个能喘口气的角落",
+    colors: ["#2d3748", "#ed8936", "#fbd38d"],
+    illustration_keyword: "after_work_escape",
+    story: "工位的电脑刚关，TA 还没准备好回家。地铁口的人潮太挤，家里的沙发又太空。今天就给自己一小时——不刷工作群、不接电话，只是在城市某个角落，看着夕阳把楼染成橘色。",
+    catchphrase: "下班和到家之间，这一小时是我的。",
+    soundtrack: "陈鸿宇《理想三旬》/ Lofi Hip Hop 下班版",
+    best_time: "下班后 18:30 - 20:00，夕阳到夜灯切换的时段",
+    companion: "独自，这一小时谁都别来打扰",
+    avoid: "别回工作群、别打开 KPI 文档",
+    gift_from_city: "把楼缝里的夕阳认真看完一次",
+    keywords: ["下班", "解压", "夕阳", "独处", "工作日"],
+    routes: [
+      "去公司附近的天台或江边，坐到天黑",
+      "找一家便利店买杯啤酒，在路边的台阶上喝完",
+      "随便走一段平时坐车经过的路，用脚重新认识它",
+    ],
+  },
+  {
+    id: "card_018",
+    rarity: "R",
+    identity: "在陌生城市只有半天空档的人",
+    mood: "时间紧，但贪心想多体验一点",
+    mission: "在 4 小时内抓到这座城市的「一个味道」",
+    colors: ["#f6ad55", "#4299e1", "#fef5e7"],
+    illustration_keyword: "short_stay",
+    story: "出差也好、转机也好，在陌生城市只剩半天。TA 不想瘫在酒店刷手机——既然来了，就该让脚踩过几条真的街，让嘴尝过几口真的味道，哪怕只有四个小时。",
+    catchphrase: "来都来了，总得带点什么回去。",
+    soundtrack: "本地电台 / 旅行类播客",
+    best_time: "中午 12 点到下午 5 点，赶在天黑回酒店",
+    companion: "独自，效率最高",
+    avoid: "别去机场免税店、别只在酒店周边转",
+    gift_from_city: "一张回程飞机上还能想起来的味道",
+    keywords: ["短停留", "陌生城市", "本地味", "高效", "出差"],
+    routes: [
+      "打车直奔老城区，只逛一个最有代表性的街区",
+      "找一家本地排队的小馆子，吃一份招牌",
+      "去一个能俯瞰城市的地方，站 10 分钟再走",
+    ],
+  },
+  {
+    id: "card_019",
+    rarity: "N",
+    identity: "雨天宅不住的人",
+    mood: "被雨困着，但不想认输",
+    mission: "找一个被雨声衬得更暖的室内角落",
+    colors: ["#90cdf4", "#d69e2e", "#edf2f7"],
+    illustration_keyword: "rainy_day_indoor",
+    story: "原本约好的事被雨黄了，但 TA 还是出了门。雨天的城市有另一种节奏——湿漉漉的街、模糊的车灯、玻璃上的水痕，都在邀请 TA 走进某个温暖的窗后。",
+    catchphrase: "雨天也算出门，只要心是干的。",
+    soundtrack: "雨声白噪音 / 久石让《Summer》",
+    best_time: "全天皆可，雨最大的时候最有氛围",
+    companion: "一个人或带一本读到一半的书",
+    avoid: "别穿不防水的鞋、别看天气预报骂街",
+    gift_from_city: "一杯雨天专属、温度刚好的热饮",
+    keywords: ["雨天", "室内", "咖啡馆", "窗边", "白噪音"],
+    routes: [
+      "找一家窗边位的咖啡馆，看雨打玻璃看半天",
+      "钻进一座美术馆或博物馆，把雨等到停",
+      "去一家有檐廊的旧书店，听雨声翻书页",
+    ],
+  },
+  {
+    id: "card_021",
+    rarity: "R",
+    identity: "深夜睡不着、想出门走一段的人",
+    mood: "脑子停不下来，身体却想被夜风冷一下",
+    mission: "在 0 点之后，走完一段平时白天走的路",
+    colors: ["#1a202c", "#4c51bf", "#f6ad55"],
+    illustration_keyword: "late_night_walker",
+    story: "翻来覆去到凌晨，心里有事说不清。TA 决定起来出门——空街、路灯、便利店的冷柜光，这些只有深夜才肯出现的东西，能比任何 App 都更快把人冷静下来。",
+    catchphrase: "睡不着的夜，城市替我清醒。",
+    soundtrack: "万能青年旅店《十万嬉皮》/ Bon Iver《Holocene》",
+    best_time: "凌晨 0 点到 3 点，最安静的那段",
+    companion: "独自，深夜的城市只能一个人享受",
+    avoid: "别去人多的酒吧、别打电话给前任",
+    gift_from_city: "便利店店员一句平静的「您好」",
+    keywords: ["深夜", "失眠", "散步", "便利店", "清醒"],
+    routes: [
+      "走一段平时通勤的路，看它在夜里另一副样子",
+      "去 24 小时便利店买一份关东煮，坐窗边吃完",
+      "找一处有水的地方——河边、湖边，听水声 20 分钟",
+    ],
+  },
+  {
+    id: "card_022",
+    rarity: "R",
+    identity: "想流一身汗的人",
+    mood: "憋得慌，想用身体把脑子放空",
+    mission: "用脚或轮子，在城市里画一条属于今天的轨迹",
+    colors: ["#f56565", "#38b2ac", "#fef5e7"],
+    illustration_keyword: "city_runner",
+    story: "情绪在身体里堵着出不来。TA 决定不用嘴讲、不用文字写，就用一身汗把它换出去——心跳到耳朵嗡嗡响的时候，世界反而清静了。",
+    catchphrase: "汗一出，事就小了。",
+    soundtrack: "高强度跑步歌单 / The Chemical Brothers",
+    best_time: "清晨 6 点或傍晚 6 点，温度最舒服",
+    companion: "独自 / 一个跑友 / 一辆共享单车",
+    avoid: "别空腹、别在最热的正午硬撑",
+    gift_from_city: "结束时一杯结冰水的爽快",
+    keywords: ["运动", "跑步", "骑行", "出汗", "解压"],
+    routes: [
+      "沿江边或环城绿道跑 5 公里，中途不停",
+      "骑共享单车从城东骑到城西，记下沿途三家想再来的店",
+      "找一段长台阶或一座小山，爬到喘不上气",
+    ],
+  },
+  {
+    id: "card_023",
+    rarity: "SR",
+    identity: "想给自己充点灵感电的人",
+    mood: "枯了，需要新的东西灌进脑子",
+    mission: "带一本本子出门，记下三个让你心动的细节",
+    colors: ["#d6bcfa", "#fefcbf", "#fed7aa"],
+    illustration_keyword: "creative_inspiration",
+    story: "对着空白文档/画板坐了一整天，什么都挤不出来。TA 决定换一种方式喂自己——不是搜 Pinterest、不是刷 ins，而是真的走进世界里，看光、看人、看一个没见过的颜色组合。",
+    catchphrase: "灵感不在屏幕里，在街角里。",
+    soundtrack: "Nils Frahm / 久石让钢琴版",
+    best_time: "下午 2 点到傍晚 7 点，光线最有故事感",
+    companion: "独自，带一本本子和一支笔",
+    avoid: "别带相机当任务、别给自己设产出目标",
+    gift_from_city: "一种你叫不出名字、但想画下来的颜色",
+    keywords: ["灵感", "采风", "美术馆", "速写", "观察"],
+    routes: [
+      "去一家正在展的美术馆，只挑三件作品认真看",
+      "找一条有老建筑的街，坐在台阶上画 / 写 20 分钟",
+      "进一家买手店或独立书店，看陈列如何讲故事",
+    ],
+  },
 ];
 
 export const PERSONA_CARDS: PersonaCard[] = _PERSONA_CARDS_BASE.map((c) => ({
@@ -252,12 +398,14 @@ export const PERSONA_CARDS: PersonaCard[] = _PERSONA_CARDS_BASE.map((c) => ({
 }));
 
 // 抽卡权重（百分比，合计 100）
+
 const RARITY_WEIGHTS: Record<Rarity, number> = {
   N: 50,
   R: 30,
   SR: 15,
   SSR: 5,
 };
+
 
 export function drawCard(exclude?: string): PersonaCard {
   // 按稀有度先抽稀有度，再从该稀有度内随机一张
