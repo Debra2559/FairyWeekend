@@ -83,7 +83,7 @@ export const searchPoiTool = tool(
         }
 
         const pois: POI[] = res.pois
-          .slice(0, 3) // 每个关键词最多返回3个结果
+          .slice(0, 4) // 每个关键词最多返回4个结果
           .map((p: Record<string, unknown>) => ({
             name: String(p.name ?? ""),
             type: String(p.type ?? "").split(";")[0] || "",
