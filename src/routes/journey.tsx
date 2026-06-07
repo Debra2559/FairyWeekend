@@ -12,6 +12,8 @@ import { JourneyChatPanel } from "@/components/JourneyChatPanel";
 
 
 import { groupPreset, type GroupMode } from "@/lib/group-mode";
+import { buildPersonaOrderNote, buildShareItinerary } from "@/lib/persona-order";
+import type { PersonaCard } from "@/lib/persona-types";
 
 
 export const Route = createFileRoute("/journey")({ component: JourneyPage });
@@ -122,7 +124,12 @@ function JourneyPage() {
           completed={completedSceneOrders}
           onPick={(s) => setOpenScene(s)}
           cardId={card.id}
+          card={card}
           city={city}
+          groupMode={(run.groupMode as GroupMode) ?? "solo"}
+          reservedOrders={Object.entries(run.sceneRecords ?? {})
+            .filter(([, r]) => r?.reserved)
+            .map(([k]) => Number(k))}
         />
       </div>
 
@@ -151,6 +158,7 @@ function JourneyPage() {
           done={completedSceneOrders.includes(openScene.order)}
           record={run.sceneRecords?.[openScene.order]}
           city={city}
+          card={card}
           onClose={() => setOpenScene(null)}
           onUpdated={refresh}
           onCheckedIn={() => {
@@ -781,13 +789,16 @@ function getMapTheme(cardId: string): MapTheme {
 }
 
 function JourneyMap({
-  scenes, completed, onPick, cardId, city,
+  scenes, completed, onPick, cardId, card, city, groupMode, reservedOrders,
 }: {
   scenes: JourneyScene[];
   completed: number[];
   onPick: (s: JourneyScene) => void;
   cardId: string;
+  card?: PersonaCard;
   city?: string;
+  groupMode?: GroupMode;
+  reservedOrders?: number[];
 }) {
   const W = 360;
   const H = 560;
@@ -872,16 +883,31 @@ function JourneyMap({
   }, [scenes, city, transportMeta]);
 
   async function shareRoute() {
-    const text = `我的今日路线 · ${transportMeta.icon}${transportMeta.label}\n${scenes.map((s, i) => `${i + 1}. ${s.location_name}`).join("\n")}\n${routeHref}`;
+    const groupLabel = groupMode
+      ? `${groupPreset(groupMode).emoji} ${groupPreset(groupMode).label}`
+      : undefined;
+    const text = card
+      ? buildShareItinerary({
+          card,
+          scenes,
+          city,
+          transportLabel: transportMeta.label,
+          transportIcon: transportMeta.icon,
+          routeHref,
+          groupLabel,
+          reservedOrders,
+        })
+      : `我的今日路线 · ${transportMeta.icon}${transportMeta.label}\n${scenes.map((s, i) => `${i + 1}. ${s.location_name}`).join("\n")}\n${routeHref}`;
     try {
       if (typeof navigator !== "undefined" && (navigator as any).share) {
-        await (navigator as any).share({ title: "今日路线", text, url: routeHref });
+        await (navigator as any).share({ title: "今日路线 · 发给同伴照做", text, url: routeHref });
         return;
       }
     } catch {}
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
+      toast.success("行程文案已复制 ✦", { description: "粘贴到微信发给同伴，照着走就行" });
       setTimeout(() => setCopied(false), 1800);
     } catch {}
   }
@@ -1137,7 +1163,7 @@ function JourneyMap({
             title="把这条路线发给朋友"
           >
             <span>{copied ? "✓" : "🔗"}</span>
-            <span>{copied ? "已复制" : "邀请好友"}</span>
+            <span>{copied ? "已复制" : "发给同伴"}</span>
           </button>
           <a
             href={routeHref}
@@ -1159,12 +1185,13 @@ function JourneyMap({
 /* ============ Scene bottom sheet ============ */
 
 function SceneSheet({
-  scene, done, record, city, onClose, onUpdated, onCheckedIn, bundlePurchased,
+  scene, done, record, city, card, onClose, onUpdated, onCheckedIn, bundlePurchased,
 }: {
   scene: JourneyScene;
   done: boolean;
   record?: SceneRecord;
   city?: string;
+  card?: PersonaCard;
   onClose: () => void;
   onUpdated: () => void;
   onCheckedIn?: () => void;
@@ -1253,6 +1280,8 @@ function SceneSheet({
               onUpdated={onUpdated}
             />
           )}
+
+          {card && <PersonaOrderCard card={card} scene={scene} kind={kind} />}
 
           {bundlePurchased && (
             <div
@@ -1475,7 +1504,75 @@ function ReservationCard({
   );
 }
 
+/* ============ Persona Order Card — 以人设之名下单 ============ */
+
+function PersonaOrderCard({
+  card, scene, kind,
+}: {
+  card: PersonaCard;
+  scene: JourneyScene;
+  kind: import("@/components/VenueIcon").VenueKind;
+}) {
+  const [copied, setCopied] = useState(false);
+  const order = useMemo(() => buildPersonaOrderNote(card, scene, kind), [card, scene, kind]);
+
+  async function copy(text: string, label: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success(`${label}已复制`, { description: "下单/到店时贴给商家即可" });
+      setTimeout(() => setCopied(false), 1800);
+    } catch {}
+  }
+
+  return (
+    <div
+      className="mt-3 p-4 rounded-2xl border relative overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(135deg, oklch(0.98 0.03 300) 0%, oklch(0.94 0.06 280) 100%)",
+        borderColor: "oklch(0.85 0.08 290)",
+      }}
+    >
+      <div className="absolute top-2 right-3 display text-[22px] opacity-15">✦</div>
+      <div className="display text-[10px] tracking-[0.35em] text-[var(--ink-soft)] mb-2">
+        PERSONA ORDER · 以人设之名下单
+      </div>
+      <div className="cn-serif text-[13.5px] text-[var(--ink)] leading-snug mb-2">
+        {order.title}
+      </div>
+      <div
+        className="cn-serif text-[12.5px] text-[var(--ink)] leading-[1.85] whitespace-pre-line p-3 rounded-xl"
+        style={{ background: "rgba(255,255,255,0.6)" }}
+      >
+        {order.note}
+      </div>
+      <div className="flex items-center gap-2 mt-2.5">
+        <button
+          onClick={() => copy(order.meituanRemark, "商家备注")}
+          className="cn-serif text-[12px] px-3 py-1.5 rounded-full transition hover:opacity-90"
+          style={{ background: "#3d3530", color: "#fffdf3" }}
+        >
+          {copied ? "✓ 已复制" : "复制给商家"}
+        </button>
+        <button
+          onClick={() => copy(order.note, "下单备注")}
+          className="cn-serif text-[12px] px-3 py-1.5 rounded-full transition hover:opacity-90"
+          style={{ background: "rgba(255,255,255,0.7)", color: "#3d3530" }}
+        >
+          复制完整指令
+        </button>
+      </div>
+      <div className="cn-serif text-[10.5px] text-[var(--ink-soft)] mt-2 leading-relaxed">
+        把"今天我是 {card.identity}"翻译成商家能落地的一句话 · 让点单也长出人设
+      </div>
+    </div>
+  );
+}
+
 /* ============ Reservation summary (global checklist) ============ */
+
+
 
 function ReservationSummaryCard({
   scenes, sceneRecords, city, onPick,
