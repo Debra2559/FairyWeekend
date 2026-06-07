@@ -465,7 +465,7 @@ function CardPage() {
           或挑一个城市
         </div>
         <div className="flex flex-wrap gap-2">
-          {CITY_PRESETS.map((c) => {
+          {[...CITY_PRESETS, ...(showMoreCities ? CITY_MORE : [])].map((c) => {
             const active = city === c && !autoLocated;
             return (
               <button
@@ -485,6 +485,13 @@ function CardPage() {
               </button>
             );
           })}
+          <button
+            onClick={() => setShowMoreCities((v) => !v)}
+            className="chip"
+            style={{ borderStyle: "dotted" }}
+          >
+            {showMoreCities ? "收起 ▲" : `查看更多 (${CITY_MORE.length}) ▾`}
+          </button>
         </div>
       </div>
 
