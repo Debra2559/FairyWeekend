@@ -1809,11 +1809,48 @@ function CollectionPage({
   );
   return (
     <div className="space-y-5">
-      <section className="rounded-[24px] border border-[#ead8d0] bg-[#fffaf2]/94 p-4">
-        <h1 className="cn-serif text-[20px] text-[var(--ink)]">收藏</h1>
+      <section className="relative overflow-hidden rounded-[24px] border border-[#ead8d0] bg-[#fffaf2]/94 p-4">
+        {/* 集章本封面：右上角红色印章 */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-2 top-3 rotate-[14deg] select-none rounded-[8px] border-[2px] border-[#c0463a] px-2.5 py-1 cn-serif text-[10px] font-semibold tracking-[0.18em] text-[#c0463a] opacity-80"
+          style={{ fontFamily: "'Noto Serif SC', serif" }}
+        >
+          素 材 库
+        </div>
+        <div className="cn-serif text-[10.5px] tracking-[0.32em] text-[var(--ink-soft)]">
+          STAMP · LIBRARY
+        </div>
+        <h1 className="mt-1 cn-serif text-[20px] text-[var(--ink)]">收藏的章子</h1>
         <p className="mt-1 cn-serif text-[12px] text-[var(--ink-soft)]">
-          保存你走过的路线、地点和活动。
+          地点、活动、想去的清单——每一枚都可以盖到下一段路线里。
         </p>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {[
+            { label: "地点", count: library.places.length, tone: "#c0463a" },
+            { label: "活动", count: library.activities.length, tone: "#5a7a4a" },
+            { label: "待出行", count: pendingPlans.length, tone: "#8a5a2a" },
+          ].map((stamp) => (
+            <div
+              key={stamp.label}
+              className="relative flex flex-col items-center justify-center rounded-[14px] border-[1.5px] border-dashed bg-white/55 px-2 py-2.5"
+              style={{ borderColor: `${stamp.tone}55` }}
+            >
+              <div
+                className="cn-serif text-[20px] font-semibold leading-none"
+                style={{ color: stamp.tone, fontFamily: "'Noto Serif SC', serif" }}
+              >
+                {stamp.count}
+              </div>
+              <div
+                className="mt-1 cn-serif text-[10.5px] tracking-[0.18em]"
+                style={{ color: stamp.tone }}
+              >
+                {stamp.label}
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
       <CollectionSearch
         query={query}
