@@ -246,9 +246,21 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
     advance(step, newTags, freeText);
   }
 
+  function stopVoice() {
+    if (recognitionRef.current) {
+      manualStopRef.current = true;
+      try { recognitionRef.current.stop(); } catch {}
+      try { recognitionRef.current.abort?.(); } catch {}
+      recognitionRef.current = null;
+    }
+    baselineRef.current = "";
+    setListening(false);
+  }
+
   function handleFreeSubmit(currentStep: Step) {
     const text = input.trim();
     if (!text) return;
+    stopVoice();
     setInput("");
     setPicked([]);
     setMsgs((m) =>
