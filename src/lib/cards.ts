@@ -257,15 +257,6 @@ const _PERSONA_CARDS_BASE: PersonaCard[] = [
       "找一家开了二十年以上的老咖啡馆，坐到打烊",
     ],
   },
-];
-
-export const PERSONA_CARDS: PersonaCard[] = _PERSONA_CARDS_BASE.map((c) => ({
-  ...c,
-  cover: COVERS[c.id],
-}));
-
-// 抽卡权重（百分比，合计 100）
-const RARITY_WEIGHTS: Record<Rarity, number> = {
   {
     id: "card_011",
     rarity: "SR",
@@ -406,6 +397,7 @@ export const PERSONA_CARDS: PersonaCard[] = _PERSONA_CARDS_BASE.map((c) => ({
 }));
 
 // 抽卡权重（百分比，合计 100）
+
 const RARITY_WEIGHTS: Record<Rarity, number> = {
   N: 50,
   R: 30,
