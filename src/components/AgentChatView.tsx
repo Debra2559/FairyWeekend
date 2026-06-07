@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { PERSONA_CARDS, RARITY_LABEL } from "@/lib/cards";
 import type { PersonaCard } from "@/lib/persona-types";
 import { pickEmoji } from "@/lib/text-emoji";
+import { isVoiceSupported, startVoiceSession, type VoiceSession } from "@/lib/voice-input";
 
 /* -------- 卡片标签映射（用于快速匹配推荐） -------- */
 const CARD_TAGS: Record<string, string[]> = {
