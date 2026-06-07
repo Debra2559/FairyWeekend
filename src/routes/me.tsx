@@ -1059,39 +1059,42 @@ function RouteDetailPage({
         </FlowPanel>
       )}
       <section className="rounded-[24px] border border-[#ead8d0] bg-[#fffaf2]/94 p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <button
             onClick={onBack}
             aria-label="返回路线总览"
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-white/72 px-3 cn-serif text-[12px] text-[var(--ink)]"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[#ead8d0] bg-white/60 px-3 cn-serif text-[12px] text-[var(--ink)] transition hover:border-[#d9c3b8] hover:bg-white active:scale-[0.98]"
           >
-            <ArrowLeft size={18} strokeWidth={1.8} />
+            <ArrowLeft size={16} strokeWidth={1.8} />
             路线总览
           </button>
-          <div className="flex gap-1">
+          <div className="inline-flex items-center gap-0 rounded-full border border-[#ead8d0] bg-white/60 p-0.5">
             <button
               onClick={onPoster}
               aria-label="分享复盘"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/72 text-[var(--ink)]"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--ink)] transition hover:bg-[#f3e7df] active:scale-95"
             >
-              <Share2 size={17} strokeWidth={1.8} />
+              <Share2 size={15} strokeWidth={1.8} />
             </button>
+            <span className="h-4 w-px bg-[#ead8d0]" aria-hidden />
             <button
               onClick={() => setPanel("saved")}
               aria-label="收藏路线"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/72 text-[var(--ink)]"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--ink)] transition hover:bg-[#f3e7df] active:scale-95"
             >
-              <Star size={17} strokeWidth={1.8} />
+              <Star size={15} strokeWidth={1.8} />
             </button>
+            <span className="h-4 w-px bg-[#ead8d0]" aria-hidden />
             <button
               onClick={() => setPanel("more")}
               aria-label="更多操作"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/72 text-[var(--ink)]"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--ink)] transition hover:bg-[#f3e7df] active:scale-95"
             >
-              <MoreHorizontal size={17} strokeWidth={1.8} />
+              <MoreHorizontal size={15} strokeWidth={1.8} />
             </button>
           </div>
         </div>
+
         <div className="mt-3">
           <TagPill>{chapter.card.rarity}</TagPill>
           <h1 className="mt-2 cn-serif text-[24px] leading-tight text-[var(--ink)]">
@@ -1421,25 +1424,26 @@ function ReviewPosterPage({
         </FlowPanel>
       )}
       <section className="rounded-[24px] border border-[#ead8d0] bg-[#fffaf2]/94 p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <button
             onClick={onBack}
             aria-label="返回路线详情"
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-white/72 px-3 cn-serif text-[12px] text-[var(--ink)]"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[#ead8d0] bg-white/60 px-3 cn-serif text-[12px] text-[var(--ink)] transition hover:border-[#d9c3b8] hover:bg-white active:scale-[0.98]"
           >
-            <ArrowLeft size={18} strokeWidth={1.8} />
+            <ArrowLeft size={16} strokeWidth={1.8} />
             路线详情
           </button>
           <h1 className="cn-serif text-[17px] text-[var(--ink)]">复盘海报</h1>
           <button
             onClick={() => setPanel("settings")}
             aria-label="更多操作"
-            className="inline-flex min-h-10 items-center gap-1 rounded-full bg-white/72 px-3 cn-serif text-[12px] text-[var(--ink)]"
+            className="inline-flex h-9 items-center gap-1 rounded-full border border-[#ead8d0] bg-white/60 px-3 cn-serif text-[12px] text-[var(--ink)] transition hover:border-[#d9c3b8] hover:bg-white active:scale-[0.98]"
           >
-            <MoreHorizontal size={17} strokeWidth={1.8} />
+            <MoreHorizontal size={15} strokeWidth={1.8} />
             设置
           </button>
         </div>
+
       </section>
 
       <section className="rounded-[26px] border border-[#ead8d0] bg-[#fffaf2]/92 p-3">
