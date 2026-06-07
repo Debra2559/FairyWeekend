@@ -231,6 +231,7 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
     // 防止异步 onresult 在清空之后又把文本写回来
     setTimeout(() => setInput(""), 0);
     setPicked([]);
+    setPickedSingle(null);
     setMsgs((m) =>
       m.map((x) =>
         x.step === currentStep && x.chips ? { ...x, chips: undefined, freeInput: false } : x,
