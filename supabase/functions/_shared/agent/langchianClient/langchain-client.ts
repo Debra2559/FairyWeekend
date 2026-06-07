@@ -99,6 +99,10 @@ function createOpenAILLM(): BaseChatModel {
     configuration: baseUrl ? { baseURL: baseUrl } : undefined,
     model,
     temperature: 0.7,
+    // 禁用深度思考，提升速度
+    modelKwargs: {
+      enable_thinking: false,
+    },
   });
 }
 

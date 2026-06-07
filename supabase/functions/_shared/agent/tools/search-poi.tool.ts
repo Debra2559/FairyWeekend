@@ -32,6 +32,14 @@ async function rateLimit() {
 export const searchPoiTool = tool(
   async ({ keywords, city, radius = 3000, lng, lat }) => {
     try {
+      // 输出搜索内容
+      console.log("🔍 [POI搜索] 开始搜索:", {
+        keywords,
+        city: city || "北京",
+        radius,
+        location: lng && lat ? `${lng},${lat}` : "无坐标（使用城市搜索）",
+      });
+
       const allPois: POI[] = [];
       const errors: string[] = [];
 
@@ -58,7 +66,7 @@ export const searchPoiTool = tool(
           url.searchParams.set("keywords", keyword);
           url.searchParams.set("city", city || "北京");
         }
-        url.searchParams.set("offset", "10");
+        url.searchParams.set("offset", "5"); // 减少API返回数量
         url.searchParams.set("extensions", "base");
 
         const res = await fetch(url.toString()).then((r) => r.json());
@@ -75,7 +83,7 @@ export const searchPoiTool = tool(
         }
 
         const pois: POI[] = res.pois
-          .slice(0, 8)
+          .slice(0, 3) // 每个关键词最多返回3个结果
           .map((p: Record<string, unknown>) => ({
             name: String(p.name ?? ""),
             type: String(p.type ?? "").split(";")[0] || "",
@@ -104,6 +112,13 @@ export const searchPoiTool = tool(
         city: city || "北京",
         errors: errors.length > 0 ? errors : undefined,
       };
+
+      // 输出搜索结果摘要
+      console.log(`✅ [POI搜索] 完成: 找到 ${uniquePois.length} 个结果`, {
+        keywords,
+        mode: useLocationSearch ? "around" : "text",
+        errors: errors.length > 0 ? errors : undefined,
+      });
 
       return JSON.stringify(result);
     } catch (e) {
