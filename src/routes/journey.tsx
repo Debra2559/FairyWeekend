@@ -837,8 +837,16 @@ function JourneyMap({
   }, [scenes, cardId, transportMeta]);
 
   const totalMeters = segments.reduce((s, x) => s + x.meters, 0);
-  const totalMinutes = segments.reduce((s, x) => s + x.minutes, 0);
+  const travelMinutes = segments.reduce((s, x) => s + x.minutes, 0);
+  const stayMinutes = scenes.reduce((s, x) => s + (x.stay_minutes || 0), 0);
+  const totalMinutes = travelMinutes + stayMinutes;
   const totalLabel = totalMeters >= 1000 ? `${(totalMeters / 1000).toFixed(1)}km` : `${totalMeters}m`;
+  const fmtDur = (m: number) => {
+    if (m < 60) return `${m}min`;
+    const h = Math.floor(m / 60);
+    const r = m % 60;
+    return r === 0 ? `${h}h` : `${h}h${r}min`;
+  };
 
   // 一键打开完整路线
   const routeHref = useMemo(() => {
