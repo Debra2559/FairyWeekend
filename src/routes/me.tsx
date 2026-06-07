@@ -1900,6 +1900,21 @@ function CollectionPage({
         onDateRangeChange={onDateRangeChange}
       />
       <section className="space-y-3">
+        {(kind === "all" || kind === "personas") && (
+          <PersonaStampBook
+            cards={personaItems}
+            collectedIds={collectedCardIds}
+            collected={personaCollected}
+            total={personaTotal}
+            compact={kind === "all"}
+            onTap={(card) => {
+              const owned = collectedCardIds.has(card.id);
+              onNotify(
+                owned ? `${card.identity} · 已收集` : `${card.identity} · 还没解锁，去走一条路线试试`,
+              );
+            }}
+          />
+        )}
         {(kind === "all" || kind === "planned") &&
           (planItems.length > 0
             ? planItems
