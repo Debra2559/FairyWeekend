@@ -4518,6 +4518,21 @@ function ChapterDetail({
           </p>
         </div>
 
+        {/* Storybook */}
+        <div className="px-5 mt-5">
+          <div className="display text-[10px] tracking-[0.3em] text-[var(--ink-soft)] mb-2">
+            STORYBOOK · 本期故事书
+          </div>
+          <button
+            onClick={handleExportStorybook}
+            disabled={bookExporting}
+            className="w-full rounded-2xl border border-[#ead8d0] bg-[#fffaf2] px-4 py-3 flex items-center justify-center gap-2 cn-serif text-[13px] text-[var(--ink)] transition hover:bg-[#fdf6ed] disabled:opacity-60"
+          >
+            <BookMarked size={16} strokeWidth={1.7} />
+            {bookExporting ? "正在装订本期故事书…" : "📖 装订本期故事书"}
+          </button>
+        </div>
+
         {/* Footer */}
         <div className="px-5 py-4 mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border)] sticky bottom-0 bg-[var(--card)]/95 backdrop-blur">
           <button
