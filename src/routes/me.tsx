@@ -728,14 +728,12 @@ function RouteSummaryCard({
           className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
         />
       )}
-      {/* 强对比暗化层，保证白字在任何封面上都可读 */}
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(35,22,18,0.30)_0%,rgba(35,22,18,0.55)_55%,rgba(20,12,10,0.78)_100%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,12,10,0.55)_0%,rgba(20,12,10,0.15)_60%,rgba(20,12,10,0.0)_100%)]" />
+      {/* 适度暗化层 —— 保证白字可读，但不把封面压成纯黑 */}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(35,22,18,0.10)_0%,rgba(35,22,18,0.28)_55%,rgba(20,12,10,0.55)_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,12,10,0.35)_0%,rgba(20,12,10,0.05)_55%,rgba(20,12,10,0.0)_100%)]" />
       <button
         onClick={onOpen}
-        className={`relative flex min-h-[inherit] w-full flex-col justify-end p-4 text-left text-white ${
-          compact ? "pr-12" : "pr-14"
-        }`}
+        className="relative flex min-h-[inherit] w-full flex-col justify-end p-4 text-left text-white"
       >
         <div className="mb-auto flex items-start justify-between gap-3">
           <span className="rounded-full border border-white/40 bg-black/35 px-2.5 py-1 cn-serif text-[10px] text-white backdrop-blur">
@@ -743,7 +741,7 @@ function RouteSummaryCard({
           </span>
           <ChevronRight size={18} strokeWidth={1.7} className="text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]" />
         </div>
-        <div className="max-w-[78%]" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.55)" }}>
+        <div className="max-w-[88%]" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.55)" }}>
           <div className="cn-serif text-[10px] text-white/90">
             {chapter.city || "城市"} · {date}
           </div>
@@ -780,28 +778,43 @@ function RouteSummaryCard({
         <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/26">
           <div className="h-full rounded-full bg-[#fff7ea]/95" style={{ width: `${pct}%` }} />
         </div>
+        {!compact && (mapHref || onPoster) && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {mapHref && (
+              <a
+                href={mapHref}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex min-h-9 items-center gap-1 rounded-full border border-white/34 bg-white/85 px-3 cn-serif text-[12px] text-[#4f4944] shadow-sm backdrop-blur"
+                title="在高德地图上标出这条路线的所有打卡点"
+              >
+                <MapPinned size={13} strokeWidth={1.8} />
+                在地图查看
+              </a>
+            )}
+            {onPoster && (
+              <span
+                role="button"
+                tabIndex={0}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPoster();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.stopPropagation();
+                    onPoster();
+                  }
+                }}
+                className="inline-flex min-h-9 cursor-pointer items-center rounded-full border border-white/34 bg-white/85 px-3 cn-serif text-[12px] text-[#4f4944] shadow-sm backdrop-blur"
+              >
+                生成复盘海报
+              </span>
+            )}
+          </div>
+        )}
       </button>
-      {!compact && mapHref && (
-        <a
-          href={mapHref}
-          target="_blank"
-          rel="noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="absolute left-3 bottom-3 z-10 inline-flex min-h-9 items-center gap-1 rounded-full border border-white/34 bg-white/82 px-3 cn-serif text-[12px] text-[#4f4944] shadow-sm backdrop-blur"
-          title="在高德地图上标出这条路线的所有打卡点"
-        >
-          <MapPinned size={13} strokeWidth={1.8} />
-          在地图查看
-        </a>
-      )}
-      {!compact && onPoster && (
-        <button
-          onClick={onPoster}
-          className="absolute bottom-3 right-3 z-10 min-h-9 rounded-full border border-white/34 bg-white/82 px-3 cn-serif text-[12px] text-[#4f4944] shadow-sm backdrop-blur"
-        >
-          生成复盘海报
-        </button>
-      )}
     </article>
   );
 }
