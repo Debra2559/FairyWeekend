@@ -91,6 +91,16 @@ function JourneyPage() {
         />
       </div>
 
+      {/* ✦ 预订清单 */}
+      <div className="max-w-xl mx-auto px-5 mt-4">
+        <ReservationSummaryCard
+          scenes={journey.scenes}
+          sceneRecords={run.sceneRecords ?? {}}
+          city={city}
+          onPick={(s) => setOpenScene(s)}
+        />
+      </div>
+
       {/* Map */}
       <div className="max-w-xl mx-auto px-3 mt-6">
         <JourneyMap
