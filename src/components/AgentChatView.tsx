@@ -408,7 +408,9 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
               <div className="flex flex-wrap gap-2">
 
                 {lastInteractive.chips.map((c, i) => {
-                  const isPicked = lastInteractive.multi && picked.includes(i);
+                  const isPicked = lastInteractive.multi
+                    ? picked.includes(i)
+                    : pickedSingle === c.label;
                   return (
                     <button
                       key={i}
