@@ -89,7 +89,7 @@ function Index() {
         </p>
       </header>
 
-      <GroupModeSelector className="mb-6" />
+      
 
 
 
