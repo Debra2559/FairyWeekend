@@ -78,44 +78,8 @@ function Index() {
           今日<span className="italic">人设</span>
         </h1>
         <p className="cn-serif mt-4 text-[15px] text-[var(--ink-soft)]">
-          周末不知道去哪？抽一张人设卡，AI 为你生成一条今天就能走的城市路线。
+          抽一张人设卡，AI 为你生成一条今天就能走的城市路线。
         </p>
-
-        {/* 三步流程说明 */}
-        <div className="mt-6 mx-auto max-w-xl grid grid-cols-3 gap-2 sm:gap-4 text-left">
-          {[
-            { n: "01", t: "抽人设", d: "AI 对话 / 自选 / 塔罗抽卡" },
-            { n: "02", t: "生路线", d: "按城市 · 时段 · 情绪定制" },
-            { n: "03", t: "走地图", d: "手绘场景 + 美团一键直达" },
-          ].map((s) => (
-            <div
-              key={s.n}
-              className="rounded-xl border border-[var(--border)] bg-[var(--card)]/60 px-3 py-2.5"
-            >
-              <div className="display text-[10px] tracking-[0.25em] text-[var(--ink-soft)]">
-                {s.n}
-              </div>
-              <div className="cn-serif text-[13px] text-[var(--ink)] mt-0.5">
-                {s.t}
-              </div>
-              <div className="cn-serif text-[11px] text-[var(--ink-soft)] leading-snug mt-0.5">
-                {s.d}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* 特性标签 */}
-        <div className="mt-4 flex flex-wrap justify-center gap-1.5 text-[11px] cn-serif text-[var(--ink-soft)]">
-          {["AI 对话规划", "手绘叙事地图", "美团直达", "打卡连载存档"].map((tag) => (
-            <span
-              key={tag}
-              className="px-2.5 py-1 rounded-full border border-[var(--border)] bg-[var(--muted)]/50"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
       </header>
 
 
