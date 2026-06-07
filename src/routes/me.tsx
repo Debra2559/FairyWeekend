@@ -334,7 +334,14 @@ function MePage() {
           首页
         </button>
         <h1 className="text-center cn-serif text-[21px] text-[var(--ink)]">我的连载</h1>
-        <div className="display text-[10px] tracking-[0.4em] text-[var(--ink-soft)]">ARCHIVE</div>
+        <button
+          onClick={() => navigate({ to: "/library" })}
+          className="display text-[10px] tracking-[0.4em] text-[var(--ink-soft)] hover:text-[var(--ink)] transition text-right"
+          aria-label="打开连载书架"
+        >
+          书架 →
+        </button>
+
       </div>
 
       <MainTabs
