@@ -9,12 +9,12 @@ import cover007 from "@/assets/persona/card_007.webp";
 import cover008 from "@/assets/persona/card_008.webp";
 import cover009 from "@/assets/persona/card_009.webp";
 import cover010 from "@/assets/persona/card_010.webp";
-import cover017 from "@/assets/persona/card_017.webp";
-import cover018 from "@/assets/persona/card_018.webp";
-import cover019 from "@/assets/persona/card_019.webp";
-import cover021 from "@/assets/persona/card_021.webp";
-import cover022 from "@/assets/persona/card_022.webp";
-import cover023 from "@/assets/persona/card_023.webp";
+import cover017Asset from "@/assets/persona/persona_upload_82.png.asset.json";
+import cover018Asset from "@/assets/persona/persona_upload_83.png.asset.json";
+import cover019Asset from "@/assets/persona/persona_upload_84.png.asset.json";
+import cover021Asset from "@/assets/persona/persona_upload_85.png.asset.json";
+import cover022Asset from "@/assets/persona/persona_upload_86.png.asset.json";
+import cover023Asset from "@/assets/persona/persona_upload_87.png.asset.json";
 
 const COVERS: Record<string, string> = {
   card_001: cover001,
@@ -27,12 +27,12 @@ const COVERS: Record<string, string> = {
   card_008: cover008,
   card_009: cover009,
   card_010: cover010,
-  card_017: cover017,
-  card_018: cover018,
-  card_019: cover019,
-  card_021: cover021,
-  card_022: cover022,
-  card_023: cover023,
+  card_017: cover017Asset.url,
+  card_018: cover018Asset.url,
+  card_019: cover019Asset.url,
+  card_021: cover021Asset.url,
+  card_022: cover022Asset.url,
+  card_023: cover023Asset.url,
 };
 
 
