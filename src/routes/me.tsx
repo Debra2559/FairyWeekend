@@ -302,7 +302,7 @@ function MePage() {
       return next;
     });
     setCollectionKind("planned");
-    notify("已加入待出行，可在收藏页查看");
+    notify("已加入待出行，可在素材库查看");
   }
 
   function openRoute(chapter: ArchivedChapter) {
@@ -1027,18 +1027,18 @@ function RouteDetailPage({
       {panel === "saved" && (
         <FlowPanel
           title="已加入收藏"
-          description="这条路线已经保存到收藏页，后续可以通过搜索、日期或路线分类找到。"
+          description="这条路线已经保存到素材库，后续可以通过搜索、日期或路线分类找到。"
           onClose={() => setPanel(null)}
         >
           <div className="grid gap-2">
             <button
               onClick={() => {
                 setPanel(null);
-                onNotify("可以在收藏页查看这条路线");
+                onNotify("可以在素材库查看这条路线");
               }}
               className="min-h-11 rounded-[16px] border border-[#ead8d0] bg-white/66 cn-serif text-[13px] text-[var(--ink)]"
             >
-              稍后去收藏页查看
+              稍后去素材库查看
             </button>
             <button
               onClick={() => setPanel(null)}
