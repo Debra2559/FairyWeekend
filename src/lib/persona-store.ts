@@ -242,6 +242,23 @@ export function startRun(card: PersonaCard, journey: Journey, city?: string): Jo
   return run;
 }
 
+export function replaceJourney(journey: Journey) {
+  const run = loadRun();
+  if (!run) return;
+  // 保留已完成的 scene order，但过滤掉新 journey 里不存在的
+  const validOrders = new Set(journey.scenes.map((s) => s.order));
+  run.journey = journey;
+  run.completedSceneOrders = run.completedSceneOrders.filter((o) => validOrders.has(o));
+  if (run.sceneRecords) {
+    const next: Record<number, SceneRecord> = {};
+    for (const [k, v] of Object.entries(run.sceneRecords)) {
+      const order = Number(k);
+      if (validOrders.has(order)) next[order] = v;
+    }
+    run.sceneRecords = next;
+  }
+  saveRun(run);
+
 export function completeScene(order: number) {
   const run = loadRun();
   if (!run) return;
