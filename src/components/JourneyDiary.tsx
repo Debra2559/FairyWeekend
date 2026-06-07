@@ -102,7 +102,10 @@ export function JourneyDiary({
       </div>
 
       {/* Polaroid strip */}
-      <div className="-mx-5 px-5 overflow-x-auto scrollbar-hide">
+      <div
+        className="-mx-5 px-5 overflow-x-auto"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
+      >
         <ol className="flex gap-3 pb-3">
           {scenes.map((s, idx) => {
             const rec = records[s.order];
