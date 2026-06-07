@@ -41,7 +41,7 @@ import {
   type ArchivedChapter,
   type LibraryEntry,
 } from "@/lib/persona-store";
-import { getCoverById } from "@/lib/cards";
+import { getCoverById, PERSONA_CARDS } from "@/lib/cards";
 import { VenueIcon, detectVenue } from "@/components/VenueIcon";
 import { UserPhotoCard } from "@/components/UserPhotoCard";
 import { RouteOverviewMap } from "@/components/RouteOverviewMap";
