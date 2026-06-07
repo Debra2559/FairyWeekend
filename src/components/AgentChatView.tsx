@@ -76,7 +76,7 @@ interface ChatMsg {
   id: number;
   who: "agent" | "user";
   text?: string;
-  chips?: { label: string; tag: string }[];
+  chips?: { label: string; tag: string; submit?: boolean }[];
   step?: Step;
   freeInput?: boolean;
   multi?: boolean;
@@ -206,8 +206,8 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
     // 首屏立即给出全部初始内容，不让用户等
     push({ who: "agent", text: "嗨，我是今日小说的策划助理 ❦" }, 0);
     push({ who: "agent", text: "这个周末，你想过成什么样？随便讲就行——\n· 此刻的状态（累瘫了 / 有点闷 / 想撒野…）\n· 想待在什么环境（窝在房间 / 想出门晒太阳 / 找个安静角落…）\n· 想和谁、做点什么、或者只是想被什么样的氛围包住\n\n想到哪说到哪，下面也可以点气泡让我一步步带你选。" }, 0);
-    push({ who: "agent", text: "要不先从这个开始：你现在大概是什么状态？（可多选）" }, 0);
-    push({ who: "agent", chips: MOOD_CHIPS, step: "mood", freeInput: true, multi: true }, 0);
+    push({ who: "agent", text: "要不先从这个开始：你现在大概是什么状态？" }, 0);
+    push({ who: "agent", chips: MOOD_CHIPS, step: "mood", freeInput: true }, 0);
   }, []);
 
   // 自动滚到底
@@ -215,18 +215,23 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [msgs, typing]);
 
-  function handleChip(step: Step, label: string, tag: string) {
-    // 把这条消息的 chips 标记为已选并隐藏（通过移除 chips 字段）
-    setMsgs((m) =>
-      m.map((x) =>
-        x.step === step && x.chips ? { ...x, chips: undefined, freeInput: false, multi: false } : x,
-      ),
-    );
-    // 显示用户气泡
-    setMsgs((m) => [...m, { id: nextId(), who: "user", text: label }]);
-    const newTags = tag ? [...tags, tag] : tags;
-    setTags(newTags);
-    advance(step, newTags, freeText);
+  function handleChip(step: Step, label: string, tag: string, submit?: boolean) {
+    // 如果是提交类型的气泡，直接提交
+    if (submit) {
+      setMsgs((m) =>
+        m.map((x) =>
+          x.step === step && x.chips ? { ...x, chips: undefined, freeInput: false } : x,
+        ),
+      );
+      setMsgs((m) => [...m, { id: nextId(), who: "user", text: label }]);
+      advance(step, tags, freeText);
+      return;
+    }
+    // 否则追加到输入框（已有内容则用空格分隔）
+    setInput((prev) => (prev ? `${prev} ${label}` : label));
+    // 记录 tag（用于推荐匹配）
+    if (tag) setTags((prev) => [...prev, tag]);
+    // 不隐藏 chips，不提交，让用户继续选或编辑
   }
 
   function handleMultiSubmit(step: Step, chips: { label: string; tag: string }[]) {
@@ -279,8 +284,8 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
       push({ who: "agent", text: "好嘞。今天大概有多少时间？" }, 250);
       push({ who: "agent", chips: DURATION_CHIPS, step: "duration", freeInput: true }, 450);
     } else if (fromStep === "duration") {
-      push({ who: "agent", text: "想要的氛围是哪种？（可多选）" }, 250);
-      push({ who: "agent", chips: VIBE_CHIPS, step: "vibe", freeInput: true, multi: true }, 450);
+      push({ who: "agent", text: "想要的氛围是哪种？" }, 250);
+      push({ who: "agent", chips: VIBE_CHIPS, step: "vibe", freeInput: true }, 450);
     } else if (fromStep === "vibe") {
       push({ who: "agent", text: "你今天想用什么方式去这些地方？" }, 250);
       push({ who: "agent", chips: TRANSPORT_CHIPS, step: "transport", freeInput: true }, 450);
@@ -292,7 +297,7 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
         else localStorage.removeItem("today.transport");
       } catch {}
       push({ who: "agent", text: "想再用一句话补充吗？（可选）" }, 250);
-      push({ who: "agent", chips: [{ label: "不用了，给我推荐吧 →", tag: "" }], step: "extra", freeInput: true }, 450);
+      push({ who: "agent", chips: [{ label: "不用了，给我推荐吧 →", tag: "", submit: true }], step: "extra", freeInput: true }, 450);
     } else if (fromStep === "extra") {
       finalize(curTags, curText);
     }
@@ -404,7 +409,7 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
                         if (lastInteractive.multi) {
                           setPicked((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]));
                         } else {
-                          handleChip(lastInteractive.step!, c.label, c.tag);
+                          handleChip(lastInteractive.step!, c.label, c.tag, c.submit);
                         }
                       }}
                     >
