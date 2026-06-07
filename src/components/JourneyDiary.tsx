@@ -10,13 +10,10 @@ interface Props {
   createdAt: number;
 }
 
-const CN_NUM = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+const CN_NUM = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"];
 function chineseNum(n: number) {
-  if (n <= 10) return CN_NUM[n];
-  if (n < 20) return "十" + CN_NUM[n - 10];
-  const t = Math.floor(n / 10);
-  const o = n % 10;
-  return CN_NUM[t] + "十" + (o ? CN_NUM[o] : "");
+  if (n <= 12) return CN_NUM[n];
+  return String(n);
 }
 
 function fmtTime(ts?: number) {
@@ -36,6 +33,20 @@ function fmtDuration(fromTs: number, toTs: number) {
   return m ? `${h}h ${m}m` : `${h}h`;
 }
 
+/** 截出悬念文案（未解锁时引诱打卡） */
+function teaser(text: string) {
+  if (!text) return "";
+  const t = text.trim();
+  const limit = 18;
+  return t.length > limit ? t.slice(0, limit) + "…" : t;
+}
+
+/** 用户记录摘要（已解锁时展示） */
+function diaryLine(rec: SceneRecord | undefined, fallback: string) {
+  if (rec?.note) return rec.note;
+  return teaser(fallback);
+}
+
 export function JourneyDiary({
   scenes,
   records,
@@ -47,7 +58,6 @@ export function JourneyDiary({
   const doneCount = completed.length;
   const pct = total ? Math.round((doneCount / total) * 100) : 0;
 
-  // stats: 用时（首次打卡 → 最后一次打卡）& 平均心情
   const doneRecords = scenes
     .filter((s) => completed.includes(s.order))
     .map((s) => records[s.order])
@@ -91,141 +101,199 @@ export function JourneyDiary({
         </div>
       </div>
 
-      {/* Progress thread */}
+      {/* 进度条 */}
       <div className="relative h-[3px] rounded-full bg-[var(--ink)]/8 overflow-hidden mb-4">
         <div
           className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-500"
           style={{
             width: `${pct}%`,
-            background: "linear-gradient(90deg, var(--ink) 0%, #8a6d4f 100%)",
+            background: "linear-gradient(90deg, #c4a56c 0%, #8a6d4f 100%)",
           }}
         />
       </div>
 
-      {/* Polaroid strip */}
+      {/* 故事节点 + Polaroid 统一滚动 */}
       <div
-        className="-mx-5 px-5 overflow-x-auto"
+        className="-mx-5 overflow-x-auto"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as CSSProperties}
       >
-        <ol className="flex gap-3 pb-3">
-          {scenes.map((s, idx) => {
-            const rec = records[s.order];
-            const done = completed.includes(s.order);
-            const photo = rec?.photos?.[0] ?? rec?.photo;
-            const kind = detectVenue(s.location_type, s.location_name);
-            const rotation = (idx % 2 === 0 ? -1 : 1) * (1.2 + (idx % 3) * 0.4);
-
-            return (
-              <li key={s.order} className="shrink-0">
+        <div className="px-5 inline-flex flex-col gap-2">
+          {/* 节点标记行 */}
+          <div className="flex items-center gap-3">
+            {scenes.map((s) => {
+              const done = completed.includes(s.order);
+              return (
                 <button
+                  key={`trail-${s.order}`}
                   onClick={() => onPick(s)}
-                  className="block text-left transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
-                  style={{ transform: `rotate(${rotation}deg)` }}
-                  aria-label={`第 ${s.order} 话 · ${s.scene_name}`}
+                  className="shrink-0 flex justify-center"
+                  style={{ width: 136 }}
                 >
                   <div
-                    className="relative w-[136px] rounded-[6px] p-2 pb-3"
+                    className="w-5 h-5 rounded-full flex items-center justify-center cn-serif text-[9px] transition-all duration-300 hover:scale-110"
                     style={{
-                      background: done ? "#fffdf7" : "#f4ecdd",
-                      boxShadow: done
-                        ? "0 1px 0 rgba(0,0,0,0.04), 0 10px 22px -14px rgba(60,40,30,0.35)"
-                        : "0 1px 0 rgba(0,0,0,0.03), 0 6px 14px -12px rgba(60,40,30,0.18)",
-                      border: done ? "1px solid rgba(60,40,30,0.08)" : "1px dashed rgba(60,40,30,0.22)",
+                      background: done ? "#c4a56c" : "#f4ecdd",
+                      color: done ? "#fff" : "var(--ink-soft)",
+                      border: done ? "1.5px solid #c4a56c" : "1.5px dashed rgba(60,40,30,0.25)",
+                      boxShadow: done ? "0 2px 5px rgba(196,165,108,0.3)" : "none",
                     }}
                   >
-                    {/* tape */}
-                    <div
-                      className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-10 h-3 rounded-[2px]"
-                      style={{
-                        background: done
-                          ? "linear-gradient(180deg, rgba(196,165,108,0.7), rgba(196,165,108,0.45))"
-                          : "linear-gradient(180deg, rgba(120,100,80,0.18), rgba(120,100,80,0.08))",
-                        boxShadow: "0 1px 0 rgba(0,0,0,0.06)",
-                      }}
-                    />
-
-                    {/* image / placeholder */}
-                    <div
-                      className="relative w-full aspect-square rounded-[3px] overflow-hidden flex items-center justify-center"
-                      style={{
-                        background: done
-                          ? "#1a1a1a"
-                          : "repeating-linear-gradient(45deg, #ece3d0 0 6px, #e6dcc6 6px 12px)",
-                      }}
-                    >
-                      {done && photo ? (
-                        <img src={photo} alt={s.scene_name} className="w-full h-full object-cover" />
-                      ) : done ? (
-                        <div className="text-white/85 flex flex-col items-center gap-1">
-                          <VenueIcon kind={kind} size={40} className="opacity-90" />
-                          <span className="display italic text-[10px] tracking-[0.18em] text-white/70">RECORDED</span>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center gap-1 text-[var(--ink-soft)]/70">
-                          <VenueIcon kind={kind} size={36} className="opacity-50" />
-                          <span className="display italic text-[9.5px] tracking-[0.22em]">UNSEALED</span>
-                        </div>
-                      )}
-
-                      {/* stamp */}
-                      {done && (
-                        <div
-                          className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-sm rotate-[8deg]"
-                          style={{
-                            background: "rgba(199, 71, 51, 0.92)",
-                            color: "#fff8ec",
-                            fontFamily: "var(--font-display, serif)",
-                            fontSize: "9px",
-                            letterSpacing: "0.18em",
-                            border: "1px solid rgba(255,248,236,0.5)",
-                          }}
-                        >
-                          ✓ DONE
-                        </div>
-                      )}
-
-                      {!done && (
-                        <div
-                          className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full flex items-center justify-center cn-serif text-[10px]"
-                          style={{
-                            background: "rgba(60,40,30,0.06)",
-                            color: "var(--ink-soft)",
-                            border: "1px dashed rgba(60,40,30,0.25)",
-                          }}
-                        >
-                          {s.order}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* caption */}
-                    <div className="mt-2 px-0.5">
-                      <div className="flex items-center justify-between">
-                        <span className="display italic text-[9.5px] tracking-[0.2em] text-[var(--ink-soft)]">
-                          CH.{String(s.order).padStart(2, "0")}
-                        </span>
-                        <span className="display italic text-[9.5px] text-[var(--ink-soft)]/80">
-                          {done ? fmtTime(rec?.completedAt) : `~${s.stay_minutes}m`}
-                        </span>
-                      </div>
-                      <div
-                        className="cn-serif text-[12px] text-[var(--ink)] mt-0.5 leading-tight overflow-hidden"
-                        style={{
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          minHeight: "30px",
-                        }}
-                      >
-                        {s.scene_name}
-                      </div>
-                    </div>
+                    {done ? "✓" : s.order}
                   </div>
                 </button>
-              </li>
-            );
-          })}
-        </ol>
+              );
+            })}
+          </div>
+
+          {/* Polaroid strip */}
+          <ol className="flex gap-3 pb-3">
+            {scenes.map((s, idx) => {
+              const rec = records[s.order];
+              const done = completed.includes(s.order);
+              const photo = rec?.photos?.[0] ?? rec?.photo;
+              const kind = detectVenue(s.location_type, s.location_name);
+              const rotation = (idx % 2 === 0 ? -1 : 1) * (1.2 + (idx % 3) * 0.4);
+              const line = diaryLine(rec, s.persona_narrative);
+
+              return (
+                <li key={s.order} className="shrink-0">
+                  <button
+                    onClick={() => onPick(s)}
+                    className="block text-left transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
+                    style={{ transform: `rotate(${rotation}deg)` }}
+                    aria-label={`第 ${s.order} 话 · ${s.scene_name}`}
+                  >
+                    <div
+                      className="relative w-[136px] rounded-[6px] p-2 pb-3"
+                      style={{
+                        background: done ? "#fffdf7" : "#f4ecdd",
+                        boxShadow: done
+                          ? "0 1px 0 rgba(0,0,0,0.04), 0 10px 22px -14px rgba(60,40,30,0.35)"
+                          : "0 1px 0 rgba(0,0,0,0.03), 0 6px 14px -12px rgba(60,40,30,0.18)",
+                        border: done ? "1px solid rgba(60,40,30,0.08)" : "1px dashed rgba(60,40,30,0.22)",
+                      }}
+                    >
+                      {/* tape */}
+                      <div
+                        className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-10 h-3 rounded-[2px]"
+                        style={{
+                          background: done
+                            ? "linear-gradient(180deg, rgba(196,165,108,0.7), rgba(196,165,108,0.45))"
+                            : "linear-gradient(180deg, rgba(120,100,80,0.18), rgba(120,100,80,0.08))",
+                          boxShadow: "0 1px 0 rgba(0,0,0,0.06)",
+                        }}
+                      />
+
+                      {/* image / placeholder */}
+                      <div
+                        className="relative w-full aspect-square rounded-[3px] overflow-hidden flex items-center justify-center"
+                        style={{
+                          background: done
+                            ? "#1a1a1a"
+                            : "repeating-linear-gradient(45deg, #ece3d0 0 6px, #e6dcc6 6px 12px)",
+                        }}
+                      >
+                        {done && photo ? (
+                          <img
+                            src={photo}
+                            alt={s.scene_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : done ? (
+                          <div className="text-white/85 flex flex-col items-center gap-1">
+                            <VenueIcon kind={kind} size={40} className="opacity-90" />
+                            <span className="display italic text-[10px] tracking-[0.18em] text-white/70">
+                              RECORDED
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-1 text-[var(--ink-soft)]/70">
+                            <VenueIcon kind={kind} size={36} className="opacity-50" />
+                            <span className="display italic text-[9.5px] tracking-[0.22em]">
+                              UNSEALED
+                            </span>
+                          </div>
+                        )}
+
+                        {/* stamp */}
+                        {done && (
+                          <div
+                            className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-sm"
+                            style={{
+                              background: "rgba(199, 71, 51, 0.92)",
+                              color: "#fff8ec",
+                              fontFamily: "var(--font-display, serif)",
+                              fontSize: "8.5px",
+                              letterSpacing: "0.12em",
+                              border: "1px solid rgba(255,248,236,0.5)",
+                              transform: `rotate(${6 + (idx % 3) * 4}deg)`,
+                            }}
+                          >
+                            ✓ DONE
+                          </div>
+                        )}
+
+                        {!done && (
+                          <div
+                            className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full flex items-center justify-center cn-serif text-[10px]"
+                            style={{
+                              background: "rgba(60,40,30,0.06)",
+                              color: "var(--ink-soft)",
+                              border: "1px dashed rgba(60,40,30,0.25)",
+                            }}
+                          >
+                            {s.order}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* caption */}
+                      <div className="mt-2 px-0.5">
+                        <div className="flex items-center justify-between">
+                          <span className="display italic text-[9.5px] tracking-[0.2em] text-[var(--ink-soft)]">
+                            CH.{String(s.order).padStart(2, "0")}
+                          </span>
+                          <span className="display italic text-[9.5px] text-[var(--ink-soft)]/80">
+                            {done ? fmtTime(rec?.completedAt) : `~${s.stay_minutes}m`}
+                          </span>
+                        </div>
+                        <div
+                          className="cn-serif text-[12px] text-[var(--ink)] mt-0.5 leading-tight overflow-hidden"
+                          style={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            minHeight: "30px",
+                          }}
+                        >
+                          {s.scene_name}
+                        </div>
+
+                        {/* 叙事 / 悬念文案 */}
+                        {line && (
+                          <div className="mt-1.5 pt-1.5 border-t border-dashed border-[var(--ink)]/10">
+                            <div
+                              className={`cn-serif text-[10px] leading-relaxed overflow-hidden ${
+                                done ? "text-[var(--ink-soft)]" : "text-[var(--ink-soft)]/70"
+                              }`}
+                              style={{
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                              }}
+                            >
+                              {done ? `「${line}」` : `下一话：${line}`}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
       </div>
 
       {/* Stats row */}
