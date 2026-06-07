@@ -468,7 +468,10 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
                 )}
                 <textarea
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    if (pickedSingle && e.target.value !== pickedSingle) setPickedSingle(null);
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
