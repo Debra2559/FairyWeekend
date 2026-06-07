@@ -9,7 +9,7 @@ import { getSceneDeals, type SceneDeal } from "@/lib/scene-deals";
 import { needsReservation, getReservationHint, getReservationLabel, buildMeituanReserveHref, buildDianpingReserveHref } from "@/lib/reservation";
 import { toast } from "sonner";
 import { JourneyChatPanel } from "@/components/JourneyChatPanel";
-import { JourneyInviteFab } from "@/components/JourneyInviteFab";
+
 import { groupPreset, type GroupMode } from "@/lib/group-mode";
 
 
@@ -199,7 +199,7 @@ function JourneyPage() {
         }}
       />
 
-      <JourneyInviteFab run={run} />
+      
     </div>
   );
 }
@@ -1114,10 +1114,10 @@ function JourneyMap({
             onClick={shareRoute}
             className="cn-serif text-[11.5px] px-3 py-1.5 rounded-full flex items-center gap-1.5 transition hover:opacity-90"
             style={{ background: "rgba(255,253,243,0.95)", color: "#3d3530", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}
-            title="分享路线给朋友"
+            title="把这条路线发给朋友"
           >
             <span>{copied ? "✓" : "🔗"}</span>
-            <span>{copied ? "已复制" : "分享"}</span>
+            <span>{copied ? "已复制" : "邀请好友"}</span>
           </button>
           <a
             href={routeHref}
@@ -1127,7 +1127,7 @@ function JourneyMap({
             style={{ background: "#3d3530", color: "#fffdf3", boxShadow: "0 4px 12px rgba(0,0,0,0.25)" }}
           >
             <span>📍</span>
-            <span>加入地图</span>
+            <span>一键添加到地图</span>
           </a>
         </div>
       </div>
