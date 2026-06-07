@@ -36,8 +36,11 @@ const STEPS = [
 export function OnboardingTour() {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
+  const stepRef = useRef(0);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
   const wheelLock = useRef(0);
   const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -79,6 +82,7 @@ export function OnboardingTour() {
   function go(delta: number) {
     setStep((n) => {
       const next = Math.max(0, Math.min(STEPS.length - 1, n + delta));
+      stepRef.current = next;
       saveStep(next);
       return next;
     });
@@ -97,30 +101,50 @@ export function OnboardingTour() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // 原生 wheel/touch 监听（passive:false 才能 preventDefault；React onWheel 默认 passive）
+  useEffect(() => {
+    if (!open) return;
+    const el = dialogRef.current;
+    if (!el) return;
+
+    const onWheel = (e: WheelEvent) => {
+      const now = Date.now();
+      const dx = e.deltaX;
+      const dy = e.deltaY;
+      const d = Math.abs(dx) > Math.abs(dy) ? dx : dy;
+      if (Math.abs(d) < 8) return;
+      e.preventDefault();
+      if (now - wheelLock.current < 400) return;
+      wheelLock.current = now;
+      go(d > 0 ? 1 : -1);
+    };
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartX.current = e.touches[0].clientX;
+      touchStartY.current = e.touches[0].clientY;
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (touchStartX.current == null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX.current;
+      const dy = (e.changedTouches[0].clientY - (touchStartY.current ?? 0));
+      touchStartX.current = null;
+      touchStartY.current = null;
+      if (Math.abs(dx) > 35 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   if (!open) return null;
   const s = STEPS[step];
   const isLast = step === STEPS.length - 1;
-
-  function onWheel(e: React.WheelEvent) {
-    const now = Date.now();
-    if (now - wheelLock.current < 450) return;
-    const dx = e.deltaX;
-    const dy = e.deltaY;
-    const d = Math.abs(dx) > Math.abs(dy) ? dx : dy;
-    if (Math.abs(d) < 12) return;
-    wheelLock.current = now;
-    go(d > 0 ? 1 : -1);
-  }
-
-  function onTouchStart(e: React.TouchEvent) {
-    touchStartX.current = e.touches[0].clientX;
-  }
-  function onTouchEnd(e: React.TouchEvent) {
-    if (touchStartX.current == null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    touchStartX.current = null;
-    if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
-  }
 
   return (
     <div
@@ -133,10 +157,8 @@ export function OnboardingTour() {
         onClick={close}
       />
       <div
-        className="relative w-full max-w-md rounded-3xl bg-[var(--card)] border border-[var(--border)] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.45)] overflow-hidden onb-pop select-none"
-        onWheel={onWheel}
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
+        ref={dialogRef}
+        className="relative w-full max-w-md rounded-3xl bg-[var(--card)] border border-[var(--border)] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.45)] overflow-hidden onb-pop select-none touch-pan-y"
       >
         <button
           onClick={close}
