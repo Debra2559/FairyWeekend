@@ -1971,6 +1971,103 @@ function CollectionPage({
   );
 }
 
+function PersonaStampBook({
+  cards,
+  collectedIds,
+  collected,
+  total,
+  compact,
+  onTap,
+}: {
+  cards: typeof PERSONA_CARDS;
+  collectedIds: Set<string>;
+  collected: number;
+  total: number;
+  compact: boolean;
+  onTap: (card: (typeof PERSONA_CARDS)[number]) => void;
+}) {
+  const list = compact ? cards.slice(0, 8) : cards;
+  return (
+    <section className="relative overflow-hidden rounded-[22px] border border-[#ead8d0] bg-[#fffaf2]/92 p-4">
+      <div className="flex items-end justify-between">
+        <div>
+          <div className="cn-serif text-[10.5px] tracking-[0.3em] text-[var(--ink-soft)]">
+            PERSONA · STAMP BOOK
+          </div>
+          <h2
+            className="mt-0.5 cn-serif text-[16px] text-[var(--ink)]"
+            style={{ fontFamily: "'Noto Serif SC', serif" }}
+          >
+            人设集邮册
+          </h2>
+        </div>
+        <div
+          className="cn-serif text-[12px]"
+          style={{ color: "#7a4a8a", fontFamily: "'Noto Serif SC', serif" }}
+        >
+          <span className="text-[16px] font-semibold">{collected}</span>
+          <span className="mx-0.5 opacity-60">/</span>
+          <span className="opacity-80">{total}</span>
+        </div>
+      </div>
+      <div className="mt-3 grid grid-cols-4 gap-2.5">
+        {list.map((card) => {
+          const owned = collectedIds.has(card.id);
+          const cover = getCoverById(card.id);
+          return (
+            <button
+              key={card.id}
+              type="button"
+              onClick={() => onTap(card)}
+              className="group relative aspect-[3/4] overflow-hidden rounded-[10px] border-[1.5px] border-dashed bg-[#fff4ec] text-left"
+              style={{ borderColor: owned ? "#7a4a8a66" : "#cbb9b1" }}
+            >
+              {cover ? (
+                <img
+                  src={cover}
+                  alt={card.identity}
+                  className="h-full w-full object-cover transition-all"
+                  style={{
+                    filter: owned ? "none" : "grayscale(1) opacity(0.42)",
+                  }}
+                />
+              ) : (
+                <div
+                  className="flex h-full w-full items-center justify-center text-[10px] text-[var(--ink-soft)]"
+                  style={{ background: `linear-gradient(135deg, ${card.colors[0]}33, ${card.colors[1]}33)` }}
+                >
+                  {card.identity}
+                </div>
+              )}
+              {owned ? (
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute right-1 top-1 rotate-[-10deg] rounded-[4px] border-[1.5px] border-[#c0463a] bg-white/70 px-1 py-[1px] text-[8px] font-semibold tracking-[0.14em] text-[#c0463a]"
+                  style={{ fontFamily: "'Noto Serif SC', serif" }}
+                >
+                  已 收
+                </div>
+              ) : (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[#fffaf2]/30">
+                  <div className="text-[20px] text-[#cbb9b1]">?</div>
+                </div>
+              )}
+              <div className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/55 to-transparent px-1.5 pb-1 pt-3 text-[10px] text-white">
+                {card.identity}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      {compact && cards.length > list.length && (
+        <div className="mt-2 cn-serif text-[10.5px] text-[var(--ink-soft)]">
+          还有 {cards.length - list.length} 张藏在「人设」分类里
+        </div>
+      )}
+    </section>
+  );
+}
+
 function CollectionAssetCard({
   entry,
   kind,
