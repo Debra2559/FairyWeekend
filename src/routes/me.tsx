@@ -739,7 +739,7 @@ function RoutesHome({
   if (!latest) return <EmptyState onGo={onCreate} />;
   return (
     <div className="space-y-5">
-      <OverviewStats stats={stats} syncLabel={syncLabel} />
+      <OverviewStats stats={stats} syncLabel={syncLabel} sagas={sagas} />
       <section>
         <div className="mb-2 cn-serif text-[14px] text-[var(--ink)]">今日进度</div>
         <RouteSummaryCard
