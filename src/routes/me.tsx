@@ -4306,6 +4306,8 @@ function ChapterDetail({
   const done = ch.completedSceneOrders.length;
   const enhanced = Object.values(ch.sceneRecords ?? {}).filter((r) => r.note || r.photo).length;
 
+  const [bookExporting, setBookExporting] = useState(false);
+
   // 奖励：本章点亮的地点 + 活动
   const rewards = ch.journey.scenes
     .filter((s) => ch.completedSceneOrders.includes(s.order))
@@ -4315,6 +4317,22 @@ function ChapterDetail({
       type: s.location_type,
       action: s.action_task,
     }));
+
+  async function handleExportStorybook() {
+    if (bookExporting) return;
+    setBookExporting(true);
+    try {
+      toast("📖 正在装订本期故事书…", { description: ch.card.identity });
+      const result = await exportSeriesStorybook([ch], "download");
+      toast.success(result === "shared" ? "已分享本期 ✦" : "📖 本期故事书已生成", {
+        description: `${ch.card.identity} · 已保存到本地`,
+      });
+    } catch (e) {
+      toast.error("生成失败", { description: (e as Error).message });
+    } finally {
+      setBookExporting(false);
+    }
+  }
 
   // 关闭：ESC + 锁滚动
   useEffect(() => {
