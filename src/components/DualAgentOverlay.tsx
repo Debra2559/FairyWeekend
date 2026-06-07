@@ -102,7 +102,7 @@ export function DualAgentOverlay({ visible }: { visible: boolean }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center px-4 py-8 fade-in overflow-hidden"
+      className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center px-4 py-8 fade-in overflow-y-auto"
       style={{
         background:
           "radial-gradient(circle at 30% 20%, color-mix(in oklab, " + POI_COLOR + " 8%, transparent), transparent 55%)," +
