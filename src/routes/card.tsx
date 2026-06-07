@@ -74,6 +74,7 @@ function CardPage() {
   const [needLocationHint, setNeedLocationHint] = useState(false);
   const [loadingIdx, setLoadingIdx] = useState(0);
   const [userPhoto, setUserPhotoState] = useState<string | null>(null);
+  const [showMoreCities, setShowMoreCities] = useState(false);
   const [personalCover, setPersonalCover] = useState<string | null>(null);
   const [personalizing, setPersonalizing] = useState(false);
   const [personalizeErr, setPersonalizeErr] = useState<string | null>(null);
