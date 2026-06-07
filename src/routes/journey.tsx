@@ -1912,13 +1912,15 @@ function initialPhotos(record?: SceneRecord): string[] {
 }
 
 function CheckInPanel({
-  sceneOrder, done, record, onUpdated,
+  sceneOrder, done, record, onUpdated, onCheckedIn,
 }: {
   sceneOrder: number;
   done: boolean;
   record?: SceneRecord;
   onUpdated: () => void;
+  onCheckedIn?: () => void;
 }) {
+
   const [editing, setEditing] = useState(false);
   const [note, setNote] = useState(record?.note ?? "");
   const [photos, setPhotos] = useState<string[]>(initialPhotos(record));
