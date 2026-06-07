@@ -14,3 +14,11 @@ export {
   runStoryGenerator,
   type StoryGeneratorInput,
 } from "./story-generator.agent.ts";
+
+export {
+  JOURNEY_ADJUSTER_PROMPT,
+  runJourneyAdjuster,
+  journeyAdjusterAgent,
+  type JourneyAdjusterInput,
+  type JourneyAdjusterOutput,
+} from "./journey-adjuster.agent.ts";
