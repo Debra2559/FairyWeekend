@@ -1599,6 +1599,29 @@ function ReservationSummaryCard({
 
   const reservedCount = items.filter((i) => i.reserved).length;
   const allDone = reservedCount === items.length;
+  const pendingItems = items.filter((i) => !i.reserved);
+
+  function reserveAll() {
+    if (pendingItems.length === 0) return;
+    pendingItems.forEach(({ scene }, idx) => {
+      const href = buildMeituanReserveHref(scene.meituan_keyword || scene.location_name, city);
+      // 错开窗口打开以减少浏览器拦截
+      setTimeout(() => {
+        try {
+          window.open(href, `_mt_${scene.order}`, "noopener,noreferrer");
+        } catch {}
+      }, idx * 80);
+      reserveScene(scene.order, true);
+    });
+    toast.success(`✦ 已为 ${pendingItems.length} 处一键发起预定`, {
+      description: "已在新标签打开美团 · 全部场景已标记为已预约",
+      duration: 5000,
+    });
+    setExpanded(true);
+    // 通知父级刷新已预约状态
+    onPick(pendingItems[0].scene);
+  }
+
 
   return (
     <div
