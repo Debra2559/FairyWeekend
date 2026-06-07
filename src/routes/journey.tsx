@@ -1162,7 +1162,7 @@ function JourneyMap({
             title="把这条路线发给朋友"
           >
             <span>{copied ? "✓" : "🔗"}</span>
-            <span>{copied ? "已复制" : "邀请好友"}</span>
+            <span>{copied ? "已复制" : "发给同伴"}</span>
           </button>
           <a
             href={routeHref}
