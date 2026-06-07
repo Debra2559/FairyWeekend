@@ -131,7 +131,7 @@ export function DualAgentOverlay({ visible }: { visible: boolean }) {
         ))}
       </div>
 
-      <div className="w-full max-w-xl relative">
+      <div className="w-full max-w-xl relative my-auto">
         {/* Header */}
         <div className="text-center mb-6">
           <div className="display italic text-[10px] tracking-[0.45em] text-[var(--ink-soft)] mb-2.5">
