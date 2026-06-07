@@ -158,6 +158,7 @@ function JourneyPage() {
           done={completedSceneOrders.includes(openScene.order)}
           record={run.sceneRecords?.[openScene.order]}
           city={city}
+          card={card}
           onClose={() => setOpenScene(null)}
           onUpdated={refresh}
           onCheckedIn={() => {
