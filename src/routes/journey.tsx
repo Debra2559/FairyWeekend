@@ -1575,12 +1575,13 @@ function PersonaOrderCard({
 
 
 function ReservationSummaryCard({
-  scenes, sceneRecords, city, onPick,
+  scenes, sceneRecords, city, onPick, onUpdated,
 }: {
   scenes: JourneyScene[];
   sceneRecords: Record<number, SceneRecord>;
   city?: string;
   onPick: (scene: JourneyScene) => void;
+  onUpdated?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
 
