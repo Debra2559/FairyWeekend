@@ -1931,7 +1931,19 @@ function CollectionAssetCard({
   const [panel, setPanel] = useState<"record" | "action" | null>(null);
   const lastDate = entry.lastAt ? formatArchiveDate(entry.lastAt) : "最近";
   return (
-    <article className="rounded-[20px] border border-[#ead8d0] bg-[#fffaf2]/92 p-3">
+    <article className="relative overflow-hidden rounded-[20px] border border-[#ead8d0] bg-[#fffaf2]/92 p-3">
+      {/* 收藏盖章印记 */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-2 top-2 rotate-[-8deg] select-none rounded-[6px] border-[1.5px] px-1.5 py-0.5 cn-serif text-[9px] tracking-[0.14em] opacity-75"
+        style={{
+          borderColor: kind === "地点" ? "#c0463a" : "#5a7a4a",
+          color: kind === "地点" ? "#c0463a" : "#5a7a4a",
+          fontFamily: "'Noto Serif SC', serif",
+        }}
+      >
+        {kind === "地点" ? "已收藏" : "再安排"} · {lastDate}
+      </div>
       {panel === "record" && (
         <FlowPanel
           title={`${entry.name} · 来源记录`}
