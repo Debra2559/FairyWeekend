@@ -1788,8 +1788,14 @@ function CollectionPage({
   onAddPlan: (plan: Omit<PendingPlan, "id" | "createdAt">) => void;
 }) {
   const normalized = query.trim().toLowerCase();
-  void sagas;
   void onOpenRoute;
+  const collectedCardIds = useMemo(
+    () => new Set(sagas.map((c) => c.card.id).filter(Boolean)),
+    [sagas],
+  );
+  const personaTotal = PERSONA_CARDS.length;
+  const personaCollected = collectedCardIds.size;
+  const personaProgress = personaTotal > 0 ? personaCollected / personaTotal : 0;
   const placeItems = library.places.filter(
     (item) =>
       isDateInRange(item.lastAt, dateRange) &&
@@ -1807,6 +1813,11 @@ function CollectionPage({
         .join(" ")
         .toLowerCase()
         .includes(normalized),
+  );
+  const personaItems = PERSONA_CARDS.filter((card) =>
+    normalized
+      ? [card.identity, card.rarity, card.id].join(" ").toLowerCase().includes(normalized)
+      : true,
   );
   return (
     <div className="space-y-5">
