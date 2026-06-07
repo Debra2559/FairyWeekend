@@ -882,16 +882,31 @@ function JourneyMap({
   }, [scenes, city, transportMeta]);
 
   async function shareRoute() {
-    const text = `我的今日路线 · ${transportMeta.icon}${transportMeta.label}\n${scenes.map((s, i) => `${i + 1}. ${s.location_name}`).join("\n")}\n${routeHref}`;
+    const groupLabel = groupMode
+      ? `${groupPreset(groupMode).emoji} ${groupPreset(groupMode).label}`
+      : undefined;
+    const text = card
+      ? buildShareItinerary({
+          card,
+          scenes,
+          city,
+          transportLabel: transportMeta.label,
+          transportIcon: transportMeta.icon,
+          routeHref,
+          groupLabel,
+          reservedOrders,
+        })
+      : `我的今日路线 · ${transportMeta.icon}${transportMeta.label}\n${scenes.map((s, i) => `${i + 1}. ${s.location_name}`).join("\n")}\n${routeHref}`;
     try {
       if (typeof navigator !== "undefined" && (navigator as any).share) {
-        await (navigator as any).share({ title: "今日路线", text, url: routeHref });
+        await (navigator as any).share({ title: "今日路线 · 发给同伴照做", text, url: routeHref });
         return;
       }
     } catch {}
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
+      toast.success("行程文案已复制 ✦", { description: "粘贴到微信发给同伴，照着走就行" });
       setTimeout(() => setCopied(false), 1800);
     } catch {}
   }
