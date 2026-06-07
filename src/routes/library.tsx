@@ -175,6 +175,24 @@ function LibraryPage() {
           ))}
         </div>
 
+        {/* 一键装订连载故事书 */}
+        {sagas.length > 0 && (
+          <button
+            onClick={handleExportAll}
+            disabled={bookExporting}
+            className="w-full mb-5 rounded-2xl px-4 py-3.5 flex items-center justify-center gap-2 cn-serif text-[13px] text-[var(--bg)] transition disabled:opacity-60"
+            style={{
+              background: "linear-gradient(135deg, #6f5850 0%, #8a6a48 100%)",
+              boxShadow: "0 6px 18px -8px rgba(111,88,80,0.55), inset 0 1px 0 rgba(255,255,255,0.18)",
+            }}
+          >
+            <BookMarked className="w-4 h-4" />
+            {bookExporting
+              ? "正在装订连载故事书…"
+              : `📖 一键装订连载故事书（${sagas.length} 本 · PDF）`}
+          </button>
+        )}
+
         {/* 视图切换 */}
         {sagas.length > 0 && (
           <div className="flex items-center justify-center gap-1 mb-5">
