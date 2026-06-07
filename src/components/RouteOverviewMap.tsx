@@ -272,11 +272,13 @@ export function RouteOverviewMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sagas]);
 
-  // Re-fit when focus changes
+  // Re-fit whenever focus changes (even mid-load — applyFocus is a no-op if no pins yet)
   useEffect(() => {
-    if (status === "ready") applyFocus(focus);
+    focusRef.current = focus;
+    applyFocus(focus);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focus.kind, (focus as any).city, (focus as any).chapterId, status]);
+  }, [focus.kind, (focus as any).city, (focus as any).chapterId, status, located]);
+
 
   const focusHint =
     focus.kind === "latest"
