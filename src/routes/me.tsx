@@ -1424,25 +1424,26 @@ function ReviewPosterPage({
         </FlowPanel>
       )}
       <section className="rounded-[24px] border border-[#ead8d0] bg-[#fffaf2]/94 p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <button
             onClick={onBack}
             aria-label="返回路线详情"
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-white/72 px-3 cn-serif text-[12px] text-[var(--ink)]"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[#ead8d0] bg-white/60 px-3 cn-serif text-[12px] text-[var(--ink)] transition hover:border-[#d9c3b8] hover:bg-white active:scale-[0.98]"
           >
-            <ArrowLeft size={18} strokeWidth={1.8} />
+            <ArrowLeft size={16} strokeWidth={1.8} />
             路线详情
           </button>
           <h1 className="cn-serif text-[17px] text-[var(--ink)]">复盘海报</h1>
           <button
             onClick={() => setPanel("settings")}
             aria-label="更多操作"
-            className="inline-flex min-h-10 items-center gap-1 rounded-full bg-white/72 px-3 cn-serif text-[12px] text-[var(--ink)]"
+            className="inline-flex h-9 items-center gap-1 rounded-full border border-[#ead8d0] bg-white/60 px-3 cn-serif text-[12px] text-[var(--ink)] transition hover:border-[#d9c3b8] hover:bg-white active:scale-[0.98]"
           >
-            <MoreHorizontal size={17} strokeWidth={1.8} />
+            <MoreHorizontal size={15} strokeWidth={1.8} />
             设置
           </button>
         </div>
+
       </section>
 
       <section className="rounded-[26px] border border-[#ead8d0] bg-[#fffaf2]/92 p-3">
