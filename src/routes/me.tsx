@@ -1787,21 +1787,8 @@ function CollectionPage({
   onAddPlan: (plan: Omit<PendingPlan, "id" | "createdAt">) => void;
 }) {
   const normalized = query.trim().toLowerCase();
-  const routeItems = sagas.filter(
-    (chapter) =>
-      isDateInRange(chapter.createdAt, dateRange) &&
-      [
-        chapter.card.identity,
-        chapter.city,
-        chapter.card.rarity,
-        formatArchiveDate(chapter.createdAt),
-        ...chapter.journey.scenes.map((scene) => scene.location_name),
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(normalized),
-  );
+  void sagas;
+  void onOpenRoute;
   const placeItems = library.places.filter(
     (item) =>
       isDateInRange(item.lastAt, dateRange) &&
