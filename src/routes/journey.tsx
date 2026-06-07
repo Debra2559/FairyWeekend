@@ -124,7 +124,12 @@ function JourneyPage() {
           completed={completedSceneOrders}
           onPick={(s) => setOpenScene(s)}
           cardId={card.id}
+          card={card}
           city={city}
+          groupMode={(run.groupMode as GroupMode) ?? "solo"}
+          reservedOrders={Object.entries(run.sceneRecords ?? {})
+            .filter(([, r]) => r?.reserved)
+            .map(([k]) => Number(k))}
         />
       </div>
 
