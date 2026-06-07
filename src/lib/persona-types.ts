@@ -47,6 +47,8 @@ export interface SceneRecord {
   mood?: string;         // emoji
   rating?: number;       // 1-5
   companion?: string;    // 同行人：独自 / 朋友 / 恋人 / 家人 / 同事
+  reserved?: boolean;    // 是否已预约
+  reservedAt?: number;   // 预约时间戳
   completedAt: number;
 }
 
