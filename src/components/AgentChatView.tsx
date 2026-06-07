@@ -404,7 +404,7 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
           {/* chips */}
           {lastInteractive?.chips && (
             <div className="mt-2 pl-1">
-              <div className="chip-group-hint">{lastInteractive.multi ? "点选 · 可多选" : "点选其一"}</div>
+              <div className="chip-group-hint">{lastInteractive.multi ? "点选 · 可多选，再点「确定」" : "点选其一，或直接打字 · 都按 ↑ 发送"}</div>
               <div className="flex flex-wrap gap-2">
 
                 {lastInteractive.chips.map((c, i) => {
