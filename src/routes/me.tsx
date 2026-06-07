@@ -2508,6 +2508,8 @@ function SerialStorybookSection({ sagas }: { sagas: ArchivedChapter[] }) {
         </div>
       ) : (
         <>
+          <StorybookPreview chapters={sorted} />
+
           <button
             onClick={handleExportAll}
             disabled={bookExporting}
@@ -2522,6 +2524,7 @@ function SerialStorybookSection({ sagas }: { sagas: ArchivedChapter[] }) {
               ? "正在装订连载故事书…"
               : `📖 一键装订连载故事书（${sorted.length} 本 · PDF）`}
           </button>
+
 
           <div className="mt-4">
             <div className="cn-serif text-[12.5px] text-[var(--ink-soft)] mb-2">单本导出</div>
