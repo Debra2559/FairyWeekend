@@ -471,23 +471,6 @@ function MagazineCover({
 
 function ChapterDetail({ chapter, onClose }: { chapter: ArchivedChapter; onClose: () => void }) {
   const { card, journey, sceneRecords = {} } = chapter;
-  const [exporting, setExporting] = useState(false);
-
-  async function handleExportOne() {
-    if (exporting) return;
-    setExporting(true);
-    try {
-      toast("📖 正在装订本期…");
-      const result = await exportSeriesStorybook([chapter], "download");
-      toast.success(result === "shared" ? "已分享本期 ✦" : "📖 本期已生成", {
-        description: `${card.identity} · 已保存到本地`,
-      });
-    } catch (e) {
-      toast.error("生成失败", { description: (e as Error).message });
-    } finally {
-      setExporting(false);
-    }
-  }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -522,26 +505,15 @@ function ChapterDetail({ chapter, onClose }: { chapter: ArchivedChapter; onClose
           <div className="cn-serif text-[10px] tracking-[0.3em] text-[var(--ink-soft)]">
             CHAPTER · 翻开这一期
           </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={handleExportOne}
-              disabled={exporting}
-              className="h-8 px-2.5 rounded-full hover:bg-[var(--muted)] flex items-center gap-1 cn-serif text-[11px] text-[var(--ink-soft)] disabled:opacity-60"
-              aria-label="导出本期 PDF"
-              title="导出本期 PDF"
-            >
-              <Download className="w-3.5 h-3.5" />
-              {exporting ? "装订中…" : "导出本期"}
-            </button>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-full hover:bg-[var(--muted)] flex items-center justify-center text-[var(--ink-soft)]"
-              aria-label="关闭"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full hover:bg-[var(--muted)] flex items-center justify-center text-[var(--ink-soft)]"
+            aria-label="关闭"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
+
 
 
         <div className="p-5">
