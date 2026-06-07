@@ -266,12 +266,41 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
     }
   }
 
-  function presentCard(card: PersonaCard, intro: string) {
-    push({ who: "agent", text: intro }, 250);
-    push({ who: "agent", card, step: "result" }, 500);
+  async function fetchIntro(card: PersonaCard, isReroll: boolean): Promise<string> {
+    try {
+      const userTurns = msgs.filter((m) => m.who === "user" && m.text).map((m) => m.text!) ;
+      const res = await fetch("/api/public/personalize-intro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tags,
+          freeText,
+          userTurns,
+          card: {
+            identity: card.identity,
+            mood: card.mood,
+            mission: card.mission,
+            rarity: card.rarity,
+          },
+          isReroll,
+        }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      const data = (await res.json()) as { intro?: string };
+      return data.intro || (isReroll ? "那这张试试——" : "为你挑了这张卡 ✦");
+    } catch {
+      return isReroll ? "那这张试试——" : "为你挑了这张卡 ✦";
+    }
+  }
+
+  async function presentCard(card: PersonaCard, isReroll = false) {
+    push({ who: "agent", text: isReroll ? "好，再翻一张…" : "让我想想该挑哪一张…" }, 200);
+    const intro = await fetchIntro(card, isReroll);
+    push({ who: "agent", text: intro }, 350);
+    push({ who: "agent", card, step: "result" }, 700);
     if (card.story) {
       const storyEmoji = pickEmoji(card.story) || pickEmoji(card.mood) || "✨";
-      push({ who: "agent", text: `${storyEmoji}「${card.identity}」\n\n${card.story}` }, 900);
+      push({ who: "agent", text: `${storyEmoji}「${card.identity}」\n\n${card.story}` }, 1100);
     }
     if (card.routes && card.routes.length) {
       const numIcons = ["①", "②", "③", "④", "⑤"];
@@ -281,25 +310,22 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
           return `${numIcons[i] || `${i + 1}.`} ${r} ${e}`;
         })
         .join("\n");
-      push({ who: "agent", text: `🗺️ 如果走进 TA 的一天，可能会是这样——\n\n${lines}\n\n💌 要不要就选 TA？` }, 1300);
+      push({ who: "agent", text: `🗺️ 如果走进 TA 的一天，可能会是这样——\n\n${lines}\n\n💌 要不要就选 TA？` }, 1500);
     }
   }
 
-  function finalize(curTags: string[], curText: string) {
-    push({ who: "agent", text: "让我想想……" }, 200);
-    setTimeout(() => {
-      const ranked = scoreCards(curTags, curText);
-      ranking.current = ranked;
-      setRecIdx(0);
-      presentCard(ranked[0], "为你挑了这张卡 ✦");
-    }, 600);
+  function finalize(_curTags: string[], _curText: string) {
+    const ranked = scoreCards(tags, freeText);
+    ranking.current = ranked;
+    setRecIdx(0);
+    void presentCard(ranked[0], false);
   }
 
   function reroll() {
     const next = (recIdx + 1) % ranking.current.length;
     setRecIdx(next);
     setMsgs((m) => [...m, { id: nextId(), who: "user", text: "再换一张" }]);
-    presentCard(ranking.current[next], "好，这张如何？");
+    void presentCard(ranking.current[next], true);
   }
 
   // 找到最后一条等待输入的 agent 消息
