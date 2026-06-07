@@ -1837,31 +1837,58 @@ function CollectionPage({
         <p className="mt-1 cn-serif text-[12px] text-[var(--ink-soft)]">
           地点、活动、想去的清单——每一枚都可以盖到下一段路线里。
         </p>
-        <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="mt-3 grid grid-cols-4 gap-2">
           {[
+            { label: "人设", count: personaCollected, tone: "#7a4a8a" },
             { label: "地点", count: library.places.length, tone: "#c0463a" },
             { label: "活动", count: library.activities.length, tone: "#5a7a4a" },
             { label: "待出行", count: pendingPlans.length, tone: "#8a5a2a" },
           ].map((stamp) => (
             <div
               key={stamp.label}
-              className="relative flex flex-col items-center justify-center rounded-[14px] border-[1.5px] border-dashed bg-white/55 px-2 py-2.5"
+              className="relative flex flex-col items-center justify-center rounded-[14px] border-[1.5px] border-dashed bg-white/55 px-1.5 py-2.5"
               style={{ borderColor: `${stamp.tone}55` }}
             >
               <div
-                className="cn-serif text-[20px] font-semibold leading-none"
+                className="cn-serif text-[19px] font-semibold leading-none"
                 style={{ color: stamp.tone, fontFamily: "'Noto Serif SC', serif" }}
               >
                 {stamp.count}
               </div>
               <div
-                className="mt-1 cn-serif text-[10.5px] tracking-[0.18em]"
+                className="mt-1 cn-serif text-[10px] tracking-[0.16em]"
                 style={{ color: stamp.tone }}
               >
                 {stamp.label}
               </div>
             </div>
           ))}
+        </div>
+        {/* 人设集邮进度条 */}
+        <div className="mt-3">
+          <div className="flex items-end justify-between">
+            <div className="cn-serif text-[11px] tracking-[0.2em] text-[var(--ink-soft)]">
+              人设集邮进度
+            </div>
+            <div
+              className="cn-serif text-[12px]"
+              style={{ color: "#7a4a8a", fontFamily: "'Noto Serif SC', serif" }}
+            >
+              <span className="text-[15px] font-semibold">{personaCollected}</span>
+              <span className="mx-0.5 opacity-60">/</span>
+              <span className="opacity-80">{personaTotal}</span>
+            </div>
+          </div>
+          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[#efe3dc]">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${Math.max(4, personaProgress * 100)}%`,
+                background:
+                  "repeating-linear-gradient(45deg,#7a4a8a 0 6px,#9a6aaa 6px 12px)",
+              }}
+            />
+          </div>
         </div>
       </section>
       <CollectionSearch
