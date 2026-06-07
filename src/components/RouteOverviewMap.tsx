@@ -60,6 +60,7 @@ export function RouteOverviewMap({
   const mapRef = useRef<any>(null);
   const AMapRef = useRef<any>(null);
   const locatedRef = useRef<Array<Stop & { lng: number; lat: number }>>([]);
+  const focusRef = useRef<MapFocus>(focus);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "empty" | "error">("idle");
   const [located, setLocated] = useState(0);
   const [totalPins, setTotalPins] = useState(0);
@@ -83,6 +84,7 @@ export function RouteOverviewMap({
       fitTargets.forEach((m: any) => map.remove(m));
     } catch {}
   }
+
 
   // Init (one-time per sagas change)
   useEffect(() => {
@@ -134,30 +136,37 @@ export function RouteOverviewMap({
           const k = `${city || ""}|${name}`;
           if (cache[k]) return Promise.resolve(cache[k]);
           return new Promise((resolve) => {
+            let settled = false;
             const done = (lng?: number, lat?: number) => {
+              if (settled) return;
+              settled = true;
               if (typeof lng === "number" && typeof lat === "number") {
                 cache[k] = { lng, lat };
                 resolve(cache[k]);
               } else resolve(null);
             };
+            // Safety net: if AMap callbacks never fire, fail this entry in 4s
+            const t = setTimeout(() => done(), 4000);
+            const finish = (lng?: number, lat?: number) => { clearTimeout(t); done(lng, lat); };
             try {
               try { placeSearch.setCity(city || ""); } catch {}
               placeSearch.search(name, (status_: string, result: any) => {
                 if (status_ === "complete" && result?.poiList?.pois?.length) {
                   const poi = result.poiList.pois[0];
-                  done(poi.location.lng, poi.location.lat);
+                  finish(poi.location.lng, poi.location.lat);
                 } else {
                   geocoder.getLocation(`${city || ""}${name}`, (s2: string, r2: any) => {
                     if (s2 === "complete" && r2?.geocodes?.length) {
                       const loc = r2.geocodes[0].location;
-                      done(loc.lng, loc.lat);
-                    } else done();
+                      finish(loc.lng, loc.lat);
+                    } else finish();
                   });
                 }
               });
-            } catch { done(); }
+            } catch { finish(); }
           });
         }
+
 
         let locatedCount = 0;
         const uniqList = [...uniqKeys];
@@ -170,11 +179,21 @@ export function RouteOverviewMap({
             coordMap.set(uniqList[i], loc);
             locatedCount += 1;
             setLocated(locatedCount);
+            // progressively grow locatedRef so clicks during load can still focus
+            const partial: Array<Stop & { lng: number; lat: number }> = [];
+            for (const s of stops) {
+              const c = coordMap.get(`${s.city || ""}|${s.name}`);
+              if (c) partial.push({ ...s, ...c });
+            }
+            locatedRef.current = partial;
+            // refit to current user-selected focus as new points arrive
+            applyFocus(focusRef.current);
           }
           if (i % 5 === 4) saveCache(cache);
         }
         saveCache(cache);
         if (cancelled) return;
+
 
         const locatedStops: Array<Stop & { lng: number; lat: number }> = [];
         for (const s of stops) {
@@ -253,11 +272,13 @@ export function RouteOverviewMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sagas]);
 
-  // Re-fit when focus changes
+  // Re-fit whenever focus changes (even mid-load — applyFocus is a no-op if no pins yet)
   useEffect(() => {
-    if (status === "ready") applyFocus(focus);
+    focusRef.current = focus;
+    applyFocus(focus);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focus.kind, (focus as any).city, (focus as any).chapterId, status]);
+  }, [focus.kind, (focus as any).city, (focus as any).chapterId, status, located]);
+
 
   const focusHint =
     focus.kind === "latest"
