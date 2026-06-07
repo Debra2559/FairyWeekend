@@ -199,7 +199,7 @@ function JourneyPage() {
         }}
       />
 
-      <JourneyInviteFab run={run} />
+      
     </div>
   );
 }
