@@ -1126,8 +1126,8 @@ function JourneyMap({
             className="cn-serif text-[11.5px] px-3 py-1.5 rounded-full flex items-center gap-1.5 transition hover:opacity-90"
             style={{ background: "#3d3530", color: "#fffdf3", boxShadow: "0 4px 12px rgba(0,0,0,0.25)" }}
           >
-            <span>🧭</span>
-            <span>完整路线</span>
+            <span>📍</span>
+            <span>加入地图</span>
           </a>
         </div>
       </div>
