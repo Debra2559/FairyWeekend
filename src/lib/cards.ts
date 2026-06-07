@@ -9,6 +9,12 @@ import cover007 from "@/assets/persona/card_007.webp";
 import cover008 from "@/assets/persona/card_008.webp";
 import cover009 from "@/assets/persona/card_009.webp";
 import cover010 from "@/assets/persona/card_010.webp";
+import cover011 from "@/assets/persona/card_011.webp";
+import cover012 from "@/assets/persona/card_012.webp";
+import cover013 from "@/assets/persona/card_013.webp";
+import cover014 from "@/assets/persona/card_014.webp";
+import cover015 from "@/assets/persona/card_015.webp";
+import cover016 from "@/assets/persona/card_016.webp";
 
 const COVERS: Record<string, string> = {
   card_001: cover001,
@@ -21,7 +27,14 @@ const COVERS: Record<string, string> = {
   card_008: cover008,
   card_009: cover009,
   card_010: cover010,
+  card_011: cover011,
+  card_012: cover012,
+  card_013: cover013,
+  card_014: cover014,
+  card_015: cover015,
+  card_016: cover016,
 };
+
 
 const _PERSONA_CARDS_BASE: PersonaCard[] = [
   {
