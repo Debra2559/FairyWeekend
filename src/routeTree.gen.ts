@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShareRouteImport } from './routes/share'
 import { Route as MeRouteImport } from './routes/me'
+import { Route as LibraryRouteImport } from './routes/library'
 import { Route as JourneyRouteImport } from './routes/journey'
 import { Route as FinaleRouteImport } from './routes/finale'
 import { Route as CardRouteImport } from './routes/card'
@@ -28,6 +29,11 @@ const ShareRoute = ShareRouteImport.update({
 const MeRoute = MeRouteImport.update({
   id: '/me',
   path: '/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryRoute = LibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JourneyRoute = JourneyRouteImport.update({
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/card': typeof CardRoute
   '/finale': typeof FinaleRoute
   '/journey': typeof JourneyRoute
+  '/library': typeof LibraryRoute
   '/me': typeof MeRoute
   '/share': typeof ShareRoute
   '/party/$id': typeof PartyIdRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/card': typeof CardRoute
   '/finale': typeof FinaleRoute
   '/journey': typeof JourneyRoute
+  '/library': typeof LibraryRoute
   '/me': typeof MeRoute
   '/share': typeof ShareRoute
   '/party/$id': typeof PartyIdRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/card': typeof CardRoute
   '/finale': typeof FinaleRoute
   '/journey': typeof JourneyRoute
+  '/library': typeof LibraryRoute
   '/me': typeof MeRoute
   '/share': typeof ShareRoute
   '/party/$id': typeof PartyIdRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/card'
     | '/finale'
     | '/journey'
+    | '/library'
     | '/me'
     | '/share'
     | '/party/$id'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/card'
     | '/finale'
     | '/journey'
+    | '/library'
     | '/me'
     | '/share'
     | '/party/$id'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/card'
     | '/finale'
     | '/journey'
+    | '/library'
     | '/me'
     | '/share'
     | '/party/$id'
@@ -154,6 +166,7 @@ export interface RootRouteChildren {
   CardRoute: typeof CardRoute
   FinaleRoute: typeof FinaleRoute
   JourneyRoute: typeof JourneyRoute
+  LibraryRoute: typeof LibraryRoute
   MeRoute: typeof MeRoute
   ShareRoute: typeof ShareRoute
   PartyIdRoute: typeof PartyIdRoute
@@ -176,6 +189,13 @@ declare module '@tanstack/react-router' {
       path: '/me'
       fullPath: '/me'
       preLoaderRoute: typeof MeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/journey': {
@@ -242,6 +262,7 @@ const rootRouteChildren: RootRouteChildren = {
   CardRoute: CardRoute,
   FinaleRoute: FinaleRoute,
   JourneyRoute: JourneyRoute,
+  LibraryRoute: LibraryRoute,
   MeRoute: MeRoute,
   ShareRoute: ShareRoute,
   PartyIdRoute: PartyIdRoute,
