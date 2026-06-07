@@ -44,6 +44,7 @@ function Index() {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden px-5 pt-10 pb-20 max-w-6xl mx-auto">
+      <OnboardingTour />
       {/* 背景花瓣 */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {petals.map((p) => (
