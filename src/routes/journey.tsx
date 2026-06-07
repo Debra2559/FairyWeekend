@@ -9,7 +9,7 @@ import { getSceneDeals, type SceneDeal } from "@/lib/scene-deals";
 import { needsReservation, getReservationHint, getReservationLabel, buildMeituanReserveHref, buildDianpingReserveHref } from "@/lib/reservation";
 import { toast } from "sonner";
 import { JourneyChatPanel } from "@/components/JourneyChatPanel";
-import { JourneyDiary } from "@/components/JourneyDiary";
+
 
 import { groupPreset, type GroupMode } from "@/lib/group-mode";
 
@@ -95,16 +95,6 @@ function JourneyPage() {
         </div>
       </div>
 
-      {/* ✦ 今日连载 DIARY — 打卡 / 记录 / 故事 一眼看懂 */}
-      <div className="max-w-xl mx-auto mt-6">
-        <JourneyDiary
-          scenes={journey.scenes}
-          records={run.sceneRecords ?? {}}
-          completed={completedSceneOrders}
-          onPick={(s) => setOpenScene(s)}
-          createdAt={run.createdAt}
-        />
-      </div>
 
       {/* ✦ 全程套装 Bundle */}
       <div className="max-w-xl mx-auto px-5 mt-5">
@@ -2146,17 +2136,18 @@ function CheckInPanel({
             key={m}
             type="button"
             onClick={() => setMood(mood === m ? undefined : m)}
-            className={`w-9 h-9 rounded-full flex items-center justify-center text-[18px] transition ${
+            className={`w-9 h-9 rounded-full flex items-center justify-center text-[18px] leading-none transition ${
               mood === m
-                ? "bg-[var(--card)] ring-2 ring-[oklch(0.85_0.1_60)] scale-110"
-                : "bg-white/70 hover:bg-white"
+                ? "bg-[oklch(0.92_0.08_60)] ring-2 ring-[oklch(0.78_0.12_60)] scale-110"
+                : "bg-white/70 hover:bg-white ring-1 ring-[#ead9bd]"
             }`}
-            style={{ boxShadow: "0 2px 6px rgba(0,0,0,0.06)" }}
+            style={{ boxShadow: "0 2px 6px rgba(0,0,0,0.06)", fontFamily: '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui,sans-serif' }}
           >
-            {m}
+            <span aria-hidden="true">{m}</span>
           </button>
         ))}
       </div>
+
 
       {/* Companion */}
       <div className="cn-serif text-[11px] text-[var(--ink-soft)] mb-1.5">和谁一起</div>

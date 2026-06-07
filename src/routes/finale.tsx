@@ -128,11 +128,12 @@ function FinalePage() {
           ✶ 分享今日故事
         </button>
         <button
-          onClick={() => navigate({ to: "/me" })}
+          onClick={() => navigate({ to: "/library" })}
           className="btn-soft w-full justify-center"
         >
-          ❦ 收进我的连载
+          ❦ 收进我的连载库
         </button>
+
         <button
           onClick={() => {
             localStorage.setItem("todaypersona:open-postchain:v1", "1");

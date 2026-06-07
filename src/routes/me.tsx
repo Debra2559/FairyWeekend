@@ -42,6 +42,7 @@ import {
 } from "@/lib/persona-store";
 import { VenueIcon, detectVenue } from "@/components/VenueIcon";
 import { UserPhotoCard } from "@/components/UserPhotoCard";
+import { RouteOverviewMap } from "@/components/RouteOverviewMap";
 import type * as ExportPdf from "@/lib/export-pdf";
 const loadExportPdf = () => import("@/lib/export-pdf");
 const elementToImageBlob: typeof ExportPdf.elementToImageBlob = (...args) =>
@@ -334,7 +335,14 @@ function MePage() {
           首页
         </button>
         <h1 className="text-center cn-serif text-[21px] text-[var(--ink)]">我的连载</h1>
-        <div className="display text-[10px] tracking-[0.4em] text-[var(--ink-soft)]">ARCHIVE</div>
+        <button
+          onClick={() => navigate({ to: "/library" })}
+          className="display text-[10px] tracking-[0.4em] text-[var(--ink-soft)] hover:text-[var(--ink)] transition text-right"
+          aria-label="打开连载书架"
+        >
+          书架 →
+        </button>
+
       </div>
 
       <MainTabs
@@ -555,28 +563,30 @@ function MainTabs({ active, onChange }: { active: MainTab; onChange: (tab: MainT
 function OverviewStats({
   stats,
   syncLabel,
+  sagas,
 }: {
   stats: { chapters: number; scenes: number; enhanced: number; rarities: number };
   syncLabel: string;
+  sagas: ArchivedChapter[];
 }) {
-  const missing = Math.max(1, stats.chapters - stats.enhanced);
   const items = [
-    { icon: <RouteIcon size={16} strokeWidth={1.7} />, value: stats.chapters, label: "条路线" },
-    { icon: <MapPinned size={16} strokeWidth={1.7} />, value: stats.scenes, label: "个地点" },
-    { icon: <PenLine size={16} strokeWidth={1.7} />, value: missing, label: "待完善" },
+    { icon: <RouteIcon size={16} strokeWidth={1.7} />, value: stats.chapters, label: "条路线", hint: "已经走完并归档的路线条数" },
+    { icon: <MapPinned size={16} strokeWidth={1.7} />, value: stats.scenes, label: "已打卡", hint: "累计打卡的地点数（每去一次记一次）" },
+    { icon: <PenLine size={16} strokeWidth={1.7} />, value: stats.enhanced, label: "已补记", hint: "已经上传照片或写下文字记录的地点数" },
   ];
   return (
     <section className="rounded-[22px] border border-[#ead8d0] bg-[#fffaf2]/90 px-3 py-3">
       <div className="mb-2 flex items-center justify-between">
         <div className="cn-serif text-[12px] text-[var(--ink-soft)]">路线总览 · {syncLabel}</div>
         <span className="rounded-full bg-[#fff4ec] px-2 py-1 cn-serif text-[10px] text-[#7f4f5c]">
-          轻量概览
+          打卡 & 补记
         </span>
       </div>
       <div className="grid grid-cols-3 gap-2">
         {items.map((item) => (
           <div
             key={item.label}
+            title={item.hint}
             className="flex min-h-14 items-center justify-center gap-2 rounded-[18px] border border-[#eee0d8] bg-white/60 px-2"
           >
             <span className="text-[#6f5850]">{item.icon}</span>
@@ -587,6 +597,7 @@ function OverviewStats({
           </div>
         ))}
       </div>
+      <RouteOverviewMap sagas={sagas} />
     </section>
   );
 }
@@ -608,10 +619,16 @@ function RouteSummaryCard({
   const date = formatArchiveDate(chapter.createdAt);
   const image = imageForChapter(chapter);
   const fallback = `linear-gradient(135deg, ${chapter.card.colors[0]}, ${chapter.card.colors[1]})`;
+  const visited = completedScenes(chapter);
+  const mapHref = visited.length
+    ? `https://uri.amap.com/search?keyword=${encodeURIComponent(
+        visited.map((s) => s.location_name).join(" "),
+      )}${chapter.city ? `&city=${encodeURIComponent(chapter.city)}` : ""}&src=todaypersona&callnative=1`
+    : "";
   return (
     <article
       className={`group relative overflow-hidden rounded-[22px] border border-white/70 bg-[#eee4d2] shadow-[0_22px_60px_-44px_rgba(61,53,48,0.45)] ${
-        compact ? "min-h-[116px]" : "min-h-[176px]"
+        compact ? "min-h-[116px]" : "min-h-[200px]"
       }`}
       style={!image ? { background: fallback } : undefined}
     >
@@ -622,11 +639,12 @@ function RouteSummaryCard({
           onError={(event) => {
             event.currentTarget.style.display = "none";
           }}
-          className="absolute inset-0 h-full w-full object-cover [filter:saturate(1.12)_brightness(1.08)_sepia(0.08)] transition duration-500 group-hover:scale-[1.025]"
+          className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
         />
       )}
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(72,44,38,0.66)_0%,rgba(112,67,56,0.38)_45%,rgba(245,184,196,0.10)_100%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,244,236,0.02)_0%,rgba(255,244,236,0.26)_100%)]" />
+      {/* 强对比暗化层，保证白字在任何封面上都可读 */}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(35,22,18,0.30)_0%,rgba(35,22,18,0.55)_55%,rgba(20,12,10,0.78)_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,12,10,0.55)_0%,rgba(20,12,10,0.15)_60%,rgba(20,12,10,0.0)_100%)]" />
       <button
         onClick={onOpen}
         className={`relative flex min-h-[inherit] w-full flex-col justify-end p-4 text-left text-white ${
@@ -634,30 +652,62 @@ function RouteSummaryCard({
         }`}
       >
         <div className="mb-auto flex items-start justify-between gap-3">
-          <span className="rounded-full border border-white/30 bg-white/22 px-2.5 py-1 cn-serif text-[10px] text-white backdrop-blur">
+          <span className="rounded-full border border-white/40 bg-black/35 px-2.5 py-1 cn-serif text-[10px] text-white backdrop-blur">
             {chapter.card.rarity}
           </span>
-          <ChevronRight size={18} strokeWidth={1.7} className="text-white/78" />
+          <ChevronRight size={18} strokeWidth={1.7} className="text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]" />
         </div>
-        <div className="max-w-[78%]">
-          <div className="cn-serif text-[10px] text-white/78">
+        <div className="max-w-[78%]" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.55)" }}>
+          <div className="cn-serif text-[10px] text-white/90">
             {chapter.city || "城市"} · {date}
           </div>
           <h3
-            className={`mt-1 line-clamp-2 cn-serif leading-snug text-white drop-shadow ${
+            className={`mt-1 line-clamp-2 cn-serif leading-snug text-white ${
               compact ? "text-[16px]" : "text-[20px]"
             }`}
           >
             {chapter.card.identity}
           </h3>
-          <div className="mt-1 cn-serif text-[11px] text-white/82">
-            {done}/{total} 地点 · {pct}%
+          <div className="mt-1 cn-serif text-[11px] text-white/95">
+            已打卡 {done}/{total} 处 · {pct}%
           </div>
+          {!compact && visited.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {visited.slice(0, 4).map((s) => (
+                <span
+                  key={s.order}
+                  className="inline-flex max-w-[140px] items-center gap-1 truncate rounded-full border border-white/35 bg-white/22 px-2 py-[3px] cn-serif text-[10px] text-white backdrop-blur"
+                  title={s.location_name}
+                >
+                  <span aria-hidden>✓</span>
+                  <span className="truncate">{s.location_name}</span>
+                </span>
+              ))}
+              {visited.length > 4 && (
+                <span className="rounded-full border border-white/30 bg-white/18 px-2 py-[3px] cn-serif text-[10px] text-white/85">
+                  +{visited.length - 4}
+                </span>
+              )}
+            </div>
+          )}
         </div>
         <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/26">
           <div className="h-full rounded-full bg-[#fff7ea]/95" style={{ width: `${pct}%` }} />
         </div>
       </button>
+      {!compact && mapHref && (
+        <a
+          href={mapHref}
+          target="_blank"
+          rel="noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="absolute left-3 bottom-3 z-10 inline-flex min-h-9 items-center gap-1 rounded-full border border-white/34 bg-white/82 px-3 cn-serif text-[12px] text-[#4f4944] shadow-sm backdrop-blur"
+          title="在高德地图上标出这条路线的所有打卡点"
+        >
+          <MapPinned size={13} strokeWidth={1.8} />
+          在地图查看
+        </a>
+      )}
       {!compact && onPoster && (
         <button
           onClick={onPoster}
@@ -690,7 +740,7 @@ function RoutesHome({
   if (!latest) return <EmptyState onGo={onCreate} />;
   return (
     <div className="space-y-5">
-      <OverviewStats stats={stats} syncLabel={syncLabel} />
+      <OverviewStats stats={stats} syncLabel={syncLabel} sagas={sagas} />
       <section>
         <div className="mb-2 cn-serif text-[14px] text-[var(--ink)]">今日进度</div>
         <RouteSummaryCard
