@@ -41,7 +41,7 @@ import {
   type ArchivedChapter,
   type LibraryEntry,
 } from "@/lib/persona-store";
-import { getCoverById } from "@/lib/cards";
+import { getCoverById, PERSONA_CARDS } from "@/lib/cards";
 import { VenueIcon, detectVenue } from "@/components/VenueIcon";
 import { UserPhotoCard } from "@/components/UserPhotoCard";
 import { RouteOverviewMap } from "@/components/RouteOverviewMap";
@@ -97,7 +97,7 @@ type MainTab = "routes" | "collection" | "profile" | "generate";
 type RouteScreen = "overview" | "detail" | "poster";
 type RouteDetailTab = "overview" | "timeline" | "records";
 type RangeKey = "30d" | "90d" | "year" | "all";
-type CollectionKind = "all" | "places" | "activities" | "planned";
+type CollectionKind = "all" | "personas" | "places" | "activities" | "planned";
 type CollectionDateRange = { from: string; to: string };
 type SortKey = "recent" | "enhanced" | "order";
 type PendingPlan = {
@@ -1555,6 +1555,7 @@ function CollectionSearch({
   const [rangeMode, setRangeMode] = useState(false);
   const filters: Array<[CollectionKind, string]> = [
     ["all", "全部"],
+    ["personas", "人设"],
     ["planned", "待出行"],
     ["places", "地点"],
     ["activities", "活动"],
@@ -1787,8 +1788,14 @@ function CollectionPage({
   onAddPlan: (plan: Omit<PendingPlan, "id" | "createdAt">) => void;
 }) {
   const normalized = query.trim().toLowerCase();
-  void sagas;
   void onOpenRoute;
+  const collectedCardIds = useMemo(
+    () => new Set(sagas.map((c) => c.card.id).filter(Boolean)),
+    [sagas],
+  );
+  const personaTotal = PERSONA_CARDS.length;
+  const personaCollected = collectedCardIds.size;
+  const personaProgress = personaTotal > 0 ? personaCollected / personaTotal : 0;
   const placeItems = library.places.filter(
     (item) =>
       isDateInRange(item.lastAt, dateRange) &&
@@ -1806,6 +1813,11 @@ function CollectionPage({
         .join(" ")
         .toLowerCase()
         .includes(normalized),
+  );
+  const personaItems = PERSONA_CARDS.filter((card) =>
+    normalized
+      ? [card.identity, card.rarity, card.id].join(" ").toLowerCase().includes(normalized)
+      : true,
   );
   return (
     <div className="space-y-5">
@@ -1825,31 +1837,58 @@ function CollectionPage({
         <p className="mt-1 cn-serif text-[12px] text-[var(--ink-soft)]">
           地点、活动、想去的清单——每一枚都可以盖到下一段路线里。
         </p>
-        <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="mt-3 grid grid-cols-4 gap-2">
           {[
+            { label: "人设", count: personaCollected, tone: "#7a4a8a" },
             { label: "地点", count: library.places.length, tone: "#c0463a" },
             { label: "活动", count: library.activities.length, tone: "#5a7a4a" },
             { label: "待出行", count: pendingPlans.length, tone: "#8a5a2a" },
           ].map((stamp) => (
             <div
               key={stamp.label}
-              className="relative flex flex-col items-center justify-center rounded-[14px] border-[1.5px] border-dashed bg-white/55 px-2 py-2.5"
+              className="relative flex flex-col items-center justify-center rounded-[14px] border-[1.5px] border-dashed bg-white/55 px-1.5 py-2.5"
               style={{ borderColor: `${stamp.tone}55` }}
             >
               <div
-                className="cn-serif text-[20px] font-semibold leading-none"
+                className="cn-serif text-[19px] font-semibold leading-none"
                 style={{ color: stamp.tone, fontFamily: "'Noto Serif SC', serif" }}
               >
                 {stamp.count}
               </div>
               <div
-                className="mt-1 cn-serif text-[10.5px] tracking-[0.18em]"
+                className="mt-1 cn-serif text-[10px] tracking-[0.16em]"
                 style={{ color: stamp.tone }}
               >
                 {stamp.label}
               </div>
             </div>
           ))}
+        </div>
+        {/* 人设集邮进度条 */}
+        <div className="mt-3">
+          <div className="flex items-end justify-between">
+            <div className="cn-serif text-[11px] tracking-[0.2em] text-[var(--ink-soft)]">
+              人设集邮进度
+            </div>
+            <div
+              className="cn-serif text-[12px]"
+              style={{ color: "#7a4a8a", fontFamily: "'Noto Serif SC', serif" }}
+            >
+              <span className="text-[15px] font-semibold">{personaCollected}</span>
+              <span className="mx-0.5 opacity-60">/</span>
+              <span className="opacity-80">{personaTotal}</span>
+            </div>
+          </div>
+          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[#efe3dc]">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${Math.max(4, personaProgress * 100)}%`,
+                background:
+                  "repeating-linear-gradient(45deg,#7a4a8a 0 6px,#9a6aaa 6px 12px)",
+              }}
+            />
+          </div>
         </div>
       </section>
       <CollectionSearch
@@ -1861,6 +1900,21 @@ function CollectionPage({
         onDateRangeChange={onDateRangeChange}
       />
       <section className="space-y-3">
+        {(kind === "all" || kind === "personas") && (
+          <PersonaStampBook
+            cards={personaItems}
+            collectedIds={collectedCardIds}
+            collected={personaCollected}
+            total={personaTotal}
+            compact={kind === "all"}
+            onTap={(card) => {
+              const owned = collectedCardIds.has(card.id);
+              onNotify(
+                owned ? `${card.identity} · 已收集` : `${card.identity} · 还没解锁，去走一条路线试试`,
+              );
+            }}
+          />
+        )}
         {(kind === "all" || kind === "planned") &&
           (planItems.length > 0
             ? planItems
@@ -1914,6 +1968,103 @@ function CollectionPage({
         新建路线
       </PrimaryActionButton>
     </div>
+  );
+}
+
+function PersonaStampBook({
+  cards,
+  collectedIds,
+  collected,
+  total,
+  compact,
+  onTap,
+}: {
+  cards: typeof PERSONA_CARDS;
+  collectedIds: Set<string>;
+  collected: number;
+  total: number;
+  compact: boolean;
+  onTap: (card: (typeof PERSONA_CARDS)[number]) => void;
+}) {
+  const list = compact ? cards.slice(0, 8) : cards;
+  return (
+    <section className="relative overflow-hidden rounded-[22px] border border-[#ead8d0] bg-[#fffaf2]/92 p-4">
+      <div className="flex items-end justify-between">
+        <div>
+          <div className="cn-serif text-[10.5px] tracking-[0.3em] text-[var(--ink-soft)]">
+            PERSONA · STAMP BOOK
+          </div>
+          <h2
+            className="mt-0.5 cn-serif text-[16px] text-[var(--ink)]"
+            style={{ fontFamily: "'Noto Serif SC', serif" }}
+          >
+            人设集邮册
+          </h2>
+        </div>
+        <div
+          className="cn-serif text-[12px]"
+          style={{ color: "#7a4a8a", fontFamily: "'Noto Serif SC', serif" }}
+        >
+          <span className="text-[16px] font-semibold">{collected}</span>
+          <span className="mx-0.5 opacity-60">/</span>
+          <span className="opacity-80">{total}</span>
+        </div>
+      </div>
+      <div className="mt-3 grid grid-cols-4 gap-2.5">
+        {list.map((card) => {
+          const owned = collectedIds.has(card.id);
+          const cover = getCoverById(card.id);
+          return (
+            <button
+              key={card.id}
+              type="button"
+              onClick={() => onTap(card)}
+              className="group relative aspect-[3/4] overflow-hidden rounded-[10px] border-[1.5px] border-dashed bg-[#fff4ec] text-left"
+              style={{ borderColor: owned ? "#7a4a8a66" : "#cbb9b1" }}
+            >
+              {cover ? (
+                <img
+                  src={cover}
+                  alt={card.identity}
+                  className="h-full w-full object-cover transition-all"
+                  style={{
+                    filter: owned ? "none" : "grayscale(1) opacity(0.42)",
+                  }}
+                />
+              ) : (
+                <div
+                  className="flex h-full w-full items-center justify-center text-[10px] text-[var(--ink-soft)]"
+                  style={{ background: `linear-gradient(135deg, ${card.colors[0]}33, ${card.colors[1]}33)` }}
+                >
+                  {card.identity}
+                </div>
+              )}
+              {owned ? (
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute right-1 top-1 rotate-[-10deg] rounded-[4px] border-[1.5px] border-[#c0463a] bg-white/70 px-1 py-[1px] text-[8px] font-semibold tracking-[0.14em] text-[#c0463a]"
+                  style={{ fontFamily: "'Noto Serif SC', serif" }}
+                >
+                  已 收
+                </div>
+              ) : (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[#fffaf2]/30">
+                  <div className="text-[20px] text-[#cbb9b1]">?</div>
+                </div>
+              )}
+              <div className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/55 to-transparent px-1.5 pb-1 pt-3 text-[10px] text-white">
+                {card.identity}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      {compact && cards.length > list.length && (
+        <div className="mt-2 cn-serif text-[10.5px] text-[var(--ink-soft)]">
+          还有 {cards.length - list.length} 张藏在「人设」分类里
+        </div>
+      )}
+    </section>
   );
 }
 
