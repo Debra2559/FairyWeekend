@@ -12,18 +12,18 @@ type AgentStep = {
 };
 
 const SCRIPT: AgentStep[] = [
-  { agent: "poi", text: "读取你的人设关键词", duration: 1200 },
-  { agent: "story", text: "感受今日情绪基调", duration: 1200 },
-  { agent: "poi", text: "在 3 公里内扫描候选 POI", duration: 1600 },
-  { agent: "story", text: "构思故事开场白", duration: 1500 },
-  { agent: "poi", text: "筛选符合人设气质的小店", duration: 1500 },
-  { agent: "story", text: "设计情绪起承转合曲线", duration: 1400 },
-  { agent: "poi", text: "按动线优化访问顺序", duration: 1400 },
-  { agent: "story", text: "为每一站编织叙事钩子", duration: 1500 },
-  { agent: "poi", text: "标注预约 / 限时点位", duration: 1100 },
-  { agent: "story", text: "打磨结语与情绪落点", duration: 1300 },
-  { agent: "poi", text: "路线已就绪", duration: 800 },
-  { agent: "story", text: "剧本已编织完成", duration: 800 },
+  { agent: "poi", text: "读取你的人设关键词", duration: 1500 },
+  { agent: "story", text: "感受今日情绪基调", duration: 1500 },
+  { agent: "poi", text: "在 3 公里内扫描候选 POI", duration: 2000 },
+  { agent: "story", text: "构思故事开场白", duration: 1900 },
+  { agent: "poi", text: "筛选符合人设气质的小店", duration: 1800 },
+  { agent: "story", text: "设计情绪起承转合曲线", duration: 1700 },
+  { agent: "poi", text: "按动线优化访问顺序", duration: 1700 },
+  { agent: "story", text: "为每一站编织叙事钩子", duration: 1800 },
+  { agent: "poi", text: "标注预约 / 限时点位", duration: 1400 },
+  { agent: "story", text: "打磨结语与情绪落点", duration: 1600 },
+  { agent: "poi", text: "路线马上就绪", duration: 1000 },
+  { agent: "story", text: "剧本即将完成", duration: 1000 },
 ];
 
 type LogLine = { id: number; agent: "poi" | "story"; text: string; done: boolean; final?: boolean };
@@ -66,9 +66,15 @@ export function DualAgentOverlay({ visible }: { visible: boolean }) {
           setLogs((l) => [...l, { id: lineId, agent: step.agent, text: step.text, done: false, final: isFinal }]);
           await new Promise((r) => setTimeout(r, step.duration));
           if (cancelled) return;
-          setLogs((l) => l.map((x) => (x.id === lineId ? { ...x, done: true } : x)));
+
+          // 最后一个步骤保持 thinking 状态，直到整个流程结束
+          if (!isFinal) {
+            setLogs((l) => l.map((x) => (x.id === lineId ? { ...x, done: true } : x)));
+          }
         }
-        setActive(false);
+
+        // 所有步骤完成后，等待外部关闭 visible
+        // 最后一个步骤会一直显示 thinking 状态
       }
 
       await Promise.all([

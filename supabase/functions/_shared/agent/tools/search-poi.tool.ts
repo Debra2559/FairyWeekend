@@ -66,7 +66,7 @@ export const searchPoiTool = tool(
           url.searchParams.set("keywords", keyword);
           url.searchParams.set("city", city || "北京");
         }
-        url.searchParams.set("offset", "5"); // 减少API返回数量
+        url.searchParams.set("offset", "8"); // 减少API返回数量
         url.searchParams.set("extensions", "base");
 
         const res = await fetch(url.toString()).then((r) => r.json());
