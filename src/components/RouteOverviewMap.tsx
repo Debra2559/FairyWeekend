@@ -10,7 +10,6 @@ declare global {
 }
 
 const CACHE_KEY = "todaypersona:geocache:v1";
-
 type GeoCache = Record<string, { lng: number; lat: number }>;
 
 function loadCache(): GeoCache {
@@ -36,11 +35,12 @@ function loadAmap(key: string): Promise<any> {
   return window.__amapLoading;
 }
 
-interface Pin {
+interface Stop {
+  chapterId: string;
+  chapterIdx: number; // 0 = latest
+  order: number;
   name: string;
   city?: string;
-  isLatest: boolean;
-  order?: number; // order within latest chapter for polyline
 }
 
 export function RouteOverviewMap({ sagas }: { sagas: ArchivedChapter[] }) {
@@ -53,33 +53,29 @@ export function RouteOverviewMap({ sagas }: { sagas: ArchivedChapter[] }) {
     let cancelled = false;
     async function init() {
       if (!containerRef.current) return;
-      // Build pin list: unique by name; latest chapter has order
-      const latest = sagas[0];
-      const latestNames = new Map<string, number>();
-      if (latest) {
-        for (const s of latest.journey.scenes) {
-          if (latest.completedSceneOrders.includes(s.order)) {
-            latestNames.set(s.location_name, s.order);
-          }
+
+      // Build ordered stop list per chapter, limited to last 6 chapters for clarity
+      const recent = sagas.slice(0, 6);
+      const stops: Stop[] = [];
+      recent.forEach((ch, idx) => {
+        const completed = [...ch.completedSceneOrders].sort((a, b) => a - b);
+        for (const ord of completed) {
+          const scene = ch.journey.scenes.find((s) => s.order === ord);
+          if (!scene) continue;
+          stops.push({
+            chapterId: ch.chapterId,
+            chapterIdx: idx,
+            order: ord,
+            name: scene.location_name,
+            city: ch.city,
+          });
         }
-      }
-      const pinsMap = new Map<string, Pin>();
-      for (const ch of sagas) {
-        for (const s of ch.journey.scenes) {
-          if (!ch.completedSceneOrders.includes(s.order)) continue;
-          if (!pinsMap.has(s.location_name)) {
-            pinsMap.set(s.location_name, {
-              name: s.location_name,
-              city: ch.city,
-              isLatest: latestNames.has(s.location_name),
-              order: latestNames.get(s.location_name),
-            });
-          }
-        }
-      }
-      const pins = [...pinsMap.values()];
-      setTotalPins(pins.length);
-      if (pins.length === 0) { setStatus("empty"); return; }
+      });
+
+      // Unique geocode keys (city|name)
+      const uniqKeys = new Set(stops.map((s) => `${s.city || ""}|${s.name}`));
+      setTotalPins(uniqKeys.size);
+      if (stops.length === 0) { setStatus("empty"); return; }
 
       setStatus("loading");
       try {
@@ -98,8 +94,8 @@ export function RouteOverviewMap({ sagas }: { sagas: ArchivedChapter[] }) {
         const placeSearch = new AMap.PlaceSearch({ pageSize: 1, pageIndex: 1 });
         const geocoder = new AMap.Geocoder({});
 
-        function lookup(p: Pin): Promise<{ lng: number; lat: number } | null> {
-          const k = `${p.city || ""}|${p.name}`;
+        function lookup(name: string, city?: string): Promise<{ lng: number; lat: number } | null> {
+          const k = `${city || ""}|${name}`;
           if (cache[k]) return Promise.resolve(cache[k]);
           return new Promise((resolve) => {
             const done = (lng?: number, lat?: number) => {
@@ -109,14 +105,13 @@ export function RouteOverviewMap({ sagas }: { sagas: ArchivedChapter[] }) {
               } else resolve(null);
             };
             try {
-              placeSearch.setCity(p.city || "");
-              placeSearch.search(p.name, (status_: string, result: any) => {
+              try { placeSearch.setCity(city || ""); } catch {}
+              placeSearch.search(name, (status_: string, result: any) => {
                 if (status_ === "complete" && result?.poiList?.pois?.length) {
                   const poi = result.poiList.pois[0];
                   done(poi.location.lng, poi.location.lat);
                 } else {
-                  // fallback to geocoder
-                  geocoder.getLocation(`${p.city || ""}${p.name}`, (s2: string, r2: any) => {
+                  geocoder.getLocation(`${city || ""}${name}`, (s2: string, r2: any) => {
                     if (s2 === "complete" && r2?.geocodes?.length) {
                       const loc = r2.geocodes[0].location;
                       done(loc.lng, loc.lat);
@@ -128,69 +123,89 @@ export function RouteOverviewMap({ sagas }: { sagas: ArchivedChapter[] }) {
           });
         }
 
-        const results: Array<{ pin: Pin; lng: number; lat: number }> = [];
-        // Resolve sequentially in small batches to be gentle on quota
-        for (let i = 0; i < pins.length; i++) {
+        // Resolve all unique stops sequentially (gentle on quota)
+        let locatedCount = 0;
+        const located: Array<Stop & { lng: number; lat: number }> = [];
+        const uniqList = [...uniqKeys];
+        const coordMap = new Map<string, { lng: number; lat: number }>();
+        for (let i = 0; i < uniqList.length; i++) {
           if (cancelled) return;
-          const loc = await lookup(pins[i]);
+          const [city, name] = uniqList[i].split("|");
+          const loc = await lookup(name, city);
           if (loc) {
-            results.push({ pin: pins[i], ...loc });
-            setLocated(results.length);
+            coordMap.set(uniqList[i], loc);
+            locatedCount += 1;
+            setLocated(locatedCount);
           }
           if (i % 5 === 4) saveCache(cache);
         }
         saveCache(cache);
         if (cancelled) return;
 
-        if (results.length === 0) { setStatus("empty"); return; }
-
-        // Markers
-        const bounds: Array<[number, number]> = [];
-        for (const r of results) {
-          bounds.push([r.lng, r.lat]);
-          const isLatest = r.pin.isLatest;
-          const html = `<div style="
-            transform: translate(-50%,-100%);
-            display:flex;flex-direction:column;align-items:center;
-            ">
-            <div style="
-              width:${isLatest ? 26 : 18}px;height:${isLatest ? 26 : 18}px;
-              border-radius:50%;
-              background:${isLatest ? "#7f4f5c" : "rgba(127,79,92,0.45)"};
-              border:2px solid #fffaf2;
-              box-shadow:0 4px 10px rgba(61,53,48,0.35);
-              display:flex;align-items:center;justify-content:center;
-              color:#fff;font-size:${isLatest ? 11 : 9}px;font-weight:600;
-            ">${isLatest && r.pin.order != null ? r.pin.order : "·"}</div>
-          </div>`;
-          const marker = new AMap.Marker({
-            position: [r.lng, r.lat],
-            content: html,
-            anchor: "bottom-center",
-            title: r.pin.name,
-          });
-          map.add(marker);
+        // Expand back to stops with coords
+        for (const s of stops) {
+          const c = coordMap.get(`${s.city || ""}|${s.name}`);
+          if (c) located.push({ ...s, ...c });
         }
+        if (located.length === 0) { setStatus("empty"); return; }
 
-        // Polyline for latest chapter, in order
-        const latestPts = results
-          .filter((r) => r.pin.isLatest && r.pin.order != null)
-          .sort((a, b) => (a.pin.order! - b.pin.order!))
-          .map((r) => [r.lng, r.lat] as [number, number]);
-        if (latestPts.length >= 2) {
+        // Group by chapter, in chapter order within
+        const byChapter = new Map<string, Array<typeof located[number]>>();
+        for (const s of located) {
+          if (!byChapter.has(s.chapterId)) byChapter.set(s.chapterId, []);
+          byChapter.get(s.chapterId)!.push(s);
+        }
+        for (const arr of byChapter.values()) arr.sort((a, b) => a.order - b.order);
+
+        // Draw polylines: latest = bold dark, others = soft
+        for (const [, arr] of byChapter) {
+          if (arr.length < 2) continue;
+          const isLatest = arr[0].chapterIdx === 0;
           const polyline = new AMap.Polyline({
-            path: latestPts,
-            strokeColor: "#7f4f5c",
-            strokeWeight: 3,
-            strokeOpacity: 0.85,
-            strokeStyle: "solid",
+            path: arr.map((p) => [p.lng, p.lat]),
+            strokeColor: isLatest ? "#7f4f5c" : "#b89b96",
+            strokeWeight: isLatest ? 4 : 2.5,
+            strokeOpacity: isLatest ? 0.95 : 0.55,
             lineJoin: "round",
-            showDir: true,
+            lineCap: "round",
+            zIndex: isLatest ? 50 : 30,
           });
           map.add(polyline);
         }
 
-        map.setFitView(undefined, false, [30, 30, 30, 30]);
+        // Markers: latest numbered & big; others small dot
+        const seenName = new Set<string>();
+        for (const s of located) {
+          const isLatest = s.chapterIdx === 0;
+          const key = `${s.chapterId}-${s.name}`;
+          if (!isLatest) {
+            // dedup non-latest by name to keep map clean
+            if (seenName.has(s.name)) continue;
+            seenName.add(s.name);
+          }
+          const html = `<div style="transform:translate(-50%,-100%);">
+            <div style="
+              width:${isLatest ? 26 : 14}px;height:${isLatest ? 26 : 14}px;
+              border-radius:50%;
+              background:${isLatest ? "#7f4f5c" : "rgba(127,79,92,0.55)"};
+              border:2px solid #fffaf2;
+              box-shadow:0 4px 10px rgba(61,53,48,0.35);
+              display:flex;align-items:center;justify-content:center;
+              color:#fff;font-size:${isLatest ? 11 : 0}px;font-weight:700;
+            ">${isLatest ? s.order : ""}</div>
+          </div>`;
+          const marker = new AMap.Marker({
+            position: [s.lng, s.lat],
+            content: html,
+            anchor: "bottom-center",
+            title: s.name,
+            zIndex: isLatest ? 100 : 60,
+            extData: key,
+          });
+          map.add(marker);
+        }
+
+        try { map.setFitView(undefined, false, [30, 30, 30, 30]); } catch {}
         setStatus("ready");
       } catch (err) {
         console.warn("[overview map]", err);
@@ -205,7 +220,7 @@ export function RouteOverviewMap({ sagas }: { sagas: ArchivedChapter[] }) {
     <div className="mt-3 overflow-hidden rounded-[18px] border border-[#eee0d8] bg-white/60">
       <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5">
         <div className="cn-serif text-[11px] text-[var(--ink-soft)]">
-          打卡地图 · 最近一条路线高亮连线
+          打卡地图 · 最近一条路线高亮连线，历史路线浅色叠加
         </div>
         <div className="cn-serif text-[10px] text-[var(--ink-soft)]">
           {status === "loading" && `定位中 ${located}/${totalPins}`}
@@ -216,8 +231,8 @@ export function RouteOverviewMap({ sagas }: { sagas: ArchivedChapter[] }) {
       </div>
       <div
         ref={containerRef}
-        className="h-[200px] w-full bg-[#f4ede5]"
-        style={{ minHeight: 200 }}
+        className="h-[220px] w-full bg-[#f4ede5]"
+        style={{ minHeight: 220 }}
       />
     </div>
   );
