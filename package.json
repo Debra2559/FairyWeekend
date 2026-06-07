@@ -10,6 +10,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "postchain:test": "node --test tests/postchain.test.mjs",
+    "voice:test": "node --test tests/voice-input.test.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
