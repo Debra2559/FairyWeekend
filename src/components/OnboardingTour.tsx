@@ -146,27 +146,6 @@ export function OnboardingTour() {
   const s = STEPS[step];
   const isLast = step === STEPS.length - 1;
 
-  function onWheel(e: React.WheelEvent) {
-    const now = Date.now();
-    if (now - wheelLock.current < 450) return;
-    const dx = e.deltaX;
-    const dy = e.deltaY;
-    const d = Math.abs(dx) > Math.abs(dy) ? dx : dy;
-    if (Math.abs(d) < 12) return;
-    wheelLock.current = now;
-    go(d > 0 ? 1 : -1);
-  }
-
-  function onTouchStart(e: React.TouchEvent) {
-    touchStartX.current = e.touches[0].clientX;
-  }
-  function onTouchEnd(e: React.TouchEvent) {
-    if (touchStartX.current == null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    touchStartX.current = null;
-    if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
-  }
-
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center px-5"
@@ -178,10 +157,8 @@ export function OnboardingTour() {
         onClick={close}
       />
       <div
-        className="relative w-full max-w-md rounded-3xl bg-[var(--card)] border border-[var(--border)] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.45)] overflow-hidden onb-pop select-none"
-        onWheel={onWheel}
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
+        ref={dialogRef}
+        className="relative w-full max-w-md rounded-3xl bg-[var(--card)] border border-[var(--border)] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.45)] overflow-hidden onb-pop select-none touch-pan-y"
       >
         <button
           onClick={close}
