@@ -17,7 +17,18 @@ const CARD_TAGS: Record<string, string[]> = {
   card_010: ["复古", "安静", "怀旧", "独处"],
 };
 
-type Step = "mood" | "duration" | "vibe" | "extra" | "result";
+type Step = "mood" | "duration" | "vibe" | "transport" | "extra" | "result";
+
+const TRANSPORT_CHIPS = [
+  { label: "步行 🚶", tag: "步行" },
+  { label: "骑行 🚲", tag: "骑行" },
+  { label: "地铁/公交 🚇", tag: "公交" },
+  { label: "打车 🚖", tag: "打车" },
+  { label: "自驾 🚗", tag: "自驾" },
+  { label: "都行，看推荐 ✦", tag: "" },
+];
+
+const TRANSPORT_TAGS = new Set(["步行", "骑行", "公交", "打车", "自驾"]);
 
 const MOOD_CHIPS = [
   { label: "想被治愈 🌿", tag: "治愈" },
@@ -259,6 +270,15 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
       push({ who: "agent", text: "想要的氛围是哪种？（可多选）" }, 250);
       push({ who: "agent", chips: VIBE_CHIPS, step: "vibe", freeInput: false, multi: true }, 450);
     } else if (fromStep === "vibe") {
+      push({ who: "agent", text: "你今天想用什么方式去这些地方？" }, 250);
+      push({ who: "agent", chips: TRANSPORT_CHIPS, step: "transport", freeInput: false }, 450);
+    } else if (fromStep === "transport") {
+      // 记下交通偏好
+      try {
+        const t = curTags.find((x) => TRANSPORT_TAGS.has(x));
+        if (t) localStorage.setItem("today.transport", t);
+        else localStorage.removeItem("today.transport");
+      } catch {}
       push({ who: "agent", text: "想再用一句话补充吗？（可选）" }, 250);
       push({ who: "agent", chips: [{ label: "不用了，给我推荐吧 →", tag: "" }], step: "extra", freeInput: true }, 450);
     } else if (fromStep === "extra") {

@@ -777,31 +777,63 @@ function JourneyMap({
     });
   }, [scenes]);
 
-  // 段距离（米）+ 步行分钟，基于稳定 hash
+  // 交通偏好（来自 agent 对话）
+  const [transport, setTransport] = useState<string>(() => {
+    if (typeof window === "undefined") return "步行";
+    return localStorage.getItem("today.transport") || "步行";
+  });
+  const [copied, setCopied] = useState(false);
+
+  const transportMeta = useMemo(() => {
+    switch (transport) {
+      case "骑行": return { label: "骑行", icon: "🚲", travelmode: "bicycling", speedMps: 4.2 };
+      case "公交": return { label: "公交", icon: "🚇", travelmode: "transit", speedMps: 6.5 };
+      case "打车": return { label: "打车", icon: "🚖", travelmode: "driving", speedMps: 8.5 };
+      case "自驾": return { label: "自驾", icon: "🚗", travelmode: "driving", speedMps: 8.5 };
+      default: return { label: "步行", icon: "🚶", travelmode: "walking", speedMps: 1.25 };
+    }
+  }, [transport]);
+
+  // 段距离（米）+ 到达分钟，基于稳定 hash + 当前交通方式
   const segments = useMemo(() => {
     return scenes.slice(0, -1).map((s, i) => {
       const next = scenes[i + 1];
       const h = seedHash(`${cardId}-${s.location_name}-${next.location_name}`);
       const meters = 300 + (h % 1100); // 300~1400m
-      const minutes = Math.max(4, Math.round(meters / 75));
+      const minutes = Math.max(2, Math.round(meters / (transportMeta.speedMps * 60)));
       const label = meters >= 1000 ? `${(meters / 1000).toFixed(1)}km` : `${Math.round(meters / 10) * 10}m`;
       return { meters, minutes, label };
     });
-  }, [scenes, cardId]);
+  }, [scenes, cardId, transportMeta]);
 
   const totalMeters = segments.reduce((s, x) => s + x.meters, 0);
   const totalMinutes = segments.reduce((s, x) => s + x.minutes, 0);
   const totalLabel = totalMeters >= 1000 ? `${(totalMeters / 1000).toFixed(1)}km` : `${totalMeters}m`;
 
-  // 一键打开完整路线（高德 / Google）
+  // 一键打开完整路线
   const routeHref = useMemo(() => {
     if (scenes.length === 0) return "#";
     const names = scenes.map((s) => `${city ?? ""}${s.location_name}`).filter(Boolean);
     const origin = encodeURIComponent(names[0]);
     const destination = encodeURIComponent(names[names.length - 1]);
     const waypoints = names.slice(1, -1).map(encodeURIComponent).join("|");
-    return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints ? `&waypoints=${waypoints}` : ""}&travelmode=walking`;
-  }, [scenes, city]);
+    return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints ? `&waypoints=${waypoints}` : ""}&travelmode=${transportMeta.travelmode}`;
+  }, [scenes, city, transportMeta]);
+
+  async function shareRoute() {
+    const text = `我的今日路线 · ${transportMeta.icon}${transportMeta.label}\n${scenes.map((s, i) => `${i + 1}. ${s.location_name}`).join("\n")}\n${routeHref}`;
+    try {
+      if (typeof navigator !== "undefined" && (navigator as any).share) {
+        await (navigator as any).share({ title: "今日路线", text, url: routeHref });
+        return;
+      }
+    } catch {}
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {}
+  }
 
   // 按主题决定圆点遮罩区域（避免压在沙滩/海/天空上）
   const dotYMax = theme.extras === "waves" ? 340 : theme.extras === "buildings" ? 350 : 530;
@@ -1023,23 +1055,43 @@ function JourneyMap({
       })}
 
       {/* Route summary + open in maps */}
-      <div className="absolute left-3 right-3 bottom-3 flex items-center justify-between gap-2">
-        <div
-          className="display italic text-[10px] tracking-[0.15em] px-2.5 py-1 rounded-full"
-          style={{ background: "rgba(255,253,243,0.92)", color: "#5a4a3a", boxShadow: "0 2px 8px rgba(0,0,0,0.12)" }}
-        >
-          全程 · {totalLabel} · 步行约 {totalMinutes}min
+      <div className="absolute left-3 right-3 bottom-3 flex items-end justify-between gap-2">
+        <div className="flex flex-col gap-1.5 items-start">
+          <button
+            onClick={() => {
+              const order = ["步行", "骑行", "公交", "打车", "自驾"];
+              const next = order[(order.indexOf(transport) + 1) % order.length];
+              setTransport(next);
+              try { localStorage.setItem("today.transport", next); } catch {}
+            }}
+            className="display italic text-[10px] tracking-[0.15em] px-2.5 py-1 rounded-full hover:opacity-90 transition"
+            style={{ background: "rgba(255,253,243,0.92)", color: "#5a4a3a", boxShadow: "0 2px 8px rgba(0,0,0,0.12)" }}
+            title="点击切换交通方式"
+          >
+            {transportMeta.icon} {transportMeta.label} · {totalLabel} · 约 {totalMinutes}min
+          </button>
         </div>
-        <a
-          href={routeHref}
-          target="_blank"
-          rel="noreferrer"
-          className="cn-serif text-[11.5px] px-3 py-1.5 rounded-full flex items-center gap-1.5 transition hover:opacity-90"
-          style={{ background: "#3d3530", color: "#fffdf3", boxShadow: "0 4px 12px rgba(0,0,0,0.25)" }}
-        >
-          <span>🧭</span>
-          <span>完整路线</span>
-        </a>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={shareRoute}
+            className="cn-serif text-[11.5px] px-3 py-1.5 rounded-full flex items-center gap-1.5 transition hover:opacity-90"
+            style={{ background: "rgba(255,253,243,0.95)", color: "#3d3530", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}
+            title="分享路线给朋友"
+          >
+            <span>{copied ? "✓" : "🔗"}</span>
+            <span>{copied ? "已复制" : "分享"}</span>
+          </button>
+          <a
+            href={routeHref}
+            target="_blank"
+            rel="noreferrer"
+            className="cn-serif text-[11.5px] px-3 py-1.5 rounded-full flex items-center gap-1.5 transition hover:opacity-90"
+            style={{ background: "#3d3530", color: "#fffdf3", boxShadow: "0 4px 12px rgba(0,0,0,0.25)" }}
+          >
+            <span>🧭</span>
+            <span>完整路线</span>
+          </a>
+        </div>
       </div>
     </div>
   );
