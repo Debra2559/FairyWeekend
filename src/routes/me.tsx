@@ -4306,6 +4306,8 @@ function ChapterDetail({
   const done = ch.completedSceneOrders.length;
   const enhanced = Object.values(ch.sceneRecords ?? {}).filter((r) => r.note || r.photo).length;
 
+  const [bookExporting, setBookExporting] = useState(false);
+
   // 奖励：本章点亮的地点 + 活动
   const rewards = ch.journey.scenes
     .filter((s) => ch.completedSceneOrders.includes(s.order))
@@ -4315,6 +4317,22 @@ function ChapterDetail({
       type: s.location_type,
       action: s.action_task,
     }));
+
+  async function handleExportStorybook() {
+    if (bookExporting) return;
+    setBookExporting(true);
+    try {
+      toast("📖 正在装订本期故事书…", { description: ch.card.identity });
+      const result = await exportSeriesStorybook([ch], "download");
+      toast.success(result === "shared" ? "已分享本期 ✦" : "📖 本期故事书已生成", {
+        description: `${ch.card.identity} · 已保存到本地`,
+      });
+    } catch (e) {
+      toast.error("生成失败", { description: (e as Error).message });
+    } finally {
+      setBookExporting(false);
+    }
+  }
 
   // 关闭：ESC + 锁滚动
   useEffect(() => {
@@ -4394,7 +4412,7 @@ function ChapterDetail({
         {rewards.length > 0 && (
           <div className="px-5 mt-5">
             <div className="display text-[10px] tracking-[0.3em] text-[var(--ink-soft)] mb-2">
-              REWARDS · 本章解锁
+              STAMPS · 本章集邮
             </div>
             <div className="flex flex-wrap gap-1.5">
               {rewards.map((r) => (
@@ -4404,7 +4422,7 @@ function ChapterDetail({
                   title={r.action}
                 >
                   <VenueIcon kind={detectVenue(r.type, r.place)} size={14} />
-                  {r.place} <span className="text-[var(--accent)]">+1</span>
+                  {r.place} <span className="text-[var(--accent)]">+1 枚</span>
                 </span>
               ))}
             </div>
@@ -4498,6 +4516,21 @@ function ChapterDetail({
           <p className="cn-serif text-[14px] leading-[1.95] text-[var(--ink)] mt-1.5">
             {ch.journey.closing}
           </p>
+        </div>
+
+        {/* Storybook */}
+        <div className="px-5 mt-5">
+          <div className="display text-[10px] tracking-[0.3em] text-[var(--ink-soft)] mb-2">
+            STORYBOOK · 本期故事书
+          </div>
+          <button
+            onClick={handleExportStorybook}
+            disabled={bookExporting}
+            className="w-full rounded-2xl border border-[#ead8d0] bg-[#fffaf2] px-4 py-3 flex items-center justify-center gap-2 cn-serif text-[13px] text-[var(--ink)] transition hover:bg-[#fdf6ed] disabled:opacity-60"
+          >
+            <BookMarked size={16} strokeWidth={1.7} />
+            {bookExporting ? "正在装订本期故事书…" : "📖 装订本期故事书"}
+          </button>
         </div>
 
         {/* Footer */}
