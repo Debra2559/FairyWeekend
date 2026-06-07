@@ -32,6 +32,14 @@ async function rateLimit() {
 export const searchPoiTool = tool(
   async ({ keywords, city, radius = 3000, lng, lat }) => {
     try {
+      // 输出搜索内容
+      console.log("🔍 [POI搜索] 开始搜索:", {
+        keywords,
+        city: city || "北京",
+        radius,
+        location: lng && lat ? `${lng},${lat}` : "无坐标（使用城市搜索）",
+      });
+
       const allPois: POI[] = [];
       const errors: string[] = [];
 
@@ -104,6 +112,13 @@ export const searchPoiTool = tool(
         city: city || "北京",
         errors: errors.length > 0 ? errors : undefined,
       };
+
+      // 输出搜索结果摘要
+      console.log(`✅ [POI搜索] 完成: 找到 ${uniquePois.length} 个结果`, {
+        keywords,
+        mode: useLocationSearch ? "around" : "text",
+        errors: errors.length > 0 ? errors : undefined,
+      });
 
       return JSON.stringify(result);
     } catch (e) {
