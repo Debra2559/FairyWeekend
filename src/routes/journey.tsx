@@ -1966,6 +1966,7 @@ function CheckInPanel({
   }
 
   function save() {
+    const wasDone = done;
     recordScene(sceneOrder, {
       note: note.trim() || undefined,
       photo: photos[0],            // 兼容旧字段
@@ -1974,12 +1975,20 @@ function CheckInPanel({
       rating: rating || undefined,
       companion,
     });
-    toast.success(done ? "已更新这条记录 ✦" : "打卡完成 ✦", {
-      description: note ? `「${note.slice(0, 24)}${note.length > 24 ? "…" : ""}」` : undefined,
-    });
-    setEditing(false);
-    onUpdated();
+    if (wasDone) {
+      toast.success("已更新这条记录 ✦", {
+        description: note ? `「${note.slice(0, 24)}${note.length > 24 ? "…" : ""}」` : undefined,
+      });
+      setEditing(false);
+      onUpdated();
+    } else {
+      // 首次打卡 — 关闭面板，由上层引导去下一站 / 结语
+      setEditing(false);
+      onUpdated();
+      onCheckedIn?.();
+    }
   }
+
 
   function undo() {
     clearSceneRecord(sceneOrder);
