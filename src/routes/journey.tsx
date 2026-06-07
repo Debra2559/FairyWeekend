@@ -136,44 +136,21 @@ function JourneyPage() {
         />
       </div>
 
-      {/* Legend / progress */}
+      {/* Finale CTA — diary 已展示进度，这里只保留行动按钮 */}
       <div className="max-w-xl mx-auto px-5 mt-5 text-center">
-        <div className="display italic text-[10.5px] tracking-[0.25em] text-[var(--ink-soft)]">
-          TODAY · PROGRESS
-        </div>
-        <div className="flex items-center justify-center gap-2 mt-2.5">
-          {journey.scenes.map((s) => {
-            const done = completedSceneOrders.includes(s.order);
-            return (
-              <div key={s.order} className="flex items-center gap-2">
-                <button
-                  onClick={() => setOpenScene(s)}
-                  className={`w-7 h-7 rounded-full cn-serif text-[11px] flex items-center justify-center transition ${
-                    done
-                      ? "bg-[var(--ink)] text-[var(--card)] shadow-[0_4px_12px_-4px_rgba(60,40,30,0.5)]"
-                      : "bg-[var(--card)] border border-dashed border-[var(--ink-soft)]/50 text-[var(--ink-soft)]"
-                  }`}
-                  aria-label={`场景 ${s.order}`}
-                >
-                  {done ? "✓" : s.order}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-        <div className="cn-serif text-[12px] text-[var(--ink-soft)] mt-3">
+        <div className="cn-serif text-[12px] text-[var(--ink-soft)]">
           {allDone
             ? "今天的剧本走完了 ✶"
-            : `点亮全部 ${journey.scenes.length} 处，今日结语就会浮现`}
+            : `点亮全部 ${journey.scenes.length} 话，今日结语就会浮现`}
         </div>
         <button
           onClick={() => navigate({ to: "/finale" })}
           disabled={!allDone}
-          className="btn-soft mt-4"
+          className="btn-soft mt-3"
         >
           {allDone
             ? "解锁今日结语 ✶"
-            : `还差 ${journey.scenes.length - completedSceneOrders.length} 处 · 继续打卡`}
+            : `还差 ${journey.scenes.length - completedSceneOrders.length} 话 · 继续打卡`}
         </button>
       </div>
 
