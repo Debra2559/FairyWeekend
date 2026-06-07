@@ -62,6 +62,25 @@ function LibraryPage() {
   const [sagas, setSagas] = useState<ArchivedChapter[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [view, setView] = useState<"shelf" | "magazine">("shelf");
+  const [bookExporting, setBookExporting] = useState(false);
+
+  async function handleExportAll() {
+    if (bookExporting || sagas.length === 0) return;
+    setBookExporting(true);
+    try {
+      toast("📖 正在装订你的连载故事书…", {
+        description: `共 ${sagas.length} 本 · 稍等几秒钟`,
+      });
+      const result = await exportSeriesStorybook(sagas, "download");
+      toast.success(result === "shared" ? "已分享你的连载故事书 ✦" : "📖 连载故事书已生成", {
+        description: `共 ${sagas.length} 本 · 已保存到本地`,
+      });
+    } catch (e) {
+      toast.error("生成失败", { description: (e as Error).message });
+    } finally {
+      setBookExporting(false);
+    }
+  }
 
   useEffect(() => {
     setSagas(loadSagas());
