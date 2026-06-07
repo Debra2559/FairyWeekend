@@ -574,7 +574,7 @@ function OverviewStats({
   const [detail, setDetail] = useState<OverviewDetailKey | null>(null);
   const items: Array<{
     key: OverviewDetailKey;
-    icon: React.ReactNode;
+    icon: ReactNode;
     value: number;
     label: string;
     hint: string;
