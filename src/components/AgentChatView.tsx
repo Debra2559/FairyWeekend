@@ -17,7 +17,18 @@ const CARD_TAGS: Record<string, string[]> = {
   card_010: ["复古", "安静", "怀旧", "独处"],
 };
 
-type Step = "mood" | "duration" | "vibe" | "extra" | "result";
+type Step = "mood" | "duration" | "vibe" | "transport" | "extra" | "result";
+
+const TRANSPORT_CHIPS = [
+  { label: "步行 🚶", tag: "步行" },
+  { label: "骑行 🚲", tag: "骑行" },
+  { label: "地铁/公交 🚇", tag: "公交" },
+  { label: "打车 🚖", tag: "打车" },
+  { label: "自驾 🚗", tag: "自驾" },
+  { label: "都行，看推荐 ✦", tag: "" },
+];
+
+const TRANSPORT_TAGS = new Set(["步行", "骑行", "公交", "打车", "自驾"]);
 
 const MOOD_CHIPS = [
   { label: "想被治愈 🌿", tag: "治愈" },
