@@ -1,10 +1,14 @@
 /**
  * LangGraph State 定义
  * 参考设计文档 5.1 状态定义
+ *
+ * 更新：
+ * - 增加结构化错误状态（errors、warnings）
+ * - 增加执行状态（executionStatus）
  */
 
 import { Annotation } from "@langchain/langgraph";
-import type { POI, PlayerProfile } from "./tools/index.ts";
+import type { POI, PlayerProfile, ToolErrorType } from "./tools/index.ts";
 
 // ===== 类型定义 =====
 
@@ -59,6 +63,44 @@ export interface POIKeywordsOutput {
   reasoning: string;     // 决策理由（调试用）
 }
 
+// ===== 错误处理类型 =====
+
+/**
+ * 错误类型（扩展自工具错误类型）
+ */
+export type QuestErrorType = ToolErrorType | "AGENT_ERROR" | "VALIDATION_ERROR" | "CONFIG_ERROR";
+
+/**
+ * 任务错误
+ */
+export interface QuestError {
+  node: string;                    // 发生错误的节点名
+  type: QuestErrorType;            // 错误类型
+  message: string;                 // 错误信息
+  recoverable: boolean;            // 是否可恢复
+  timestamp: number;               // 时间戳
+  details?: Record<string, unknown>; // 额外详情
+}
+
+/**
+ * 任务警告（非致命问题）
+ */
+export interface QuestWarning {
+  node: string;                    // 发生警告的节点名
+  message: string;                 // 警告信息
+  timestamp: number;               // 时间戳
+  details?: Record<string, unknown>; // 额外详情
+}
+
+/**
+ * 执行状态
+ */
+export type ExecutionStatus =
+  | "running"         // 执行中
+  | "success"         // 完全成功
+  | "partial_success" // 部分成功（有警告）
+  | "failed";         // 失败（有不可恢复错误）
+
 // ===== State 定义 =====
 
 /**
@@ -103,13 +145,111 @@ export const QuestState = Annotation.Root({
   /** 候选 POI 列表 */
   poiCandidates: Annotation<POI[]>,
 
+  // ===== 错误状态 =====
+  /** 错误日志（累积） */
+  errors: Annotation<QuestError[]>({
+    reducer: (x, y) => {
+      // 防御性检查：y 可能是 undefined 或单个对象
+      if (!y) return x;
+      if (Array.isArray(y)) return [...x, ...y];
+      return [...x, y];
+    },
+    default: () => [],
+  }),
+
+  /** 警告日志（累积） */
+  warnings: Annotation<QuestWarning[]>({
+    reducer: (x, y) => {
+      // 防御性检查：y 可能是 undefined 或单个对象
+      if (!y) return x;
+      if (Array.isArray(y)) return [...x, ...y];
+      return [...x, y];
+    },
+    default: () => [],
+  }),
+
+  /** 执行状态 */
+  executionStatus: Annotation<ExecutionStatus>({
+    reducer: (_, y) => y ?? "running",
+    default: () => "running",
+  }),
+
   // ===== 输出 =====
   /** 最终生成的路线 */
   journey: Annotation<Journey | undefined>,
 
-  /** 错误信息 */
+  /** 错误信息（兼容旧版，存储第一个致命错误） */
   error: Annotation<string | undefined>,
 });
 
 // 导出 State 类型（用于 Node 函数参数）
 export type QuestStateType = typeof QuestState.State;
+
+// ===== 错误辅助函数 =====
+
+/**
+ * 创建错误对象
+ */
+export function createError(
+  node: string,
+  type: QuestErrorType,
+  message: string,
+  recoverable: boolean = false,
+  details?: Record<string, unknown>
+): QuestError {
+  return {
+    node,
+    type,
+    message,
+    recoverable,
+    timestamp: Date.now(),
+    details,
+  };
+}
+
+/**
+ * 创建警告对象
+ */
+export function createWarning(
+  node: string,
+  message: string,
+  details?: Record<string, unknown>
+): QuestWarning {
+  return {
+    node,
+    message,
+    timestamp: Date.now(),
+    details,
+  };
+}
+
+/**
+ * 判断是否有致命错误
+ */
+export function hasFatalErrors(errors: QuestError[]): boolean {
+  return errors.some((e) => !e.recoverable);
+}
+
+/**
+ * 获取第一个致命错误
+ */
+export function getFirstFatalError(errors: QuestError[]): QuestError | undefined {
+  return errors.find((e) => !e.recoverable);
+}
+
+/**
+ * 计算执行状态
+ */
+export function computeExecutionStatus(
+  errors: QuestError[],
+  warnings: QuestWarning[],
+  hasOutput: boolean
+): ExecutionStatus {
+  if (hasFatalErrors(errors)) {
+    return "failed";
+  }
+  if (errors.length > 0 || warnings.length > 0) {
+    return hasOutput ? "partial_success" : "failed";
+  }
+  return hasOutput ? "success" : "partial_success";
+}

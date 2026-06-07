@@ -19,10 +19,23 @@
  *           │
  *           ▼
  *          END
+ *
+ * 更新：
+ * - 输出包含结构化错误和警告信息
+ * - 计算并返回执行状态
  */
 
 import { StateGraph, START, END } from "@langchain/langgraph";
-import { QuestState } from "./state.ts";
+import {
+  QuestState,
+  computeExecutionStatus,
+  getFirstFatalError,
+  type PersonaCard,
+  type Journey,
+  type QuestError,
+  type QuestWarning,
+  type ExecutionStatus,
+} from "./state.ts";
 import {
   fetchProfile,
   resolveLocation,
@@ -76,8 +89,6 @@ log("✅ LangGraph 构建完成");
 
 // ===== 执行函数 =====
 
-import type { PersonaCard, Journey } from "./state.ts";
-
 export interface QuestInput {
   card: PersonaCard;
   city?: string;
@@ -94,6 +105,10 @@ export interface QuestOutput {
   poiCount: number;
   keywords: string[];
   error?: string;
+  // 新增：结构化错误信息
+  errors: QuestError[];
+  warnings: QuestWarning[];
+  executionStatus: ExecutionStatus;
 }
 
 /**
@@ -129,6 +144,10 @@ export async function runQuest(input: QuestInput): Promise<QuestOutput> {
     poiCandidates: [],
     journey: undefined,
     error: undefined,
+    // 新增：初始错误状态
+    errors: [],
+    warnings: [],
+    executionStatus: "running" as ExecutionStatus,
   };
 
   log("📋 输入参数", {
@@ -139,7 +158,6 @@ export async function runQuest(input: QuestInput): Promise<QuestOutput> {
     playerKey: input.playerKey || "无",
   });
 
-
   const startTime = Date.now();
 
   try {
@@ -147,41 +165,84 @@ export async function runQuest(input: QuestInput): Promise<QuestOutput> {
 
     const elapsed = Date.now() - startTime;
 
+    // 计算执行状态
+    const executionStatus = computeExecutionStatus(
+      result.errors || [],
+      result.warnings || [],
+      !!result.journey
+    );
+
+    // 获取第一个致命错误（兼容旧版 error 字段）
+    const fatalError = getFirstFatalError(result.errors || []);
+
     console.log("\n" + "=".repeat(60));
-    console.log(`[${new Date().toISOString().split("T")[1].slice(0, 12)}][Quest] ✅ 执行完成`);
+    console.log(`[${new Date().toISOString().split("T")[1].slice(0, 12)}][Quest] ${executionStatus === "failed" ? "❌" : executionStatus === "partial_success" ? "⚠️" : "✅"} 执行完成 (${executionStatus})`);
     console.log("=".repeat(60));
 
     log("📊 执行结果", {
       elapsed: `${elapsed}ms`,
+      executionStatus,
       scenesCount: result.journey?.scenes?.length || 0,
       poiCount: result.poiCandidates?.length || 0,
       city: result.city,
+      errorsCount: result.errors?.length || 0,
+      warningsCount: result.warnings?.length || 0,
     });
+
+    // 打印错误和警告摘要
+    if (result.errors && result.errors.length > 0) {
+      console.log("\n❌ 错误:");
+      result.errors.forEach((e, i) => {
+        console.log(`  ${i + 1}. [${e.node}] ${e.type}: ${e.message} ${e.recoverable ? "(可恢复)" : "(致命)"}`);
+      });
+    }
+
+    if (result.warnings && result.warnings.length > 0) {
+      console.log("\n⚠️ 警告:");
+      result.warnings.forEach((w, i) => {
+        console.log(`  ${i + 1}. [${w.node}] ${w.message}`);
+      });
+    }
 
     return {
       journey: result.journey,
       city: result.city,
       poiCount: result.poiCandidates.length,
       keywords: result.poiKeywords,
-      error: result.error,
+      error: fatalError?.message || result.error,
+      errors: result.errors || [],
+      warnings: result.warnings || [],
+      executionStatus,
     };
   } catch (e) {
     const elapsed = Date.now() - startTime;
 
     console.log("\n" + "=".repeat(60));
-    console.log(`[${new Date().toISOString().split("T")[1].slice(0, 12)}][Quest] ❌ 执行失败`);
+    console.log(`[${new Date().toISOString().split("T")[1].slice(0, 12)}][Quest] ❌ 执行失败（未捕获异常）`);
     console.log("=".repeat(60));
 
     log(`❌ 错误: ${e}`);
     console.error(e);
 
-    return {
-      journey: undefined,
-      city: (input.city || "").trim(),
-      poiCount: 0,
-      keywords: [],
-      error: String(e),
+    // 构造未捕获异常的错误对象
+    const uncaughtError: QuestError = {
+      node: "runQuest",
+      type: "API_ERROR",
+      message: e instanceof Error ? e.message : String(e),
+      recoverable: false,
+      timestamp: Date.now(),
+      details: { elapsed },
     };
 
+    return {
+      journey: undefined,
+      city: cityInput,
+      poiCount: 0,
+      keywords: [],
+      error: uncaughtError.message,
+      errors: [uncaughtError],
+      warnings: [],
+      executionStatus: "failed",
+    };
   }
 }
