@@ -80,6 +80,7 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
   const [listening, setListening] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [picked, setPicked] = useState<number[]>([]);
+  const [pickedSingle, setPickedSingle] = useState<string | null>(null);
   const voiceSessionRef = useRef<VoiceSession | null>(null);
   const ranking = useRef<PersonaCard[]>([]);
   const idRef = useRef(0);
