@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import imgCards from "@/assets/onb-1-cards.jpg.asset.json";
 import imgRoute from "@/assets/onb-2-route.jpg.asset.json";
 import imgWalk from "@/assets/onb-3-walk.jpg.asset.json";
@@ -10,13 +10,13 @@ const STEPS = [
   {
     badge: "WHY",
     title: "周末刷半天美团，还是不知道去哪？",
-    desc: "今日人设替你决定——抽一张卡，AI 把你的下午写成一段真实可走的故事。",
+    desc: "只需要写下你的想法，或者选择你这周最想成为的人设——剩下的交给今天。",
     img: imgCards.url,
   },
   {
     badge: "STEP 01",
     title: "AI 为你写一条路线",
-    desc: "结合你所在的城市、时段和情绪，生成 3–4 个真实地点和一段属于今天的小故事。",
+    desc: "结合你所在的城市、时段和情绪，生成 1–4 个真实地点，串成一段属于今天的小故事。",
     img: imgRoute.url,
   },
   {
@@ -27,8 +27,8 @@ const STEPS = [
   },
   {
     badge: "STEP 03",
-    title: "美团一键直达",
-    desc: "每个地点都内嵌美团搜索：吃、喝、玩、订、外卖——从规划到下单，一步不绕。",
+    title: "想法说出来，美团帮你跑",
+    desc: "只需要输入你的想法，导航、团购、订位、外卖——美团一键直达，不用愁。",
     img: imgMeituan.url,
   },
 ];
@@ -36,6 +36,8 @@ const STEPS = [
 export function OnboardingTour() {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
+  const wheelLock = useRef(0);
+  const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -58,9 +60,47 @@ export function OnboardingTour() {
     setOpen(false);
   }
 
+  function go(delta: number) {
+    setStep((n) => Math.max(0, Math.min(STEPS.length - 1, n + delta)));
+  }
+
+  // 键盘 ← →
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") go(1);
+      else if (e.key === "ArrowLeft") go(-1);
+      else if (e.key === "Escape") close();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   if (!open) return null;
   const s = STEPS[step];
   const isLast = step === STEPS.length - 1;
+
+  function onWheel(e: React.WheelEvent) {
+    const now = Date.now();
+    if (now - wheelLock.current < 450) return;
+    const dx = e.deltaX;
+    const dy = e.deltaY;
+    const d = Math.abs(dx) > Math.abs(dy) ? dx : dy;
+    if (Math.abs(d) < 12) return;
+    wheelLock.current = now;
+    go(d > 0 ? 1 : -1);
+  }
+
+  function onTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+  }
 
   return (
     <div
@@ -72,7 +112,12 @@ export function OnboardingTour() {
         className="absolute inset-0 bg-black/45 backdrop-blur-sm onb-fade"
         onClick={close}
       />
-      <div className="relative w-full max-w-md rounded-3xl bg-[var(--card)] border border-[var(--border)] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.45)] overflow-hidden onb-pop">
+      <div
+        className="relative w-full max-w-md rounded-3xl bg-[var(--card)] border border-[var(--border)] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.45)] overflow-hidden onb-pop select-none"
+        onWheel={onWheel}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
         <button
           onClick={close}
           className="absolute top-3 right-3 z-10 display text-[10px] tracking-[0.25em] text-[var(--ink-soft)] hover:text-[var(--ink)] bg-[var(--card)]/80 backdrop-blur rounded-full px-3 py-1"
@@ -100,10 +145,10 @@ export function OnboardingTour() {
           <div className="display text-[10px] tracking-[0.35em] text-[var(--ink-soft)]">
             {s.badge}
           </div>
-          <h3 className="cn-serif text-[20px] text-[var(--ink)] mt-2">
+          <h3 key={`t-${step}`} className="cn-serif text-[20px] text-[var(--ink)] mt-2 onb-textIn">
             {s.title}
           </h3>
-          <p className="cn-serif text-[13px] leading-relaxed text-[var(--ink-soft)] mt-2 min-h-[3.6em]">
+          <p key={`d-${step}`} className="cn-serif text-[13px] leading-relaxed text-[var(--ink-soft)] mt-2 min-h-[3.6em] onb-textIn">
             {s.desc}
           </p>
 
@@ -123,17 +168,22 @@ export function OnboardingTour() {
             ))}
           </div>
 
+          {/* hint */}
+          <div className="mt-2 display text-[9px] tracking-[0.25em] text-[var(--ink-soft)] opacity-60">
+            滑动 / ← → 切换
+          </div>
+
           {/* actions */}
-          <div className="mt-5 flex items-center justify-between gap-3">
+          <div className="mt-3 flex items-center justify-between gap-3">
             <button
-              onClick={() => setStep((n) => Math.max(0, n - 1))}
+              onClick={() => go(-1)}
               disabled={step === 0}
               className="cn-serif text-[13px] text-[var(--ink-soft)] disabled:opacity-30 px-3 py-2"
             >
               ← 上一步
             </button>
             <button
-              onClick={() => (isLast ? close() : setStep((n) => n + 1))}
+              onClick={() => (isLast ? close() : go(1))}
               className="btn-soft"
             >
               {isLast ? "开始抽卡 →" : "下一步"}
@@ -146,6 +196,7 @@ export function OnboardingTour() {
         .onb-fade { animation: onbFade .25s ease-out both; }
         .onb-pop  { animation: onbPop .35s cubic-bezier(.22,1,.36,1) both; }
         .onb-img  { animation: onbImgIn .5s ease-out both; }
+        .onb-textIn { animation: onbTextIn .35s ease-out both; }
         @keyframes onbFade { from { opacity: 0 } to { opacity: 1 } }
         @keyframes onbPop {
           from { opacity: 0; transform: translateY(12px) scale(.96) }
@@ -154,6 +205,10 @@ export function OnboardingTour() {
         @keyframes onbImgIn {
           from { opacity: 0; transform: scale(1.04) }
           to   { opacity: 1; transform: scale(1) }
+        }
+        @keyframes onbTextIn {
+          from { opacity: 0; transform: translateY(4px) }
+          to   { opacity: 1; transform: translateY(0) }
         }
       `}</style>
     </div>
