@@ -85,20 +85,20 @@ export function DualAgentOverlay({ visible }: { visible: boolean }) {
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center px-4 py-8 fade-in"
       style={{
-        background:
-          "radial-gradient(ellipse at top, rgba(60,50,40,0.95) 0%, rgba(30,25,20,0.98) 100%)",
-        backdropFilter: "blur(8px)",
+        background: "color-mix(in oklab, var(--bg) 88%, transparent)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
       }}
     >
-      <div className="w-full max-w-2xl">
-        <div className="text-center mb-6">
-          <div className="display italic text-[10px] tracking-[0.4em] text-white/50 mb-2">
+      <div className="w-full max-w-xl">
+        <div className="text-center mb-5">
+          <div className="display italic text-[10px] tracking-[0.4em] text-[var(--ink-soft)] mb-2">
             DUAL · AGENT · SYSTEM
           </div>
-          <h2 className="cn-serif text-[20px] text-white leading-snug">
+          <h2 className="cn-serif text-[19px] text-[var(--ink)] leading-snug">
             两位 Agent 正在为你协作
           </h2>
-          <div className="cn-serif text-[12px] text-white/60 mt-1.5">
+          <div className="cn-serif text-[12px] text-[var(--ink-soft)] mt-1.5">
             POI 规划师寻找地点 · 故事生成师编织叙事
           </div>
         </div>
@@ -108,7 +108,7 @@ export function DualAgentOverlay({ visible }: { visible: boolean }) {
             title="POI 规划师"
             subtitle="Path Planner"
             emoji="🗺️"
-            color="#f5b8c4"
+            color="oklch(0.62 0.13 18)"
             active={poiActive}
             logs={poiLogs}
           />
@@ -116,14 +116,14 @@ export function DualAgentOverlay({ visible }: { visible: boolean }) {
             title="故事生成师"
             subtitle="Narrative Weaver"
             emoji="✦"
-            color="#e8c97a"
+            color="oklch(0.62 0.12 70)"
             active={storyActive}
             logs={storyLogs}
           />
         </div>
 
-        <div className="text-center mt-6">
-          <div className="cn-serif text-[11px] text-white/40 italic">
+        <div className="text-center mt-5">
+          <div className="cn-serif text-[11px] text-[var(--ink-soft)] italic opacity-70">
             * 由多 Agent 协同生成，并非通用搜索结果
           </div>
         </div>
@@ -144,27 +144,27 @@ function AgentPanel({
 }) {
   return (
     <div
-      className="rounded-2xl p-4 border"
+      className="rounded-2xl p-4 border bg-[var(--card)]"
       style={{
-        background: "rgba(255,253,243,0.06)",
-        borderColor: "rgba(255,253,243,0.12)",
-        minHeight: 280,
+        borderColor: "var(--border)",
+        minHeight: 260,
+        boxShadow: "0 1px 0 rgba(0,0,0,0.02), 0 8px 24px -16px rgba(0,0,0,0.08)",
       }}
     >
-      <div className="flex items-center gap-2.5 mb-3 pb-3 border-b" style={{ borderColor: "rgba(255,253,243,0.1)" }}>
+      <div className="flex items-center gap-2.5 mb-3 pb-3 border-b" style={{ borderColor: "var(--border)" }}>
         <div
-          className="w-9 h-9 rounded-full flex items-center justify-center text-[18px] shrink-0"
+          className="w-9 h-9 rounded-full flex items-center justify-center text-[16px] shrink-0"
           style={{
-            background: `linear-gradient(135deg, ${color}, ${color}88)`,
-            boxShadow: active ? `0 0 18px ${color}90` : "none",
+            background: `color-mix(in oklab, ${color} 18%, var(--muted))`,
+            boxShadow: active ? `0 0 0 4px color-mix(in oklab, ${color} 15%, transparent)` : "none",
             transition: "box-shadow 0.3s",
           }}
         >
           {emoji}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="cn-serif text-[13px] text-white">{title}</div>
-          <div className="display italic text-[9.5px] tracking-[0.2em] text-white/50">
+          <div className="cn-serif text-[13px] text-[var(--ink)]">{title}</div>
+          <div className="display italic text-[9.5px] tracking-[0.2em] text-[var(--ink-soft)]">
             {subtitle}
           </div>
         </div>
@@ -177,7 +177,7 @@ function AgentPanel({
           </div>
         )}
         {!active && logs.length > 0 && (
-          <div className="display italic text-[9px] tracking-[0.15em] text-white/40">
+          <div className="display italic text-[9px] tracking-[0.15em] text-[var(--ink-soft)]">
             ✓ DONE
           </div>
         )}
@@ -188,9 +188,9 @@ function AgentPanel({
           <div
             key={line.id}
             className="flex items-start gap-2 cn-serif text-[12px] fade-up"
-            style={{ color: line.done ? "rgba(255,253,243,0.55)" : "rgba(255,253,243,0.95)" }}
+            style={{ color: line.done ? "var(--ink-soft)" : "var(--ink)" }}
           >
-            <span className="shrink-0 mt-0.5" style={{ color: line.done ? "rgba(255,253,243,0.4)" : color }}>
+            <span className="shrink-0 mt-0.5" style={{ color: line.done ? "var(--ink-soft)" : color }}>
               {line.done ? "✓" : "›"}
             </span>
             <span className="flex-1 leading-snug">
@@ -206,7 +206,7 @@ function AgentPanel({
           </div>
         ))}
         {logs.length === 0 && (
-          <div className="cn-serif text-[12px] text-white/40 italic">等待启动…</div>
+          <div className="cn-serif text-[12px] text-[var(--ink-soft)] italic">等待启动…</div>
         )}
       </div>
     </div>
