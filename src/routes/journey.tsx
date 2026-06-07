@@ -114,6 +114,7 @@ function JourneyPage() {
           sceneRecords={run.sceneRecords ?? {}}
           city={city}
           onPick={(s) => setOpenScene(s)}
+          onUpdated={refresh}
         />
       </div>
 
