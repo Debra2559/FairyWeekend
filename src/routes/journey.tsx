@@ -12,6 +12,8 @@ import { JourneyChatPanel } from "@/components/JourneyChatPanel";
 
 
 import { groupPreset, type GroupMode } from "@/lib/group-mode";
+import { buildPersonaOrderNote, buildShareItinerary } from "@/lib/persona-order";
+import type { PersonaCard } from "@/lib/persona-types";
 
 
 export const Route = createFileRoute("/journey")({ component: JourneyPage });
