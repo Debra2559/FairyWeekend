@@ -4045,16 +4045,16 @@ function ChapterDetail({
         <div
           className="relative h-44 overflow-hidden rounded-t-3xl"
           style={
-            ch.card.cover
+            imageForChapter(ch)
               ? undefined
               : {
                   background: `linear-gradient(135deg, ${ch.card.colors[0]}, ${ch.card.colors[1]})`,
                 }
           }
         >
-          {ch.card.cover && (
+          {imageForChapter(ch) && (
             <img
-              src={ch.card.cover}
+              src={imageForChapter(ch)}
               alt={ch.card.identity}
               className="w-full h-full object-cover"
             />
@@ -5270,7 +5270,7 @@ function PostchainPoster({
   privacy: PostchainPrivacySettings;
   shareText: string;
 }) {
-  const coverPhoto = report.photoUrls[0] || chapter.card.cover;
+  const coverPhoto = report.photoUrls[0] || imageForChapter(chapter);
   const poemLines = buildThreeLinePoem(report);
   const posterShareText = naturalShareText(chapter, report);
   const timelineScenes = completedScenes(chapter).slice(0, 4);
@@ -6466,15 +6466,15 @@ function LibraryDetail({
                     <div
                       className="w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-[var(--border)]"
                       style={
-                        a.card.cover
+                        imageForChapter(a)
                           ? undefined
                           : {
                               background: `linear-gradient(135deg, ${a.card.colors[0]}, ${a.card.colors[1]})`,
                             }
                       }
                     >
-                      {a.card.cover && (
-                        <img src={a.card.cover} alt="" className="w-full h-full object-cover" />
+                      {imageForChapter(a) && (
+                        <img src={imageForChapter(a)} alt="" className="w-full h-full object-cover" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
