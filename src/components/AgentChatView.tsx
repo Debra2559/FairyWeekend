@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { PERSONA_CARDS, RARITY_LABEL } from "@/lib/cards";
 import type { PersonaCard } from "@/lib/persona-types";
 import { pickEmoji } from "@/lib/text-emoji";
+import { isVoiceSupported, startVoiceSession, type VoiceSession } from "@/lib/voice-input";
 
 /* -------- 卡片标签映射（用于快速匹配推荐） -------- */
 const CARD_TAGS: Record<string, string[]> = {
@@ -112,16 +113,12 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
   const [listening, setListening] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [picked, setPicked] = useState<number[]>([]);
-  const recognitionRef = useRef<any>(null);
-  const manualStopRef = useRef(false);
-  const baselineRef = useRef("");
+  const voiceSessionRef = useRef<VoiceSession | null>(null);
   const ranking = useRef<PersonaCard[]>([]);
   const idRef = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const voiceSupported =
-    typeof window !== "undefined" &&
-    ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+  const voiceSupported = typeof window !== "undefined" && isVoiceSupported();
 
   function toggleVoice() {
     if (!voiceSupported) {
@@ -129,60 +126,31 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
       return;
     }
     if (listening) {
-      manualStopRef.current = true;
-      recognitionRef.current?.stop();
+      voiceSessionRef.current?.stop();
+      voiceSessionRef.current = null;
+      setListening(false);
       return;
     }
-    try {
-      const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      const rec = new SR();
-      rec.lang = "zh-CN";
-      rec.interimResults = true;
-      rec.continuous = true;
-      // 以当前输入框内容为基线，新识别的内容追加在后面
-      baselineRef.current = input ? input.replace(/\s+$/, "") + " " : "";
-      manualStopRef.current = false;
-      rec.onresult = (e: any) => {
-        let text = "";
-        for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
-        setInput(baselineRef.current + text);
-      };
-      rec.onerror = (e: any) => {
-        if (e.error === "no-speech" || e.error === "aborted") return; // 忽略静音/中断，让 onend 自动重启
-        setVoiceError(e.error === "not-allowed" ? "麦克风权限被拒绝" : "语音识别失败");
-        manualStopRef.current = true;
+    setVoiceError(null);
+    const session = startVoiceSession({
+      initialText: input,
+      onText: (text) => setInput(text),
+      onError: (code) => {
+        setVoiceError(code === "not-allowed" ? "麦克风权限被拒绝" : "语音识别失败");
+      },
+      onEnd: () => {
+        voiceSessionRef.current = null;
         setListening(false);
-      };
-      rec.onend = () => {
-        // 把刚才识别到的最终文本固化进基线，下次继续追加
-        baselineRef.current = (document.activeElement as HTMLInputElement)?.value
-          ? baselineRef.current // 占位，下面用 setInput 的最新值更可靠
-          : baselineRef.current;
-        // 用回调拿最新 input 作为新的基线
-        setInput((cur) => {
-          baselineRef.current = cur ? cur.replace(/\s+$/, "") + " " : "";
-          return cur;
-        });
-        if (manualStopRef.current) {
-          setListening(false);
-          return;
-        }
-        // 用户没手动停止 —— 自动重启，扛住停顿
-        try {
-          rec.start();
-        } catch {
-          setListening(false);
-        }
-      };
-      recognitionRef.current = rec;
-      setVoiceError(null);
-      setListening(true);
-      rec.start();
-    } catch {
+      },
+    });
+    if (!session) {
       setVoiceError("无法开启语音输入");
-      setListening(false);
+      return;
     }
+    voiceSessionRef.current = session;
+    setListening(true);
   }
+
 
   const nextId = () => ++idRef.current;
 
@@ -252,20 +220,11 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
   }
 
   function stopVoice() {
-    if (recognitionRef.current) {
-      manualStopRef.current = true;
-      const rec = recognitionRef.current;
-      // 先摘掉回调，避免 stop/abort 之后仍有 onresult/onend 把文本写回输入框
-      try { rec.onresult = null; } catch {}
-      try { rec.onend = null; } catch {}
-      try { rec.onerror = null; } catch {}
-      try { rec.stop(); } catch {}
-      try { rec.abort?.(); } catch {}
-      recognitionRef.current = null;
-    }
-    baselineRef.current = "";
+    voiceSessionRef.current?.stop();
+    voiceSessionRef.current = null;
     setListening(false);
   }
+
 
   function handleFreeSubmit(currentStep: Step) {
     const text = input.trim();
