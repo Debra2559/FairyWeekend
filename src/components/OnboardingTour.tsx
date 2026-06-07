@@ -177,7 +177,10 @@ export function OnboardingTour() {
             {STEPS.map((_, i) => (
               <button
                 key={i}
-                onClick={() => setStep(i)}
+                onClick={() => {
+                  setStep(i);
+                  saveStep(i);
+                }}
                 aria-label={`第 ${i + 1} 步`}
                 className={`h-1.5 rounded-full transition-all ${
                   i === step
