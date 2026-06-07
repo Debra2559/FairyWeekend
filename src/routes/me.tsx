@@ -545,8 +545,8 @@ function TagPill({
 function MainTabs({ active, onChange }: { active: MainTab; onChange: (tab: MainTab) => void }) {
   const tabs: Array<{ key: MainTab; label: string; icon: React.ReactNode }> = [
     { key: "routes", label: "路线", icon: <RouteIcon size={17} strokeWidth={1.7} /> },
-    { key: "collection", label: "素材", icon: <Stamp size={17} strokeWidth={1.7} /> },
-    { key: "profile", label: "画像", icon: <UserRound size={17} strokeWidth={1.7} /> },
+    { key: "collection", label: "集邮", icon: <Stamp size={17} strokeWidth={1.7} /> },
+    { key: "profile", label: "故事书", icon: <BookMarked size={17} strokeWidth={1.7} /> },
     { key: "generate", label: "生成", icon: <WandSparkles size={17} strokeWidth={1.7} /> },
   ];
   return (
