@@ -9,7 +9,7 @@ import { getSceneDeals, type SceneDeal } from "@/lib/scene-deals";
 import { needsReservation, getReservationHint, getReservationLabel, buildMeituanReserveHref, buildDianpingReserveHref } from "@/lib/reservation";
 import { toast } from "sonner";
 import { JourneyChatPanel } from "@/components/JourneyChatPanel";
-import { JourneyInviteFab } from "@/components/JourneyInviteFab";
+
 import { groupPreset, type GroupMode } from "@/lib/group-mode";
 
 
