@@ -1504,7 +1504,75 @@ function ReservationCard({
   );
 }
 
+/* ============ Persona Order Card — 以人设之名下单 ============ */
+
+function PersonaOrderCard({
+  card, scene, kind,
+}: {
+  card: PersonaCard;
+  scene: JourneyScene;
+  kind: import("@/components/VenueIcon").VenueKind;
+}) {
+  const [copied, setCopied] = useState(false);
+  const order = useMemo(() => buildPersonaOrderNote(card, scene, kind), [card, scene, kind]);
+
+  async function copy(text: string, label: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success(`${label}已复制`, { description: "下单/到店时贴给商家即可" });
+      setTimeout(() => setCopied(false), 1800);
+    } catch {}
+  }
+
+  return (
+    <div
+      className="mt-3 p-4 rounded-2xl border relative overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(135deg, oklch(0.98 0.03 300) 0%, oklch(0.94 0.06 280) 100%)",
+        borderColor: "oklch(0.85 0.08 290)",
+      }}
+    >
+      <div className="absolute top-2 right-3 display text-[22px] opacity-15">✦</div>
+      <div className="display text-[10px] tracking-[0.35em] text-[var(--ink-soft)] mb-2">
+        PERSONA ORDER · 以人设之名下单
+      </div>
+      <div className="cn-serif text-[13.5px] text-[var(--ink)] leading-snug mb-2">
+        {order.title}
+      </div>
+      <div
+        className="cn-serif text-[12.5px] text-[var(--ink)] leading-[1.85] whitespace-pre-line p-3 rounded-xl"
+        style={{ background: "rgba(255,255,255,0.6)" }}
+      >
+        {order.note}
+      </div>
+      <div className="flex items-center gap-2 mt-2.5">
+        <button
+          onClick={() => copy(order.meituanRemark, "商家备注")}
+          className="cn-serif text-[12px] px-3 py-1.5 rounded-full transition hover:opacity-90"
+          style={{ background: "#3d3530", color: "#fffdf3" }}
+        >
+          {copied ? "✓ 已复制" : "复制给商家"}
+        </button>
+        <button
+          onClick={() => copy(order.note, "下单备注")}
+          className="cn-serif text-[12px] px-3 py-1.5 rounded-full transition hover:opacity-90"
+          style={{ background: "rgba(255,255,255,0.7)", color: "#3d3530" }}
+        >
+          复制完整指令
+        </button>
+      </div>
+      <div className="cn-serif text-[10.5px] text-[var(--ink-soft)] mt-2 leading-relaxed">
+        把"今天我是 {card.identity}"翻译成商家能落地的一句话 · 让点单也长出人设
+      </div>
+    </div>
+  );
+}
+
 /* ============ Reservation summary (global checklist) ============ */
+
+
 
 function ReservationSummaryCard({
   scenes, sceneRecords, city, onPick,
