@@ -68,9 +68,14 @@ function JourneyPage() {
         <div className="rarity-chip" data-rarity={card.rarity}>✦ {card.rarity}</div>
       </div>
 
-      {/* Title */}
+      {/* Title — serial / 连载感 */}
       <div className="max-w-xl mx-auto px-5 mt-4">
-        <h1 className="cn-serif text-[22px] text-[var(--ink)] leading-snug">{card.identity}</h1>
+        <div className="display italic text-[10px] tracking-[0.35em] text-[var(--ink-soft)]">
+          DAY 1 · 第 {completedSceneOrders.length + 1 > journey.scenes.length ? journey.scenes.length : completedSceneOrders.length + 1} 话
+          <span className="not-italic mx-1.5 opacity-50">/</span>
+          共 {journey.scenes.length} 话
+        </div>
+        <h1 className="cn-serif text-[22px] text-[var(--ink)] leading-snug mt-1">{card.identity}</h1>
         <div className="cn-serif text-[13px] text-[var(--ink-soft)] mt-1 flex items-center gap-2 flex-wrap">
           <span>「{card.mission}」</span>
           {city && <span className="display italic text-[11px]">· {city}</span>}
@@ -88,6 +93,17 @@ function JourneyPage() {
         <div className="display italic text-[11px] text-[var(--ink-soft)] mt-2">
           {journey.emotion_arc.start} → {journey.emotion_arc.end}
         </div>
+      </div>
+
+      {/* ✦ 今日连载 DIARY — 打卡 / 记录 / 故事 一眼看懂 */}
+      <div className="max-w-xl mx-auto mt-6">
+        <JourneyDiary
+          scenes={journey.scenes}
+          records={run.sceneRecords ?? {}}
+          completed={completedSceneOrders}
+          onPick={(s) => setOpenScene(s)}
+          createdAt={run.createdAt}
+        />
       </div>
 
       {/* ✦ 全程套装 Bundle */}
