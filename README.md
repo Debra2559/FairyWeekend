@@ -1,21 +1,35 @@
-# TodayPersona · 今日人设
+<div align="center">
+
+# ✦ TodayPersona · 今日人设 ✦
+
+<br/>
+
+<a href="https://plan-a-pal-95.lovable.app/" target="_blank">
+  <img src="https://img.shields.io/badge/✨_在线体验-plan--a--pal--95.lovable.app-0ea5e9?style=for-the-badge&labelColor=1e293b" alt="在线演示">
+</a>
+
+<br/>
+<br/>
+
+**选一张卡，活进今天的故事里**
+
+<br/>
+
+*美团黑客松参赛作品*
+
+<br/>
+
+<img src="https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=white" alt="React">
+<img src="https://img.shields.io/badge/TanStack-Start-f59e0b?style=flat-square" alt="TanStack">
+<img src="https://img.shields.io/badge/LangGraph-js-1e3a8a?style=flat-square" alt="LangGraph">
+<img src="https://img.shields.io/badge/Supabase-Edge%20Functions-3ecf8e?style=flat-square&logo=supabase&logoColor=white" alt="Supabase">
+
+</div>
+
+---
 
 <p align="center">
-  <a href="https://plan-a-pal-95.lovable.app/" target="_blank">
-    <img src="https://img.shields.io/badge/在线演示-点击体验-blue?style=for-the-badge" alt="在线演示">
-  </a>
-</p>
-
-<p align="center">
-  <strong>选一张卡，活进今天的故事里</strong>
-</p>
-
-<p align="center">
-  <em>美团黑客松参赛作品 —— 让周末不再是「待在家里」和「不知道去哪」的二选一</em>
-</p>
-
-<p align="center">
-  <a href="#-项目预览">项目预览</a> •
+  <a href="#-故事开始">故事开始</a> •
   <a href="#-核心功能">核心功能</a> •
   <a href="#-技术架构">技术架构</a> •
   <a href="#-本地开发">本地开发</a> •
