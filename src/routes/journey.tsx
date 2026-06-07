@@ -1336,12 +1336,15 @@ function SceneSheet({
             </a>
           </div>
 
-          <CheckInPanel
-            sceneOrder={scene.order}
-            done={done}
-            record={record}
-            onUpdated={onUpdated}
-          />
+          {!done && (
+            <CheckInPanel
+              sceneOrder={scene.order}
+              done={done}
+              record={record}
+              onUpdated={onUpdated}
+            />
+          )}
+
 
         </div>
       </div>
