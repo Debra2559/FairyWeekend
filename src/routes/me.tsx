@@ -4412,7 +4412,7 @@ function ChapterDetail({
         {rewards.length > 0 && (
           <div className="px-5 mt-5">
             <div className="display text-[10px] tracking-[0.3em] text-[var(--ink-soft)] mb-2">
-              REWARDS · 本章解锁
+              STAMPS · 本章集邮
             </div>
             <div className="flex flex-wrap gap-1.5">
               {rewards.map((r) => (
@@ -4422,7 +4422,7 @@ function ChapterDetail({
                   title={r.action}
                 >
                   <VenueIcon kind={detectVenue(r.type, r.place)} size={14} />
-                  {r.place} <span className="text-[var(--accent)]">+1</span>
+                  {r.place} <span className="text-[var(--accent)]">+1 枚</span>
                 </span>
               ))}
             </div>
