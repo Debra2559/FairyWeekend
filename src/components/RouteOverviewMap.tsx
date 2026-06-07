@@ -43,18 +43,55 @@ interface Stop {
   city?: string;
 }
 
-export function RouteOverviewMap({ sagas }: { sagas: ArchivedChapter[] }) {
+export type MapFocus =
+  | { kind: "latest" }
+  | { kind: "all" }
+  | { kind: "city"; city: string }
+  | { kind: "chapter"; chapterId: string };
+
+export function RouteOverviewMap({
+  sagas,
+  focus = { kind: "latest" },
+}: {
+  sagas: ArchivedChapter[];
+  focus?: MapFocus;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<any>(null);
+  const AMapRef = useRef<any>(null);
+  const locatedRef = useRef<Array<Stop & { lng: number; lat: number }>>([]);
+  const focusRef = useRef<MapFocus>(focus);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "empty" | "error">("idle");
   const [located, setLocated] = useState(0);
   const [totalPins, setTotalPins] = useState(0);
 
+  function applyFocus(f: MapFocus) {
+    const map = mapRef.current;
+    const AMap = AMapRef.current;
+    const pts = locatedRef.current;
+    if (!map || !AMap || pts.length === 0) return;
+    let target: typeof pts = [];
+    if (f.kind === "latest") target = pts.filter((p) => p.chapterIdx === 0);
+    else if (f.kind === "all") target = pts;
+    else if (f.kind === "city") target = pts.filter((p) => (p.city || "") === f.city);
+    else if (f.kind === "chapter") target = pts.filter((p) => p.chapterId === f.chapterId);
+    if (target.length === 0) target = pts;
+    try {
+      const fitTargets = target.map((p) =>
+        new AMap.Marker({ position: [p.lng, p.lat], map, content: "<div></div>" })
+      );
+      map.setFitView(fitTargets, false, [40, 40, 40, 40], 15);
+      fitTargets.forEach((m: any) => map.remove(m));
+    } catch {}
+  }
+
+
+  // Init (one-time per sagas change)
   useEffect(() => {
     let cancelled = false;
     async function init() {
       if (!containerRef.current) return;
 
-      // Build ordered stop list per chapter, limited to last 6 chapters for clarity
       const recent = sagas.slice(0, 6);
       const stops: Stop[] = [];
       recent.forEach((ch, idx) => {
@@ -72,7 +109,6 @@ export function RouteOverviewMap({ sagas }: { sagas: ArchivedChapter[] }) {
         }
       });
 
-      // Unique geocode keys (city|name)
       const uniqKeys = new Set(stops.map((s) => `${s.city || ""}|${s.name}`));
       setTotalPins(uniqKeys.size);
       if (stops.length === 0) { setStatus("empty"); return; }
@@ -89,6 +125,8 @@ export function RouteOverviewMap({ sagas }: { sagas: ArchivedChapter[] }) {
           viewMode: "2D",
           mapStyle: "amap://styles/whitesmoke",
         });
+        mapRef.current = map;
+        AMapRef.current = AMap;
 
         const cache = loadCache();
         const placeSearch = new AMap.PlaceSearch({ pageSize: 1, pageIndex: 1 });
@@ -98,34 +136,39 @@ export function RouteOverviewMap({ sagas }: { sagas: ArchivedChapter[] }) {
           const k = `${city || ""}|${name}`;
           if (cache[k]) return Promise.resolve(cache[k]);
           return new Promise((resolve) => {
+            let settled = false;
             const done = (lng?: number, lat?: number) => {
+              if (settled) return;
+              settled = true;
               if (typeof lng === "number" && typeof lat === "number") {
                 cache[k] = { lng, lat };
                 resolve(cache[k]);
               } else resolve(null);
             };
+            // Safety net: if AMap callbacks never fire, fail this entry in 4s
+            const t = setTimeout(() => done(), 4000);
+            const finish = (lng?: number, lat?: number) => { clearTimeout(t); done(lng, lat); };
             try {
               try { placeSearch.setCity(city || ""); } catch {}
               placeSearch.search(name, (status_: string, result: any) => {
                 if (status_ === "complete" && result?.poiList?.pois?.length) {
                   const poi = result.poiList.pois[0];
-                  done(poi.location.lng, poi.location.lat);
+                  finish(poi.location.lng, poi.location.lat);
                 } else {
                   geocoder.getLocation(`${city || ""}${name}`, (s2: string, r2: any) => {
                     if (s2 === "complete" && r2?.geocodes?.length) {
                       const loc = r2.geocodes[0].location;
-                      done(loc.lng, loc.lat);
-                    } else done();
+                      finish(loc.lng, loc.lat);
+                    } else finish();
                   });
                 }
               });
-            } catch { done(); }
+            } catch { finish(); }
           });
         }
 
-        // Resolve all unique stops sequentially (gentle on quota)
+
         let locatedCount = 0;
-        const located: Array<Stop & { lng: number; lat: number }> = [];
         const uniqList = [...uniqKeys];
         const coordMap = new Map<string, { lng: number; lat: number }>();
         for (let i = 0; i < uniqList.length; i++) {
@@ -136,28 +179,37 @@ export function RouteOverviewMap({ sagas }: { sagas: ArchivedChapter[] }) {
             coordMap.set(uniqList[i], loc);
             locatedCount += 1;
             setLocated(locatedCount);
+            // progressively grow locatedRef so clicks during load can still focus
+            const partial: Array<Stop & { lng: number; lat: number }> = [];
+            for (const s of stops) {
+              const c = coordMap.get(`${s.city || ""}|${s.name}`);
+              if (c) partial.push({ ...s, ...c });
+            }
+            locatedRef.current = partial;
+            // refit to current user-selected focus as new points arrive
+            applyFocus(focusRef.current);
           }
           if (i % 5 === 4) saveCache(cache);
         }
         saveCache(cache);
         if (cancelled) return;
 
-        // Expand back to stops with coords
+
+        const locatedStops: Array<Stop & { lng: number; lat: number }> = [];
         for (const s of stops) {
           const c = coordMap.get(`${s.city || ""}|${s.name}`);
-          if (c) located.push({ ...s, ...c });
+          if (c) locatedStops.push({ ...s, ...c });
         }
-        if (located.length === 0) { setStatus("empty"); return; }
+        if (locatedStops.length === 0) { setStatus("empty"); return; }
+        locatedRef.current = locatedStops;
 
-        // Group by chapter, in chapter order within
-        const byChapter = new Map<string, Array<typeof located[number]>>();
-        for (const s of located) {
+        const byChapter = new Map<string, Array<typeof locatedStops[number]>>();
+        for (const s of locatedStops) {
           if (!byChapter.has(s.chapterId)) byChapter.set(s.chapterId, []);
           byChapter.get(s.chapterId)!.push(s);
         }
         for (const arr of byChapter.values()) arr.sort((a, b) => a.order - b.order);
 
-        // Draw polylines: latest = bold dark, others = soft
         for (const [, arr] of byChapter) {
           if (arr.length < 2) continue;
           const isLatest = arr[0].chapterIdx === 0;
@@ -173,13 +225,11 @@ export function RouteOverviewMap({ sagas }: { sagas: ArchivedChapter[] }) {
           map.add(polyline);
         }
 
-        // Markers: latest numbered & big; others small dot
         const seenName = new Set<string>();
-        for (const s of located) {
+        for (const s of locatedStops) {
           const isLatest = s.chapterIdx === 0;
           const key = `${s.chapterId}-${s.name}`;
           if (!isLatest) {
-            // dedup non-latest by name to keep map clean
             if (seenName.has(s.name)) continue;
             seenName.add(s.name);
           }
@@ -205,20 +255,7 @@ export function RouteOverviewMap({ sagas }: { sagas: ArchivedChapter[] }) {
           map.add(marker);
         }
 
-        // Fit view to the latest chapter only (so the newest route is centered & zoomed in)
-        try {
-          const latestPts = located.filter((p) => p.chapterIdx === 0);
-          if (latestPts.length > 0) {
-            // Build temp markers just for fitView bounds calc
-            const fitTargets = latestPts.map((p) =>
-              new AMap.Marker({ position: [p.lng, p.lat], map, content: "<div></div>" })
-            );
-            map.setFitView(fitTargets, false, [40, 40, 40, 40], 15);
-            fitTargets.forEach((m) => map.remove(m));
-          } else {
-            map.setFitView(undefined, false, [30, 30, 30, 30]);
-          }
-        } catch {}
+        applyFocus(focus);
         setStatus("ready");
       } catch (err) {
         console.warn("[overview map]", err);
@@ -226,15 +263,36 @@ export function RouteOverviewMap({ sagas }: { sagas: ArchivedChapter[] }) {
       }
     }
     init();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      try { mapRef.current?.destroy?.(); } catch {}
+      mapRef.current = null;
+      locatedRef.current = [];
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sagas]);
+
+  // Re-fit whenever focus changes (even mid-load — applyFocus is a no-op if no pins yet)
+  useEffect(() => {
+    focusRef.current = focus;
+    applyFocus(focus);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focus.kind, (focus as any).city, (focus as any).chapterId, status, located]);
+
+
+  const focusHint =
+    focus.kind === "latest"
+      ? "聚焦：最近一条路线"
+      : focus.kind === "all"
+        ? "聚焦：全部路线"
+        : focus.kind === "city"
+          ? `聚焦：${focus.city || "城市"}`
+          : "聚焦：选中的路线";
 
   return (
     <div className="mt-3 overflow-hidden rounded-[18px] border border-[#eee0d8] bg-white/60">
       <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5">
-        <div className="cn-serif text-[11px] text-[var(--ink-soft)]">
-          打卡地图 · 最近一条路线高亮连线，历史路线浅色叠加
-        </div>
+        <div className="cn-serif text-[11px] text-[var(--ink-soft)]">{focusHint}</div>
         <div className="cn-serif text-[10px] text-[var(--ink-soft)]">
           {status === "loading" && `定位中 ${located}/${totalPins}`}
           {status === "ready" && `已标 ${located} 个地点`}

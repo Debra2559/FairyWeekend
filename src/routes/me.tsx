@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -261,8 +261,10 @@ function MePage() {
       (s, c) => s + Object.values(c.sceneRecords ?? {}).filter((r) => r.note || r.photo).length,
       0,
     );
+    const citySet = new Set(sagas.map((c) => (c.city || "").trim()).filter(Boolean));
+    const cities = citySet.size;
     const rarities = new Set(sagas.map((c) => c.card.rarity));
-    return { chapters, scenes, enhanced, rarities: rarities.size };
+    return { chapters, scenes, enhanced, cities, rarities: rarities.size };
   }, [sagas]);
 
   const latestChapter = sagas[0] ?? null;
@@ -560,47 +562,131 @@ function MainTabs({ active, onChange }: { active: MainTab; onChange: (tab: MainT
   );
 }
 
+type OverviewFocusKey = "latest" | "all" | "city";
+
 function OverviewStats({
   stats,
   syncLabel,
   sagas,
 }: {
-  stats: { chapters: number; scenes: number; enhanced: number; rarities: number };
+  stats: { chapters: number; scenes: number; enhanced: number; cities: number; rarities: number };
   syncLabel: string;
   sagas: ArchivedChapter[];
 }) {
-  const items = [
-    { icon: <RouteIcon size={16} strokeWidth={1.7} />, value: stats.chapters, label: "条路线", hint: "已经走完并归档的路线条数" },
-    { icon: <MapPinned size={16} strokeWidth={1.7} />, value: stats.scenes, label: "已打卡", hint: "累计打卡的地点数（每去一次记一次）" },
-    { icon: <PenLine size={16} strokeWidth={1.7} />, value: stats.enhanced, label: "已补记", hint: "已经上传照片或写下文字记录的地点数" },
+  const cityList = useMemo(() => {
+    const seen = new Set<string>();
+    const order: string[] = [];
+    for (const c of sagas) {
+      const k = (c.city || "").trim();
+      if (k && !seen.has(k)) { seen.add(k); order.push(k); }
+    }
+    return order;
+  }, [sagas]);
+
+  const [activeKey, setActiveKey] = useState<OverviewFocusKey>("latest");
+  const [cityIdx, setCityIdx] = useState(0);
+
+  const focus =
+    activeKey === "all"
+      ? ({ kind: "all" } as const)
+      : activeKey === "city" && cityList.length > 0
+        ? ({ kind: "city", city: cityList[cityIdx % cityList.length] } as const)
+        : ({ kind: "latest" } as const);
+
+  const items: Array<{
+    key: OverviewFocusKey;
+    icon: ReactNode;
+    value: number | string;
+    label: string;
+    hint: string;
+    disabled?: boolean;
+  }> = [
+    {
+      key: "latest",
+      icon: <RouteIcon size={16} strokeWidth={1.7} />,
+      value: stats.chapters,
+      label: activeKey === "latest" ? "最近一条" : "条路线",
+      hint: "点击：地图聚焦最近一条路线（再点切换到全部）",
+    },
+    {
+      key: "all",
+      icon: <MapPinned size={16} strokeWidth={1.7} />,
+      value: stats.scenes,
+      label: "已打卡",
+      hint: "点击：地图展示全部路线的所有打卡点",
+    },
+    {
+      key: "city",
+      icon: <MapPinned size={16} strokeWidth={1.7} />,
+      value: stats.cities,
+      label: activeKey === "city" && cityList.length > 0 ? cityList[cityIdx % cityList.length] : "座城市",
+      hint: cityList.length > 1 ? "点击：在城市之间切换聚焦" : "点击：地图聚焦到这座城市",
+      disabled: cityList.length === 0,
+    },
   ];
+
+  function handleClick(key: OverviewFocusKey) {
+    if (key === "latest") {
+      // toggle latest ↔ all
+      setActiveKey((prev) => (prev === "latest" ? "all" : "latest"));
+      return;
+    }
+    if (key === "all") {
+      setActiveKey("all");
+      return;
+    }
+    if (key === "city") {
+      if (cityList.length === 0) return;
+      if (activeKey !== "city") {
+        setActiveKey("city");
+        setCityIdx(0);
+      } else {
+        setCityIdx((i) => (i + 1) % cityList.length);
+      }
+    }
+  }
+
   return (
     <section className="rounded-[22px] border border-[#ead8d0] bg-[#fffaf2]/90 px-3 py-3">
       <div className="mb-2 flex items-center justify-between">
         <div className="cn-serif text-[12px] text-[var(--ink-soft)]">路线总览 · {syncLabel}</div>
         <span className="rounded-full bg-[#fff4ec] px-2 py-1 cn-serif text-[10px] text-[#7f4f5c]">
-          打卡 & 补记
+          点击数字 · 切换地图视野
         </span>
       </div>
       <div className="grid grid-cols-3 gap-2">
-        {items.map((item) => (
-          <div
-            key={item.label}
-            title={item.hint}
-            className="flex min-h-14 items-center justify-center gap-2 rounded-[18px] border border-[#eee0d8] bg-white/60 px-2"
-          >
-            <span className="text-[#6f5850]">{item.icon}</span>
-            <div className="min-w-0">
-              <div className="display text-[18px] leading-none text-[var(--ink)]">{item.value}</div>
-              <div className="cn-serif text-[10px] text-[var(--ink-soft)]">{item.label}</div>
-            </div>
-          </div>
-        ))}
+        {items.map((item) => {
+          const active =
+            (item.key === "latest" && activeKey === "latest") ||
+            (item.key === "all" && activeKey === "all") ||
+            (item.key === "city" && activeKey === "city");
+          return (
+            <button
+              key={item.key}
+              type="button"
+              title={item.hint}
+              disabled={item.disabled}
+              onClick={() => handleClick(item.key)}
+              className={`flex min-h-14 items-center justify-center gap-2 rounded-[18px] border px-2 text-left transition active:scale-[0.98] ${
+                active
+                  ? "border-[#7f4f5c] bg-[#fff1e8] shadow-[0_4px_12px_-6px_rgba(127,79,92,0.4)]"
+                  : "border-[#eee0d8] bg-white/60 hover:border-[#d9c3b8] hover:bg-white/80"
+              } ${item.disabled ? "cursor-not-allowed opacity-50" : ""}`}
+            >
+              <span className={active ? "text-[#7f4f5c]" : "text-[#6f5850]"}>{item.icon}</span>
+              <div className="min-w-0">
+                <div className="display text-[18px] leading-none text-[var(--ink)]">{item.value}</div>
+                <div className="cn-serif text-[10px] text-[var(--ink-soft)] truncate">{item.label}</div>
+              </div>
+            </button>
+          );
+        })}
       </div>
-      <RouteOverviewMap sagas={sagas} />
+      <RouteOverviewMap sagas={sagas} focus={focus} />
     </section>
   );
 }
+
 
 function RouteSummaryCard({
   chapter,
@@ -729,7 +815,7 @@ function RoutesHome({
   onCreate,
 }: {
   sagas: ArchivedChapter[];
-  stats: { chapters: number; scenes: number; enhanced: number; rarities: number };
+  stats: { chapters: number; scenes: number; enhanced: number; cities: number; rarities: number };
   syncLabel: string;
   onOpenRoute: (chapter: ArchivedChapter) => void;
   onOpenPoster: (chapter: ArchivedChapter) => void;
@@ -895,7 +981,7 @@ function RouteDetailPage({
 }: {
   chapter: ArchivedChapter;
   chapterNo: number;
-  stats: { chapters: number; scenes: number; enhanced: number; rarities: number };
+  stats: { chapters: number; scenes: number; enhanced: number; cities: number; rarities: number };
   activeTab: RouteDetailTab;
   onTabChange: (tab: RouteDetailTab) => void;
   onBack: () => void;
@@ -973,39 +1059,42 @@ function RouteDetailPage({
         </FlowPanel>
       )}
       <section className="rounded-[24px] border border-[#ead8d0] bg-[#fffaf2]/94 p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <button
             onClick={onBack}
             aria-label="返回路线总览"
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-white/72 px-3 cn-serif text-[12px] text-[var(--ink)]"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[#ead8d0] bg-white/60 px-3 cn-serif text-[12px] text-[var(--ink)] transition hover:border-[#d9c3b8] hover:bg-white active:scale-[0.98]"
           >
-            <ArrowLeft size={18} strokeWidth={1.8} />
+            <ArrowLeft size={16} strokeWidth={1.8} />
             路线总览
           </button>
-          <div className="flex gap-1">
+          <div className="inline-flex items-center gap-0 rounded-full border border-[#ead8d0] bg-white/60 p-0.5">
             <button
               onClick={onPoster}
               aria-label="分享复盘"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/72 text-[var(--ink)]"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--ink)] transition hover:bg-[#f3e7df] active:scale-95"
             >
-              <Share2 size={17} strokeWidth={1.8} />
+              <Share2 size={15} strokeWidth={1.8} />
             </button>
+            <span className="h-4 w-px bg-[#ead8d0]" aria-hidden />
             <button
               onClick={() => setPanel("saved")}
               aria-label="收藏路线"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/72 text-[var(--ink)]"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--ink)] transition hover:bg-[#f3e7df] active:scale-95"
             >
-              <Star size={17} strokeWidth={1.8} />
+              <Star size={15} strokeWidth={1.8} />
             </button>
+            <span className="h-4 w-px bg-[#ead8d0]" aria-hidden />
             <button
               onClick={() => setPanel("more")}
               aria-label="更多操作"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/72 text-[var(--ink)]"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--ink)] transition hover:bg-[#f3e7df] active:scale-95"
             >
-              <MoreHorizontal size={17} strokeWidth={1.8} />
+              <MoreHorizontal size={15} strokeWidth={1.8} />
             </button>
           </div>
         </div>
+
         <div className="mt-3">
           <TagPill>{chapter.card.rarity}</TagPill>
           <h1 className="mt-2 cn-serif text-[24px] leading-tight text-[var(--ink)]">
@@ -1335,25 +1424,26 @@ function ReviewPosterPage({
         </FlowPanel>
       )}
       <section className="rounded-[24px] border border-[#ead8d0] bg-[#fffaf2]/94 p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <button
             onClick={onBack}
             aria-label="返回路线详情"
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-white/72 px-3 cn-serif text-[12px] text-[var(--ink)]"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[#ead8d0] bg-white/60 px-3 cn-serif text-[12px] text-[var(--ink)] transition hover:border-[#d9c3b8] hover:bg-white active:scale-[0.98]"
           >
-            <ArrowLeft size={18} strokeWidth={1.8} />
+            <ArrowLeft size={16} strokeWidth={1.8} />
             路线详情
           </button>
           <h1 className="cn-serif text-[17px] text-[var(--ink)]">复盘海报</h1>
           <button
             onClick={() => setPanel("settings")}
             aria-label="更多操作"
-            className="inline-flex min-h-10 items-center gap-1 rounded-full bg-white/72 px-3 cn-serif text-[12px] text-[var(--ink)]"
+            className="inline-flex h-9 items-center gap-1 rounded-full border border-[#ead8d0] bg-white/60 px-3 cn-serif text-[12px] text-[var(--ink)] transition hover:border-[#d9c3b8] hover:bg-white active:scale-[0.98]"
           >
-            <MoreHorizontal size={17} strokeWidth={1.8} />
+            <MoreHorizontal size={15} strokeWidth={1.8} />
             设置
           </button>
         </div>
+
       </section>
 
       <section className="rounded-[26px] border border-[#ead8d0] bg-[#fffaf2]/92 p-3">
@@ -2986,7 +3076,7 @@ function AssetOverviewCard({
 }: {
   assetMode: AssetMode;
   rangeLabel: string;
-  stats: { chapters: number; scenes: number; enhanced: number; rarities: number };
+  stats: { chapters: number; scenes: number; enhanced: number; cities: number; rarities: number };
   library: ReturnType<typeof buildLibrary>;
   cloudStatus: "idle" | "syncing" | "synced" | "local";
   onAction: () => void;
