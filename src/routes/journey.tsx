@@ -777,6 +777,32 @@ function JourneyMap({
     });
   }, [scenes]);
 
+  // 段距离（米）+ 步行分钟，基于稳定 hash
+  const segments = useMemo(() => {
+    return scenes.slice(0, -1).map((s, i) => {
+      const next = scenes[i + 1];
+      const h = seedHash(`${cardId}-${s.location_name}-${next.location_name}`);
+      const meters = 300 + (h % 1100); // 300~1400m
+      const minutes = Math.max(4, Math.round(meters / 75));
+      const label = meters >= 1000 ? `${(meters / 1000).toFixed(1)}km` : `${Math.round(meters / 10) * 10}m`;
+      return { meters, minutes, label };
+    });
+  }, [scenes, cardId]);
+
+  const totalMeters = segments.reduce((s, x) => s + x.meters, 0);
+  const totalMinutes = segments.reduce((s, x) => s + x.minutes, 0);
+  const totalLabel = totalMeters >= 1000 ? `${(totalMeters / 1000).toFixed(1)}km` : `${totalMeters}m`;
+
+  // 一键打开完整路线（高德 / Google）
+  const routeHref = useMemo(() => {
+    if (scenes.length === 0) return "#";
+    const names = scenes.map((s) => `${city ?? ""}${s.location_name}`).filter(Boolean);
+    const origin = encodeURIComponent(names[0]);
+    const destination = encodeURIComponent(names[names.length - 1]);
+    const waypoints = names.slice(1, -1).map(encodeURIComponent).join("|");
+    return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints ? `&waypoints=${waypoints}` : ""}&travelmode=walking`;
+  }, [scenes, city]);
+
   // 按主题决定圆点遮罩区域（避免压在沙滩/海/天空上）
   const dotYMax = theme.extras === "waves" ? 340 : theme.extras === "buildings" ? 350 : 530;
   const dotYMin = theme.extras === "stars" || theme.extras === "buildings" ? 200 : 90;
