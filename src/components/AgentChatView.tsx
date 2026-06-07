@@ -265,13 +265,13 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
   function advance(fromStep: Step, curTags: string[], curText: string) {
     if (fromStep === "mood") {
       push({ who: "agent", text: "好嘞。今天大概有多少时间？" }, 250);
-      push({ who: "agent", chips: DURATION_CHIPS, step: "duration", freeInput: false }, 450);
+      push({ who: "agent", chips: DURATION_CHIPS, step: "duration", freeInput: true }, 450);
     } else if (fromStep === "duration") {
       push({ who: "agent", text: "想要的氛围是哪种？（可多选）" }, 250);
-      push({ who: "agent", chips: VIBE_CHIPS, step: "vibe", freeInput: false, multi: true }, 450);
+      push({ who: "agent", chips: VIBE_CHIPS, step: "vibe", freeInput: true, multi: true }, 450);
     } else if (fromStep === "vibe") {
       push({ who: "agent", text: "你今天想用什么方式去这些地方？" }, 250);
-      push({ who: "agent", chips: TRANSPORT_CHIPS, step: "transport", freeInput: false }, 450);
+      push({ who: "agent", chips: TRANSPORT_CHIPS, step: "transport", freeInput: true }, 450);
     } else if (fromStep === "transport") {
       // 记下交通偏好
       try {
