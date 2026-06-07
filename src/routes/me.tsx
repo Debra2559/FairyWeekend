@@ -615,10 +615,16 @@ function RouteSummaryCard({
   const date = formatArchiveDate(chapter.createdAt);
   const image = imageForChapter(chapter);
   const fallback = `linear-gradient(135deg, ${chapter.card.colors[0]}, ${chapter.card.colors[1]})`;
+  const visited = completedScenes(chapter);
+  const mapHref = visited.length
+    ? `https://uri.amap.com/search?keyword=${encodeURIComponent(
+        visited.map((s) => s.location_name).join(" "),
+      )}${chapter.city ? `&city=${encodeURIComponent(chapter.city)}` : ""}&src=todaypersona&callnative=1`
+    : "";
   return (
     <article
       className={`group relative overflow-hidden rounded-[22px] border border-white/70 bg-[#eee4d2] shadow-[0_22px_60px_-44px_rgba(61,53,48,0.45)] ${
-        compact ? "min-h-[116px]" : "min-h-[176px]"
+        compact ? "min-h-[116px]" : "min-h-[200px]"
       }`}
       style={!image ? { background: fallback } : undefined}
     >
@@ -658,13 +664,45 @@ function RouteSummaryCard({
             {chapter.card.identity}
           </h3>
           <div className="mt-1 cn-serif text-[11px] text-white/82">
-            {done}/{total} 地点 · {pct}%
+            已打卡 {done}/{total} 处 · {pct}%
           </div>
+          {!compact && visited.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {visited.slice(0, 4).map((s) => (
+                <span
+                  key={s.order}
+                  className="inline-flex max-w-[140px] items-center gap-1 truncate rounded-full border border-white/35 bg-white/22 px-2 py-[3px] cn-serif text-[10px] text-white backdrop-blur"
+                  title={s.location_name}
+                >
+                  <span aria-hidden>✓</span>
+                  <span className="truncate">{s.location_name}</span>
+                </span>
+              ))}
+              {visited.length > 4 && (
+                <span className="rounded-full border border-white/30 bg-white/18 px-2 py-[3px] cn-serif text-[10px] text-white/85">
+                  +{visited.length - 4}
+                </span>
+              )}
+            </div>
+          )}
         </div>
         <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/26">
           <div className="h-full rounded-full bg-[#fff7ea]/95" style={{ width: `${pct}%` }} />
         </div>
       </button>
+      {!compact && mapHref && (
+        <a
+          href={mapHref}
+          target="_blank"
+          rel="noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="absolute left-3 bottom-3 z-10 inline-flex min-h-9 items-center gap-1 rounded-full border border-white/34 bg-white/82 px-3 cn-serif text-[12px] text-[#4f4944] shadow-sm backdrop-blur"
+          title="在高德地图上标出这条路线的所有打卡点"
+        >
+          <MapPinned size={13} strokeWidth={1.8} />
+          在地图查看
+        </a>
+      )}
       {!compact && onPoster && (
         <button
           onClick={onPoster}
