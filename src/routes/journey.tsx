@@ -1282,7 +1282,7 @@ function SceneSheet({
             />
           )}
 
-          {card && <PersonaOrderCard card={card} scene={scene} kind={kind} />}
+          
 
           {bundlePurchased && (
             <div
