@@ -1,10 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { loadRun, clearRun, archiveCurrentRun } from "@/lib/persona-store";
+import { loadRun, clearRun, archiveCurrentRun, loadSagas } from "@/lib/persona-store";
 import type { JourneyRunState } from "@/lib/persona-types";
 import { RARITY_LABEL } from "@/lib/cards";
 import { PhotoOnboardingModal } from "@/components/PhotoOnboardingModal";
 import { getUserPhoto } from "@/lib/user-photo";
+import { exportSeriesStorybook } from "@/lib/series-export";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/finale")({ component: FinalePage });
 
@@ -13,6 +15,7 @@ function FinalePage() {
   const [run, setRun] = useState<JourneyRunState | null>(null);
   const [shown, setShown] = useState("");
   const [rewardOpen, setRewardOpen] = useState(false);
+  const [bookExporting, setBookExporting] = useState(false);
 
   useEffect(() => {
     const r = loadRun();
@@ -127,6 +130,38 @@ function FinalePage() {
         >
           ✶ 分享今日故事
         </button>
+        <button
+          onClick={async () => {
+            if (bookExporting) return;
+            setBookExporting(true);
+            try {
+              const chapters = loadSagas();
+              if (chapters.length === 0) {
+                toast.error("还没有可生成的章节", {
+                  description: "再走一段路，就能翻开第一章",
+                });
+                return;
+              }
+              toast("📖 正在装订你的连载故事书…", {
+                description: `共 ${chapters.length} 章 · 稍等几秒钟`,
+              });
+              const result = await exportSeriesStorybook(chapters, "download");
+              toast.success(
+                result === "shared" ? "已分享你的连载故事书 ✦" : "📖 连载故事书已生成",
+                { description: `共 ${chapters.length} 章 · 已保存到本地` },
+              );
+            } catch (e) {
+              toast.error("生成失败", { description: (e as Error).message });
+            } finally {
+              setBookExporting(false);
+            }
+          }}
+          disabled={bookExporting}
+          className="btn-soft w-full justify-center disabled:opacity-60"
+        >
+          {bookExporting ? "📖 正在装订…" : "📖 一键生成连载故事书 (PDF)"}
+        </button>
+
         <button
           onClick={() => navigate({ to: "/library" })}
           className="btn-soft w-full justify-center"

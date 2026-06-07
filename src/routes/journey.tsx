@@ -114,6 +114,7 @@ function JourneyPage() {
           sceneRecords={run.sceneRecords ?? {}}
           city={city}
           onPick={(s) => setOpenScene(s)}
+          onUpdated={refresh}
         />
       </div>
 
@@ -1575,12 +1576,13 @@ function PersonaOrderCard({
 
 
 function ReservationSummaryCard({
-  scenes, sceneRecords, city, onPick,
+  scenes, sceneRecords, city, onPick, onUpdated,
 }: {
   scenes: JourneyScene[];
   sceneRecords: Record<number, SceneRecord>;
   city?: string;
   onPick: (scene: JourneyScene) => void;
+  onUpdated?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -1599,6 +1601,29 @@ function ReservationSummaryCard({
 
   const reservedCount = items.filter((i) => i.reserved).length;
   const allDone = reservedCount === items.length;
+  const pendingItems = items.filter((i) => !i.reserved);
+
+  function reserveAll() {
+    if (pendingItems.length === 0) return;
+    pendingItems.forEach(({ scene }, idx) => {
+      const href = buildMeituanReserveHref(scene.meituan_keyword || scene.location_name, city);
+      // 错开窗口打开以减少浏览器拦截
+      setTimeout(() => {
+        try {
+          window.open(href, `_mt_${scene.order}`, "noopener,noreferrer");
+        } catch {}
+      }, idx * 80);
+      reserveScene(scene.order, true);
+    });
+    toast.success(`✦ 已为 ${pendingItems.length} 处一键发起预定`, {
+      description: "已在新标签打开美团 · 全部场景已标记为已预约",
+      duration: 5000,
+    });
+    setExpanded(true);
+    onUpdated?.();
+  }
+
+
 
   return (
     <div
@@ -1635,6 +1660,28 @@ function ReservationSummaryCard({
           ▼
         </span>
       </button>
+
+      {!allDone && pendingItems.length > 0 && (
+        <div className="px-4 pb-3">
+          <button
+            onClick={reserveAll}
+            className="w-full cn-serif text-[13px] py-2.5 rounded-xl transition hover:opacity-90 flex items-center justify-center gap-1.5"
+            style={{
+              background: "linear-gradient(135deg,#e85d3a 0%,#ff7a4d 100%)",
+              color: "#fff",
+              boxShadow: "0 6px 18px -8px rgba(232,93,58,0.55)",
+            }}
+          >
+            <span>✦</span>
+            <span>一键预定全部 {pendingItems.length} 处</span>
+            <span className="opacity-80 text-[11px]">· 美团跳转</span>
+          </button>
+          <div className="cn-serif text-[10.5px] text-[var(--ink-soft)] text-center mt-1.5">
+            将依次在新标签打开美团预订页 · 同步标记本地已预约
+          </div>
+        </div>
+      )}
+
 
       {expanded && (
         <div className="px-4 pb-4 space-y-2">
