@@ -1172,6 +1172,16 @@ function SceneSheet({
             </div>
           )}
 
+          {needsReservation(kind) && (
+            <ReservationCard
+              kind={kind}
+              scene={scene}
+              city={city}
+              record={record}
+              onUpdated={onUpdated}
+            />
+          )}
+
           {bundlePurchased && (
             <div
               className="mt-3 px-3 py-2 rounded-2xl flex items-center justify-between gap-2"
