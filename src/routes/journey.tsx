@@ -837,8 +837,16 @@ function JourneyMap({
   }, [scenes, cardId, transportMeta]);
 
   const totalMeters = segments.reduce((s, x) => s + x.meters, 0);
-  const totalMinutes = segments.reduce((s, x) => s + x.minutes, 0);
+  const travelMinutes = segments.reduce((s, x) => s + x.minutes, 0);
+  const stayMinutes = scenes.reduce((s, x) => s + (x.stay_minutes || 0), 0);
+  const totalMinutes = travelMinutes + stayMinutes;
   const totalLabel = totalMeters >= 1000 ? `${(totalMeters / 1000).toFixed(1)}km` : `${totalMeters}m`;
+  const fmtDur = (m: number) => {
+    if (m < 60) return `${m}min`;
+    const h = Math.floor(m / 60);
+    const r = m % 60;
+    return r === 0 ? `${h}h` : `${h}h${r}min`;
+  };
 
   // 一键打开完整路线
   const routeHref = useMemo(() => {
@@ -1098,7 +1106,7 @@ function JourneyMap({
             style={{ background: "rgba(255,253,243,0.92)", color: "#5a4a3a", boxShadow: "0 2px 8px rgba(0,0,0,0.12)" }}
             title="点击切换交通方式"
           >
-            {transportMeta.icon} {transportMeta.label} · {totalLabel} · 约 {totalMinutes}min
+            {transportMeta.icon} 全程约 {fmtDur(totalMinutes)} · {transportMeta.label} {totalLabel}（游览 {fmtDur(stayMinutes)}）
           </button>
         </div>
         <div className="flex items-center gap-1.5">
@@ -1118,8 +1126,8 @@ function JourneyMap({
             className="cn-serif text-[11.5px] px-3 py-1.5 rounded-full flex items-center gap-1.5 transition hover:opacity-90"
             style={{ background: "#3d3530", color: "#fffdf3", boxShadow: "0 4px 12px rgba(0,0,0,0.25)" }}
           >
-            <span>🧭</span>
-            <span>完整路线</span>
+            <span>📍</span>
+            <span>加入地图</span>
           </a>
         </div>
       </div>
