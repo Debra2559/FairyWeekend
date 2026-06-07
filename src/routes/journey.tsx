@@ -974,10 +974,73 @@ function JourneyMap({
               >
                 {scene.scene_name}
               </div>
+              {scene.location_hint && (
+                <div
+                  className="mt-1 display italic text-[9.5px] tracking-[0.12em] px-1.5 py-[1px] rounded-full whitespace-nowrap"
+                  style={{ background: "rgba(255,253,243,0.7)", color: "#6b5b4a" }}
+                >
+                  ◉ {scene.location_hint}
+                </div>
+              )}
             </div>
           </button>
         );
       })}
+
+      {/* Segment distance chips (between consecutive points) */}
+      {segments.map((seg, i) => {
+        const a = points[i];
+        const b = points[i + 1];
+        if (!a || !b) return null;
+        const mx = (a.x + b.x) / 2;
+        const my = (a.y + b.y) / 2;
+        // 偏移避开路径
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+        const ox = mx + nx * 26;
+        const oy = my + ny * 26;
+        return (
+          <div
+            key={`seg-${i}`}
+            className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            style={{ left: `${(ox / W) * 100}%`, top: `${(oy / H) * 100}%` }}
+          >
+            <div
+              className="display italic text-[9.5px] tracking-[0.1em] px-2 py-[2px] rounded-full whitespace-nowrap"
+              style={{
+                background: "rgba(255,253,243,0.92)",
+                color: "#5a4a3a",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+              }}
+            >
+              → {seg.label} · {seg.minutes}min
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Route summary + open in maps */}
+      <div className="absolute left-3 right-3 bottom-3 flex items-center justify-between gap-2">
+        <div
+          className="display italic text-[10px] tracking-[0.15em] px-2.5 py-1 rounded-full"
+          style={{ background: "rgba(255,253,243,0.92)", color: "#5a4a3a", boxShadow: "0 2px 8px rgba(0,0,0,0.12)" }}
+        >
+          全程 · {totalLabel} · 步行约 {totalMinutes}min
+        </div>
+        <a
+          href={routeHref}
+          target="_blank"
+          rel="noreferrer"
+          className="cn-serif text-[11.5px] px-3 py-1.5 rounded-full flex items-center gap-1.5 transition hover:opacity-90"
+          style={{ background: "#3d3530", color: "#fffdf3", boxShadow: "0 4px 12px rgba(0,0,0,0.25)" }}
+        >
+          <span>🧭</span>
+          <span>完整路线</span>
+        </a>
+      </div>
     </div>
   );
 }
