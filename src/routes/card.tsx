@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { loadPendingCard, startRun } from "@/lib/persona-store";
+import { loadGroupMode } from "@/lib/group-mode";
 import { RARITY_LABEL } from "@/lib/cards";
 import type { PersonaCard, Journey } from "@/lib/persona-types";
 import { supabase } from "@/integrations/supabase/client";
@@ -276,7 +277,7 @@ function CardPage() {
       const journey = (data as { journey?: Journey })?.journey;
       const resolvedCity = (data as { city?: string })?.city;
       if (!journey) throw new Error("空响应");
-      startRun(card, journey, resolvedCity);
+      startRun(card, journey, resolvedCity, loadGroupMode());
       navigate({ to: "/journey" });
     } catch (e) {
       console.error(e);
