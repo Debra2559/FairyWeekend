@@ -1619,9 +1619,9 @@ function ReservationSummaryCard({
       duration: 5000,
     });
     setExpanded(true);
-    // 通知父级刷新已预约状态
-    onPick(pendingItems[0].scene);
+    onUpdated?.();
   }
+
 
 
   return (
