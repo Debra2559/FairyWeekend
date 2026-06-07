@@ -1209,6 +1209,17 @@ function SceneSheet({
             </div>
           )}
 
+          {/* ✦ 已完成 — 把打卡回顾置顶 */}
+          {done && (
+            <CheckInPanel
+              sceneOrder={scene.order}
+              done={done}
+              record={record}
+              onUpdated={onUpdated}
+            />
+          )}
+
+
           {needsReservation(kind) && (
             <ReservationCard
               kind={kind}
@@ -1325,12 +1336,15 @@ function SceneSheet({
             </a>
           </div>
 
-          <CheckInPanel
-            sceneOrder={scene.order}
-            done={done}
-            record={record}
-            onUpdated={onUpdated}
-          />
+          {!done && (
+            <CheckInPanel
+              sceneOrder={scene.order}
+              done={done}
+              record={record}
+              onUpdated={onUpdated}
+            />
+          )}
+
 
         </div>
       </div>
