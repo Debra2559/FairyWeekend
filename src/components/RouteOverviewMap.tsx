@@ -136,30 +136,37 @@ export function RouteOverviewMap({
           const k = `${city || ""}|${name}`;
           if (cache[k]) return Promise.resolve(cache[k]);
           return new Promise((resolve) => {
+            let settled = false;
             const done = (lng?: number, lat?: number) => {
+              if (settled) return;
+              settled = true;
               if (typeof lng === "number" && typeof lat === "number") {
                 cache[k] = { lng, lat };
                 resolve(cache[k]);
               } else resolve(null);
             };
+            // Safety net: if AMap callbacks never fire, fail this entry in 4s
+            const t = setTimeout(() => done(), 4000);
+            const finish = (lng?: number, lat?: number) => { clearTimeout(t); done(lng, lat); };
             try {
               try { placeSearch.setCity(city || ""); } catch {}
               placeSearch.search(name, (status_: string, result: any) => {
                 if (status_ === "complete" && result?.poiList?.pois?.length) {
                   const poi = result.poiList.pois[0];
-                  done(poi.location.lng, poi.location.lat);
+                  finish(poi.location.lng, poi.location.lat);
                 } else {
                   geocoder.getLocation(`${city || ""}${name}`, (s2: string, r2: any) => {
                     if (s2 === "complete" && r2?.geocodes?.length) {
                       const loc = r2.geocodes[0].location;
-                      done(loc.lng, loc.lat);
-                    } else done();
+                      finish(loc.lng, loc.lat);
+                    } else finish();
                   });
                 }
               });
-            } catch { done(); }
+            } catch { finish(); }
           });
         }
+
 
         let locatedCount = 0;
         const uniqList = [...uniqKeys];
