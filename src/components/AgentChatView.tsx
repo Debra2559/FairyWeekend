@@ -220,20 +220,11 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
   }
 
   function stopVoice() {
-    if (recognitionRef.current) {
-      manualStopRef.current = true;
-      const rec = recognitionRef.current;
-      // 先摘掉回调，避免 stop/abort 之后仍有 onresult/onend 把文本写回输入框
-      try { rec.onresult = null; } catch {}
-      try { rec.onend = null; } catch {}
-      try { rec.onerror = null; } catch {}
-      try { rec.stop(); } catch {}
-      try { rec.abort?.(); } catch {}
-      recognitionRef.current = null;
-    }
-    baselineRef.current = "";
+    voiceSessionRef.current?.stop();
+    voiceSessionRef.current = null;
     setListening(false);
   }
+
 
   function handleFreeSubmit(currentStep: Step) {
     const text = input.trim();
