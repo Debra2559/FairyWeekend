@@ -2,6 +2,7 @@
  * 一键生成「连载故事书」PDF
  * 在隐藏 DOM 中渲染 PrintableSeries，使用 html2canvas + jsPDF 输出
  */
+import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import type { ArchivedChapter } from "@/lib/persona-store";
 import { PrintableSeries } from "@/components/PrintableSeries";
