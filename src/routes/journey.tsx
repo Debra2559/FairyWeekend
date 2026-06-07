@@ -738,16 +738,24 @@ function getMapTheme(cardId: string): MapTheme {
 }
 
 function JourneyMap({
-  scenes, completed, onPick, cardId,
+  scenes, completed, onPick, cardId, city,
 }: {
   scenes: JourneyScene[];
   completed: number[];
   onPick: (s: JourneyScene) => void;
   cardId: string;
+  city?: string;
 }) {
   const W = 360;
   const H = 560;
   const theme = getMapTheme(cardId);
+
+  // Seeded pseudo-random for stable distances per card
+  const seedHash = (s: string) => {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  };
 
   const pathD = "M 200 40 C 110 110, 280 180, 180 250 S 90 360, 200 430 S 280 510, 170 540";
 
