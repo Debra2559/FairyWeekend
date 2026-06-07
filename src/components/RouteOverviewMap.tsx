@@ -205,7 +205,20 @@ export function RouteOverviewMap({ sagas }: { sagas: ArchivedChapter[] }) {
           map.add(marker);
         }
 
-        try { map.setFitView(undefined, false, [30, 30, 30, 30]); } catch {}
+        // Fit view to the latest chapter only (so the newest route is centered & zoomed in)
+        try {
+          const latestPts = located.filter((p) => p.chapterIdx === 0);
+          if (latestPts.length > 0) {
+            // Build temp markers just for fitView bounds calc
+            const fitTargets = latestPts.map((p) =>
+              new AMap.Marker({ position: [p.lng, p.lat], map, content: "<div></div>" })
+            );
+            map.setFitView(fitTargets, false, [40, 40, 40, 40], 15);
+            fitTargets.forEach((m) => map.remove(m));
+          } else {
+            map.setFitView(undefined, false, [30, 30, 30, 30]);
+          }
+        } catch {}
         setStatus("ready");
       } catch (err) {
         console.warn("[overview map]", err);
