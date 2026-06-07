@@ -788,13 +788,16 @@ function getMapTheme(cardId: string): MapTheme {
 }
 
 function JourneyMap({
-  scenes, completed, onPick, cardId, city,
+  scenes, completed, onPick, cardId, card, city, groupMode, reservedOrders,
 }: {
   scenes: JourneyScene[];
   completed: number[];
   onPick: (s: JourneyScene) => void;
   cardId: string;
+  card?: PersonaCard;
   city?: string;
+  groupMode?: GroupMode;
+  reservedOrders?: number[];
 }) {
   const W = 360;
   const H = 560;
