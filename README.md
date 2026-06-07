@@ -1,58 +1,380 @@
 # TodayPersona · 今日人设
 
-> **美团黑客松参赛作品 —— 周末活动规划创意应用**
+<p align="center">
+  <a href="https://plan-a-pal-95.lovable.app/" target="_blank">
+    <img src="https://img.shields.io/badge/在线演示-点击体验-blue?style=for-the-badge" alt="在线演示">
+  </a>
+</p>
 
-让周末不再是"待在家里"和"不知道去哪"的二选一。
+<p align="center">
+  <strong>选一张卡，活进今天的故事里</strong>
+</p>
 
-选一个「今日人设」，AI 为你生成一段专属城市叙事：手绘地图、场景任务、地点推荐、美团直达。走完路线后，你的每一次打卡会变成一章「连载小说 / 漫画分镜」，把平凡周末变成值得收藏的故事。
+<p align="center">
+  <em>美团黑客松参赛作品 —— 让周末不再是「待在家里」和「不知道去哪」的二选一</em>
+</p>
+
+<p align="center">
+  <a href="#-项目预览">项目预览</a> •
+  <a href="#-核心功能">核心功能</a> •
+  <a href="#-技术架构">技术架构</a> •
+  <a href="#-本地开发">本地开发</a> •
+  <a href="#-项目结构">项目结构</a>
+</p>
 
 ---
 
-## 使用流程
+## 📖 故事开始
 
-| 步骤 | 体验 |
+周六早晨，你对美团说：「今天下午是空的，想和家人出去玩几个小时，别离家太远，帮我安排一下。」
+
+与其给你一串冷冰冰的推荐列表，**今日人设**给了你另一种答案：
+
+> 先抽一张「人设卡」——你可能是「在异乡漂泊的植物学家」，也可能是「刚失恋三天决定重新爱上生活的人」。
+>
+> 然后，AI 会为你生成一段专属的城市叙事：手绘地图、场景任务、地点推荐、美团直达。
+>
+> 走完路线后，你的每一次打卡会变成一章「连载小说」，把平凡周末变成值得收藏的故事。
+
+---
+
+## ✨ 核心功能
+
+### 🃏 人设卡系统
+
+10 张精心设计的人设卡，每张都是一种「活在今天的方式」：
+
+| 稀有度 | 身份示例 |
+|--------|----------|
+| **SSR** | 刚从长期隐居中回归人间的人 / 某个平行宇宙里选择留在这座城市的你 |
+| **SR** | 在异乡漂泊的植物学家 / 刚失恋三天决定重新爱上生活的人 |
+| **R** | 在城市里寻找野生感的人 / 想被朋友包围的人 |
+| **N** | 喜欢在家的人今天破例出门 / 想假装自己是本地人的外地人 |
+
+**三种抽取模式：**
+- 🤖 **AI 帮我挑** — 通过情绪、时长、氛围等引导对话，零负担完成人设匹配
+- 📋 **我自己选** — 浏览全部卡牌，选择心动的那张
+- 🔮 **让命运决定** — 塔罗式随机抽取
+
+### 🤖 AI 旅程生成
+
+双 Agent 协作，LangGraph 编排：
+
+```
+START
+  │
+  ├── fetch_profile (并行)     → 获取你的偏好画像
+  └── resolve_location (并行)  → 坐标转换 (WGS84→GCJ02)
+        │
+        ▼
+    plan_pois (Agent 1)        → POI 规划师：分析人设，搜索地点
+        │
+        ▼
+    validate_pois              → 验证候选数量与类型
+        │
+        ▼
+    generate_journey (Agent 2) → 故事生成师：编织叙事路线
+        │
+        ▼
+       END
+```
+
+**输出内容：**
+- 📖 故事开篇（30-50字）
+- 🎭 3-4 个场景（诗意命名 + 人设视角叙事 + 具体行动）
+- 💫 情绪弧线（起始情绪 → 结束情绪）
+- 🌙 故事结语（60-100字）
+
+### 🗺️ 交互式旅程地图
+
+- **手绘风 SVG 地图** — 原创设计，每个地点带专属插画与互动热点
+- **场景交互** — 叙事、任务、导航、美团入口一应俱全
+- **打卡系统** — 支持照片、心情标签、随笔记录
+- **进度追踪** — 完成所有场景后解锁故事终章
+
+### 📚 连载存档系统
+
+所有旅程自动整理为三种视图：
+
+| 视图 | 内容 |
 |------|------|
-| **① 抽卡** | AI 对话 / 自选 / 随机塔罗，抽取今日人设卡（治愈系、冒险家、独行者…） |
-| **② 选城** | 自动定位或从城市快捷按钮中选择当前所在城市 |
-| **③ 生成旅程** | AI 根据人设 + 城市 + 时段，生成带叙事的专属路线 |
-| **④ 走地图** | 手绘风 SVG 地图上，点击光点进入场景：叙事 · 任务 · 导航 · 美团入口 |
-| **⑤ 打卡** | 支持纯打卡 / 心情标签 / 随笔 / 照片，让体验更真实 |
-| **⑥ 解锁结语** | 全部场景完成后解锁今日故事终章 |
-| **⑦ 我的连载** | 所有记录自动整理为「连载小说」「漫画分镜」「收藏馆」 |
+| **连载小说** | 按时间线串联的叙事文本 |
+| **漫画分镜** | 视觉化的卡片式展示 |
+| **收藏馆** | 去过的地方、做过的事 |
+
+支持 **PDF 导出** 与 **社交分享**。
+
+### 🧠 用户画像学习
+
+系统会记住你的偏好：
+- ❤️ 喜爱的标签
+- 👎 不喜欢的标签
+- 📍 访问过的 POI
+
+下次生成旅程时，AI 会参考这些信息，让推荐更懂你。
 
 ---
 
-## 核心亮点
+## 🏗️ 技术架构
 
-- **AI 对话式规划** — 默认 Tab，通过情绪、时长、氛围等引导，零负担完成人设匹配
-- **手绘叙事地图** — 原创 SVG 场景地图，每个地点带专属插画与互动热点（蒸汽气泡、灯笼、船只等）
-- **美团生态直连** — 每个场景内置美团搜索跳转，从规划到消费无缝衔接
-- **连载化存档** — 所有点亮/增强的活动与地点，自动沉淀为个人「连载小说」与「漫画分镜」
-- **自动定位 + 快捷城市** — 无需手动输入，一键定位或点选城市即出发
+### 技术栈
+
+| 层级 | 技术选型 |
+|------|----------|
+| **前端框架** | [TanStack Start](https://tanstack.com/start) + React 19 + Vite 7 |
+| **样式系统** | Tailwind CSS v4 + 自定义设计系统 |
+| **后端服务** | Supabase Edge Functions (Deno runtime) |
+| **AI 引擎** | [LangChain.js](https://js.langchain.com/) + [LangGraph](https://langchain-ai.github.io/langgraphjs/) |
+| **数据库** | PostgreSQL (Supabase) |
+| **地图服务** | 高德地图 API |
+| **状态管理** | TanStack Query + React Router |
+| **UI 组件** | shadcn/ui (Radix primitives) |
+
+### LangGraph Agent 架构
+
+项目采用 LangGraph 构建多 Agent 协作系统：
+
+**Agent 1: POI 规划师**
+- 框架：`createReactAgent` (ReAct 模式)
+- 工具：高德 POI 搜索、用户画像获取、坐标转换
+- 特点：批量关键词搜索，减少 LLM 循环次数
+
+**Agent 2: 故事生成师**
+- 框架：纯 LLM + 结构化输出
+- 工具：无（输入由 Agent 1 准备）
+- 特点：创意型任务，温度 0.7
+
+### 数据库设计
+
+```sql
+-- Quest 执行历史
+CREATE TABLE quest_history (
+  id UUID PRIMARY KEY,
+  player_key TEXT,
+  character_class TEXT,
+  emotion TEXT,
+  city TEXT,
+  quest JSONB,
+  stages_unlocked INT,
+  rating INT,
+  liked_stage_orders INT[]
+);
+
+-- 用户偏好画像
+CREATE TABLE dm_memory (
+  player_key TEXT PRIMARY KEY,
+  profile TEXT,
+  loved_tags TEXT[],
+  disliked_tags TEXT[],
+  visited_pois TEXT[],
+  total_runs INT
+);
+
+-- 旅程存档
+CREATE TABLE saga_archive (
+  chapter_id TEXT PRIMARY KEY,
+  chapter JSONB,
+  card_identity TEXT,
+  city TEXT,
+  completed_count INT
+);
+```
 
 ---
 
-## 技术栈
+## 🚀 本地开发
 
-- **框架**: TanStack Start + React 19 + Vite
-- **样式**: Tailwind CSS v4
-- **后端**: Supabase Edge Functions
-- **地图**: 高德地图 URI 导航
-- **AI**: 人设匹配、旅程生成、场景叙事均由大模型驱动
+### 环境要求
 
----
+- Node.js 18+
+- Bun (推荐) 或 npm
+- Supabase CLI (可选，用于本地 Supabase)
 
-## 项目背景
-
-本作品为 **美团黑客松（Meituan Hackathon）** 参赛项目，聚焦「周末去哪」真实痛点，将「抽卡 × 叙事 × 地图 × 消费」串联，让活动规划变成一次有仪式感的角色扮演。
-
----
-
-## 本地启动
+### 安装依赖
 
 ```bash
 bun install
+```
+
+### 配置环境变量
+
+创建 `.env` 文件：
+
+```env
+# ===== LLM 配置 =====
+LLM_PROVIDER="openai"                          # 或 "lovable"
+OPENAI_API_KEY="sk-..."                        # 你的 API Key
+OPENAI_MODEL="qwen3.6-flash"                   # 模型名称
+OPENAI_BASE_URL="https://api.openai.com/v1"   # API 地址
+
+# ===== Supabase (生产环境) =====
+SUPABASE_URL="https://your-project.supabase.co"
+SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJ..."
+SUPABASE_SECRET_KEY="eyJhbGciOiJ..."
+VITE_SUPABASE_URL="https://your-project.supabase.co"
+VITE_SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJ..."
+VITE_SUPABASE_PROJECT_ID="your-project-id"
+
+# ===== Supabase (本地开发) =====
+# SUPABASE_URL="http://127.0.0.1:54321"
+# SUPABASE_PUBLISHABLE_KEY="sb_publishable_..."
+# DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+
+# ===== 高德地图 =====
+AMAP_WEB_API_KEY="your-amap-key"
+```
+
+### 启动开发服务器
+
+```bash
 bun run dev
 ```
 
-> 需配置 Supabase 环境变量（`.env`）以启用 AI 旅程生成与数据存储。
+应用将在 `http://localhost:3000` 启动。
+
+### 本地 Supabase (可选)
+
+```bash
+# 安装 Supabase CLI
+npm install -g supabase
+
+# 启动本地 Supabase
+supabase start
+
+# 应用数据库迁移
+supabase db push
+```
+
+---
+
+## 📁 项目结构
+
+```
+FairyWeekend/
+├── src/                              # 前端源码
+│   ├── routes/                       # 文件路由
+│   │   ├── index.tsx                # 首页 - 抽卡
+│   │   ├── card.tsx                 # 卡片详情
+│   │   ├── journey.tsx              # 旅程地图
+│   │   ├── finale.tsx               # 故事终章
+│   │   ├── me.tsx                   # 我的连载
+│   │   └── share.tsx                # 分享页面
+│   │
+│   ├── components/                   # React 组件
+│   │   ├── ui/                      # shadcn/ui 组件库
+│   │   ├── AgentChatView.tsx        # AI 对话界面
+│   │   └── UserPhotoCard.tsx        # 照片卡片
+│   │
+│   ├── lib/                          # 核心业务逻辑
+│   │   ├── cards.ts                 # 10张人设卡定义
+│   │   ├── persona-types.ts         # TypeScript 类型
+│   │   ├── persona-store.ts         # 状态管理 + 云同步
+│   │   ├── export-pdf.ts            # PDF 导出
+│   │   └── scene-deals.ts           # 美团优惠集成
+│   │
+│   ├── assets/persona/               # 卡面封面图 (10张)
+│   └── styles.css                    # Tailwind + 自定义样式
+│
+├── supabase/
+│   ├── functions/                    # Edge Functions (Deno)
+│   │   ├── _shared/agent/           # LangGraph Agent 核心
+│   │   │   ├── graph.ts             # 图编排
+│   │   │   ├── state.ts             # 状态定义
+│   │   │   ├── nodes.ts             # 节点函数
+│   │   │   ├── agents/              # Agent 实现
+│   │   │   │   ├── poi-planner.agent.ts
+│   │   │   │   └── story-generator.agent.ts
+│   │   │   └── tools/               # LangChain 工具
+│   │   │       ├── search-poi.tool.ts
+│   │   │       ├── get-player-profile.tool.ts
+│   │   │       └── reverse-geocode.tool.ts
+│   │   │
+│   │   ├── generate-quest-agent/    # 主 API 入口
+│   │   ├── record-quest/            # 记录 Quest 历史
+│   │   └── resolve-location/        # 地理位置服务
+│   │
+│   └── migrations/                   # 数据库迁移
+│
+├── docs/                             # 设计文档
+│   ├── 1. 任务背景.md                # 黑客松题目
+│   ├── 2. 原始API说明.md             # API 规格
+│   └── 3. Agent设计.md               # LangGraph 架构详解
+│
+└── tests/                            # 测试
+    └── postchain.test.mjs
+```
+
+---
+
+## 🎨 设计系统
+
+项目采用自定义粉彩设计系统：
+
+- **配色**：柔和的粉彩色调，每张卡牌有专属配色
+- **字体**：中文衬线字体 + 英文 Display 字体
+- **动效**：浮动花瓣、卡片翻转、场景切换
+- **插画**：手绘风 SVG 地图与场景热点
+
+---
+
+## 📊 性能指标
+
+| 阶段 | 预期耗时 |
+|------|----------|
+| fetch_profile | 100-300ms |
+| resolve_location | 100-200ms |
+| plan_pois (Agent 1) | 2-5s |
+| validate_pois | <10ms |
+| generate_journey (Agent 2) | 3-8s |
+| **总计** | **5-15s** |
+
+---
+
+## 🛠️ 可用脚本
+
+```bash
+# 开发
+bun run dev
+
+# 构建
+bun run build
+bun run build:dev
+
+# 预览生产构建
+bun run preview
+
+# 代码检查
+bun run lint
+bun run format
+
+# 测试
+bun run postchain:test
+```
+
+---
+
+## 📝 项目背景
+
+本作品为 **美团黑客松（Meituan Hackathon）** 参赛项目。
+
+**题目**：本地探索 - 周末闲时活动规划
+
+**核心挑战**：
+- 接受一句自然语言目标
+- 输出可执行的完整方案
+- 自动完成关键下单/预订动作
+
+**我们的解法**：
+将「抽卡 × 叙事 × 地图 × 消费」串联，让活动规划变成一次有仪式感的角色扮演。
+
+---
+
+## 📄 License
+
+MIT
+
+---
+
+<p align="center">
+  <em>城市不记得你，但草记得。</em>
+</p>
