@@ -95,16 +95,6 @@ function JourneyPage() {
         </div>
       </div>
 
-      {/* ✦ 今日连载 DIARY — 打卡 / 记录 / 故事 一眼看懂 */}
-      <div className="max-w-xl mx-auto mt-6">
-        <JourneyDiary
-          scenes={journey.scenes}
-          records={run.sceneRecords ?? {}}
-          completed={completedSceneOrders}
-          onPick={(s) => setOpenScene(s)}
-          createdAt={run.createdAt}
-        />
-      </div>
 
       {/* ✦ 全程套装 Bundle */}
       <div className="max-w-xl mx-auto px-5 mt-5">
