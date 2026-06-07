@@ -30,7 +30,6 @@ import {
   SlidersHorizontal,
   Sparkles,
   Star,
-  UserRound,
   WandSparkles,
   X,
 } from "lucide-react";
