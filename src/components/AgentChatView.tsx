@@ -80,6 +80,7 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
   const [listening, setListening] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [picked, setPicked] = useState<number[]>([]);
+  const [pickedSingle, setPickedSingle] = useState<string | null>(null);
   const voiceSessionRef = useRef<VoiceSession | null>(null);
   const ranking = useRef<PersonaCard[]>([]);
   const idRef = useRef(0);
@@ -151,7 +152,7 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
   }, [msgs, typing]);
 
   function handleChip(step: Step, label: string, tag: string, submit?: boolean) {
-    // 如果是提交类型的气泡，直接提交
+    // 提交类气泡：直接送出
     if (submit) {
       setMsgs((m) =>
         m.map((x) =>
@@ -162,12 +163,19 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
       advance(step, tags, freeText);
       return;
     }
-    // 否则追加到输入框（已有内容则用空格分隔）
-    setInput((prev) => (prev ? `${prev} ${label}` : label));
-    // 记录 tag（用于推荐匹配）
-    if (tag) setTags((prev) => [...prev, tag]);
-    // 不隐藏 chips，不提交，让用户继续选或编辑
+    // 单选 chip：切换选中态；选中时把 label 同步到输入框,再点同一个取消
+    setPickedSingle((prev) => {
+      const next = prev === label ? null : label;
+      setInput(next ?? "");
+      // tag 也跟随切换:再点取消时移除该 tag
+      if (tag) {
+        if (next) setTags((p) => (p.includes(tag) ? p : [...p, tag]));
+        else setTags((p) => p.filter((t) => t !== tag));
+      }
+      return next;
+    });
   }
+
 
   function handleMultiSubmit(step: Step, chips: { label: string; tag: string }[]) {
     if (picked.length === 0) return;
@@ -223,6 +231,7 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
     // 防止异步 onresult 在清空之后又把文本写回来
     setTimeout(() => setInput(""), 0);
     setPicked([]);
+    setPickedSingle(null);
     setMsgs((m) =>
       m.map((x) =>
         x.step === currentStep && x.chips ? { ...x, chips: undefined, freeInput: false } : x,
@@ -395,11 +404,13 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
           {/* chips */}
           {lastInteractive?.chips && (
             <div className="mt-2 pl-1">
-              <div className="chip-group-hint">{lastInteractive.multi ? "点选 · 可多选" : "点选其一"}</div>
+              <div className="chip-group-hint">{lastInteractive.multi ? "点选 · 可多选，再点「确定」" : "点选其一，或直接打字 · 都按 ↑ 发送"}</div>
               <div className="flex flex-wrap gap-2">
 
                 {lastInteractive.chips.map((c, i) => {
-                  const isPicked = lastInteractive.multi && picked.includes(i);
+                  const isPicked = lastInteractive.multi
+                    ? picked.includes(i)
+                    : pickedSingle === c.label;
                   return (
                     <button
                       key={i}
@@ -457,7 +468,10 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
                 )}
                 <textarea
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    if (pickedSingle && e.target.value !== pickedSingle) setPickedSingle(null);
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
