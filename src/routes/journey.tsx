@@ -308,6 +308,17 @@ function BundleSheet({
     ];
   }, [bundle.dealId, sceneThumbs, heroImage]);
 
+  // 滚动时让 hero 收起为顶部紧凑条
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [compact, setCompact] = useState(false);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => setCompact(el.scrollTop > 160);
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center fade-in" onClick={onClose}>
       <div className="absolute inset-0" style={{ background: "rgba(40,35,30,0.55)", backdropFilter: "blur(6px)" }} />
@@ -316,64 +327,94 @@ function BundleSheet({
         style={{ maxHeight: "92vh" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ============ Hero cover ============ */}
-        <div className="relative shrink-0" style={{ height: 240 }}>
-          <img
-            src={heroImage}
-            alt={bundle.title}
-            className="absolute inset-0 w-full h-full object-cover"
-            loading="lazy"
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background: purchased
-                ? "linear-gradient(180deg, rgba(45,58,42,0.2) 0%, rgba(45,58,42,0.55) 55%, rgba(20,28,18,0.92) 100%)"
-                : "linear-gradient(180deg, rgba(40,25,45,0.15) 0%, rgba(60,30,55,0.55) 55%, rgba(30,15,30,0.92) 100%)",
-            }}
-          />
-          {/* close */}
+        {/* 紧凑 sticky header（滚动后显形） */}
+        <div
+          className="absolute top-0 inset-x-0 z-30 flex items-center gap-3 px-4 py-2.5 border-b border-[var(--border)] bg-[var(--card)]/95 backdrop-blur transition-all duration-200"
+          style={{
+            opacity: compact ? 1 : 0,
+            transform: compact ? "translateY(0)" : "translateY(-100%)",
+            pointerEvents: compact ? "auto" : "none",
+          }}
+        >
+          <img src={heroImage} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" />
+          <div className="min-w-0 flex-1">
+            <div className="cn-serif text-[13px] text-[var(--ink)] truncate">{bundle.title}</div>
+            <div className="cn-serif text-[11px] text-[#c44a2a]">¥{bundle.dealPrice}
+              {!purchased && saved > 0 && (
+                <span className="display italic text-[10px] text-[var(--ink-soft)] line-through ml-1.5">¥{bundle.originalPrice}</span>
+              )}
+            </div>
+          </div>
           <button
             onClick={onClose}
             aria-label="关闭"
-            className="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center"
-            style={{ background: "rgba(255,255,255,0.2)", backdropFilter: "blur(8px)", color: "#fff" }}
-          >
-            ✕
-          </button>
-          {/* badges */}
-          <div className="absolute top-4 left-4 flex gap-2">
-            <span className="display italic text-[10px] tracking-[0.25em] px-2.5 py-1 rounded-full"
-              style={{ background: "rgba(255,255,255,0.18)", color: "#fff", backdropFilter: "blur(6px)" }}>
-              {purchased ? "✓ UNLOCKED" : "✦ BUNDLE"}
-            </span>
-            {!purchased && (
-              <span className="cn-serif text-[11px] px-2.5 py-1 rounded-full"
-                style={{ background: "#e85d3a", color: "#fff" }}>
-                限今日 · {discount}折
-              </span>
-            )}
-          </div>
-          {/* title block */}
-          <div className="absolute left-5 right-5 bottom-4 text-white">
-            <h3 className="cn-serif text-[22px] leading-snug">{bundle.title}</h3>
-            <div className="cn-serif text-[13px] text-white/85 mt-1">{bundle.subtitle}</div>
-            {/* stats row */}
-            <div className="flex items-center gap-3 mt-3 cn-serif text-[12px] text-white/90">
-              <span>★ {stats.rating}</span>
-              <span className="opacity-50">·</span>
-              <span>{stats.reviews} 条评价</span>
-              <span className="opacity-50">·</span>
-              <span>月售 {stats.sold}</span>
-            </div>
-            <div className="display italic text-[10px] text-white/55 mt-2">
-              #{bundle.dealId}{city ? ` · ${city}` : ""}
-            </div>
-          </div>
+            className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--ink-soft)] hover:bg-[var(--muted)] shrink-0"
+          >✕</button>
         </div>
 
-        {/* ============ Scroll body ============ */}
-        <div className="flex-1 overflow-y-auto">
+        {/* ============ Scroll body（hero 一起滚） ============ */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto">
+          {/* Hero cover */}
+          <div className="relative" style={{ height: 240 }}>
+            <img
+              src={heroImage}
+              alt={bundle.title}
+              className="absolute inset-0 w-full h-full object-cover"
+              loading="lazy"
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: purchased
+                  ? "linear-gradient(180deg, rgba(45,58,42,0.2) 0%, rgba(45,58,42,0.55) 55%, rgba(20,28,18,0.92) 100%)"
+                  : "linear-gradient(180deg, rgba(40,25,45,0.15) 0%, rgba(60,30,55,0.55) 55%, rgba(30,15,30,0.92) 100%)",
+              }}
+            />
+            {/* close（hero 上的，compact 出现时隐藏） */}
+            <button
+              onClick={onClose}
+              aria-label="关闭"
+              className="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-opacity"
+              style={{
+                background: "rgba(255,255,255,0.2)",
+                backdropFilter: "blur(8px)",
+                color: "#fff",
+                opacity: compact ? 0 : 1,
+              }}
+            >
+              ✕
+            </button>
+            {/* badges */}
+            <div className="absolute top-4 left-4 flex gap-2">
+              <span className="display italic text-[10px] tracking-[0.25em] px-2.5 py-1 rounded-full"
+                style={{ background: "rgba(255,255,255,0.18)", color: "#fff", backdropFilter: "blur(6px)" }}>
+                {purchased ? "✓ UNLOCKED" : "✦ BUNDLE"}
+              </span>
+              {!purchased && (
+                <span className="cn-serif text-[11px] px-2.5 py-1 rounded-full"
+                  style={{ background: "#e85d3a", color: "#fff" }}>
+                  限今日 · {discount}折
+                </span>
+              )}
+            </div>
+            {/* title block */}
+            <div className="absolute left-5 right-5 bottom-4 text-white">
+              <h3 className="cn-serif text-[22px] leading-snug">{bundle.title}</h3>
+              <div className="cn-serif text-[13px] text-white/85 mt-1">{bundle.subtitle}</div>
+              <div className="flex items-center gap-3 mt-3 cn-serif text-[12px] text-white/90">
+                <span>★ {stats.rating}</span>
+                <span className="opacity-50">·</span>
+                <span>{stats.reviews} 条评价</span>
+                <span className="opacity-50">·</span>
+                <span>月售 {stats.sold}</span>
+              </div>
+              <div className="display italic text-[10px] text-white/55 mt-2">
+                #{bundle.dealId}{city ? ` · ${city}` : ""}
+              </div>
+            </div>
+          </div>
+
+
           {/* Price strip */}
           <div className="px-5 pt-4 pb-3 flex items-end justify-between border-b border-dashed"
             style={{ borderColor: "rgba(60,40,30,0.12)" }}>
