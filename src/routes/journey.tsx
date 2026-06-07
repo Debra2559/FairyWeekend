@@ -1106,7 +1106,7 @@ function JourneyMap({
             style={{ background: "rgba(255,253,243,0.92)", color: "#5a4a3a", boxShadow: "0 2px 8px rgba(0,0,0,0.12)" }}
             title="点击切换交通方式"
           >
-            {transportMeta.icon} {transportMeta.label} · {totalLabel} · 约 {totalMinutes}min
+            {transportMeta.icon} 全程约 {fmtDur(totalMinutes)} · {transportMeta.label} {totalLabel}（游览 {fmtDur(stayMinutes)}）
           </button>
         </div>
         <div className="flex items-center gap-1.5">
