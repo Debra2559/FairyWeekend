@@ -489,6 +489,10 @@ function imageForChapter(chapter?: ArchivedChapter | null) {
   );
 }
 
+function imageForCard(card?: ArchivedChapter["card"] | null, photo?: string) {
+  return card?.cover || getCoverById(card?.id) || photo || "";
+}
+
 function PrimaryActionButton({
   children,
   onClick,
@@ -6466,15 +6470,15 @@ function LibraryDetail({
                     <div
                       className="w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-[var(--border)]"
                       style={
-                        imageForChapter(a)
+                        imageForCard(a.card, a.rec?.photo)
                           ? undefined
                           : {
                               background: `linear-gradient(135deg, ${a.card.colors[0]}, ${a.card.colors[1]})`,
                             }
                       }
                     >
-                      {imageForChapter(a) && (
-                        <img src={imageForChapter(a)} alt="" className="w-full h-full object-cover" />
+                      {imageForCard(a.card, a.rec?.photo) && (
+                        <img src={imageForCard(a.card, a.rec?.photo)} alt="" className="w-full h-full object-cover" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
