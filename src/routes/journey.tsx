@@ -1276,10 +1276,13 @@ function SceneSheet({
               kind={kind}
               scene={scene}
               city={city}
+              card={card}
               record={record}
               onUpdated={onUpdated}
             />
           )}
+
+          {card && <PersonaOrderCard card={card} scene={scene} kind={kind} />}
 
           {bundlePurchased && (
             <div
