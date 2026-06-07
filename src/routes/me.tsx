@@ -1850,18 +1850,7 @@ function CollectionPage({
                   </p>
                 </div>
               ))}
-        {(kind === "all" || kind === "routes") &&
-          routeItems
-            .slice(0, kind === "all" ? 3 : 20)
-            .map((chapter, index) => (
-              <RouteSummaryCard
-                key={chapter.chapterId}
-                chapter={chapter}
-                index={index}
-                compact
-                onOpen={() => onOpenRoute(chapter)}
-              />
-            ))}
+        {/* 路线数据移到「路线」tab，素材库只保留可复用的地点/活动/待出行 */}
         {(kind === "all" || kind === "places") &&
           placeItems.slice(0, kind === "all" ? 3 : 20).map((entry) => (
             <CollectionAssetCard
