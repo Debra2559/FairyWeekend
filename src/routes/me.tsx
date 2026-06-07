@@ -1555,6 +1555,7 @@ function CollectionSearch({
   const [rangeMode, setRangeMode] = useState(false);
   const filters: Array<[CollectionKind, string]> = [
     ["all", "全部"],
+    ["personas", "人设"],
     ["planned", "待出行"],
     ["places", "地点"],
     ["activities", "活动"],
