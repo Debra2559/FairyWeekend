@@ -28,7 +28,7 @@ export async function exportSeriesStorybook(
 
   const root = createRoot(inner);
   try {
-    root.render(<PrintableSeries chapters={chapters} />);
+    root.render(createElement(PrintableSeries, { chapters }));
 
     // 等渲染 + 图片加载
     await new Promise((r) => setTimeout(r, 350));
