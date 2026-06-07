@@ -2436,6 +2436,7 @@ function ProfilePage({
           </TagPill>
         ))}
       </div>
+      <SerialStorybookSection sagas={sagas} />
       <ProfileInsights profile={profile} memory={memory} rangeLabel={rangeLabel} />
       <ProfilePosterCollection sagas={sagas} onNotify={onNotify} />
       <PrimaryActionButton
