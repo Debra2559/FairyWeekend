@@ -179,11 +179,21 @@ export function RouteOverviewMap({
             coordMap.set(uniqList[i], loc);
             locatedCount += 1;
             setLocated(locatedCount);
+            // progressively grow locatedRef so clicks during load can still focus
+            const partial: Array<Stop & { lng: number; lat: number }> = [];
+            for (const s of stops) {
+              const c = coordMap.get(`${s.city || ""}|${s.name}`);
+              if (c) partial.push({ ...s, ...c });
+            }
+            locatedRef.current = partial;
+            // refit to current user-selected focus as new points arrive
+            applyFocus(focusRef.current);
           }
           if (i % 5 === 4) saveCache(cache);
         }
         saveCache(cache);
         if (cancelled) return;
+
 
         const locatedStops: Array<Stop & { lng: number; lat: number }> = [];
         for (const s of stops) {
