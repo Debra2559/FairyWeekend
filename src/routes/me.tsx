@@ -815,7 +815,7 @@ function RoutesHome({
   onCreate,
 }: {
   sagas: ArchivedChapter[];
-  stats: { chapters: number; scenes: number; enhanced: number; rarities: number };
+  stats: { chapters: number; scenes: number; enhanced: number; cities: number; rarities: number };
   syncLabel: string;
   onOpenRoute: (chapter: ArchivedChapter) => void;
   onOpenPoster: (chapter: ArchivedChapter) => void;
@@ -981,7 +981,7 @@ function RouteDetailPage({
 }: {
   chapter: ArchivedChapter;
   chapterNo: number;
-  stats: { chapters: number; scenes: number; enhanced: number; rarities: number };
+  stats: { chapters: number; scenes: number; enhanced: number; cities: number; rarities: number };
   activeTab: RouteDetailTab;
   onTabChange: (tab: RouteDetailTab) => void;
   onBack: () => void;
@@ -3072,7 +3072,7 @@ function AssetOverviewCard({
 }: {
   assetMode: AssetMode;
   rangeLabel: string;
-  stats: { chapters: number; scenes: number; enhanced: number; rarities: number };
+  stats: { chapters: number; scenes: number; enhanced: number; cities: number; rarities: number };
   library: ReturnType<typeof buildLibrary>;
   cloudStatus: "idle" | "syncing" | "synced" | "local";
   onAction: () => void;
