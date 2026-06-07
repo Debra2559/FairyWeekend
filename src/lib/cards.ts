@@ -9,6 +9,12 @@ import cover007 from "@/assets/persona/card_007.webp";
 import cover008 from "@/assets/persona/card_008.webp";
 import cover009 from "@/assets/persona/card_009.webp";
 import cover010 from "@/assets/persona/card_010.webp";
+import cover011 from "@/assets/persona/card_011.webp";
+import cover012 from "@/assets/persona/card_012.webp";
+import cover013 from "@/assets/persona/card_013.webp";
+import cover014 from "@/assets/persona/card_014.webp";
+import cover015 from "@/assets/persona/card_015.webp";
+import cover016 from "@/assets/persona/card_016.webp";
 
 const COVERS: Record<string, string> = {
   card_001: cover001,
@@ -21,7 +27,14 @@ const COVERS: Record<string, string> = {
   card_008: cover008,
   card_009: cover009,
   card_010: cover010,
+  card_011: cover011,
+  card_012: cover012,
+  card_013: cover013,
+  card_014: cover014,
+  card_015: cover015,
+  card_016: cover016,
 };
+
 
 const _PERSONA_CARDS_BASE: PersonaCard[] = [
   {
@@ -244,6 +257,138 @@ const _PERSONA_CARDS_BASE: PersonaCard[] = [
       "找一家开了二十年以上的老咖啡馆，坐到打烊",
     ],
   },
+  {
+    id: "card_011",
+    rarity: "SR",
+    identity: "热恋期想被全世界看见的人",
+    mood: "心里有糖在化",
+    mission: "和 ta 走一条只属于今天的路",
+    colors: ["#ffe4ec", "#ffb3c6", "#fff0d6"],
+    illustration_keyword: "sweet_couple_date",
+    story: "TA 们正处在那种「你笑我就笑」的阶段。今天不为打卡热门，只想找一条没人打扰的小路，慢慢牵着手走完，再慢慢把这一天记进彼此的脑子里。",
+    catchphrase: "我们今天就赢了一整座城。",
+    soundtrack: "陶喆《爱很简单》/ 周深《大鱼》",
+    best_time: "傍晚 5 点到夜里 10 点，灯一盏盏亮起来",
+    companion: "和 ta · 二人世界",
+    avoid: "别玩手机，别拍太多照片打断当下",
+    gift_from_city: "一阵恰好把头发吹乱的晚风",
+    keywords: ["热恋", "约会", "牵手", "甜", "心动"],
+    routes: [
+      "找一条没去过的老街，从街头走到街尾",
+      "挑一家两个人都没吃过的小馆子，互相喂一口",
+      "去一处能看见城市灯火的高处，坐到话说完为止",
+    ],
+  },
+  {
+    id: "card_012",
+    rarity: "R",
+    identity: "在一起很久的「老搭档」",
+    mood: "安心、想偷得半日闲",
+    mission: "做一件「年轻时一起做过」的小事",
+    colors: ["#f5ecda", "#d8b89c", "#efe2c8"],
+    illustration_keyword: "long_term_couple",
+    story: "不用再证明什么了。今天 TA 们想找回那种「不用说话也很自在」的感觉——一杯热茶、一段熟悉的路、一句旧梗，比任何浪漫都值。",
+    catchphrase: "不用浪漫，因为我们就是。",
+    soundtrack: "李宗盛《山丘》/ 张国荣《当年情》",
+    best_time: "下午到傍晚，时间慢慢漏掉",
+    companion: "和 ta · 二人世界（老搭档版）",
+    avoid: "别赶时间、别争论小事",
+    gift_from_city: "一家还在的老店、一份没变味的旧菜",
+    keywords: ["长期关系", "陪伴", "复刻", "慢", "默契"],
+    routes: [
+      "回到 TA 们第一次约会的那条街/那家店",
+      "找一家有院子的茶馆，下一盘很慢的棋",
+      "买一束家用的小花回家插上，结束这一天",
+    ],
+  },
+  {
+    id: "card_013",
+    rarity: "SR",
+    identity: "暧昧期、第一次单独出来的两个人",
+    mood: "紧张、雀跃、想多看 ta 一眼",
+    mission: "找一个能聊到忘记看时间的角落",
+    colors: ["#fff5ee", "#ffd4c2", "#ffe9d6"],
+    illustration_keyword: "first_date_spark",
+    story: "可能是聊了很久才约出来的人，可能是刚认识没多久。今天的关键不是去哪儿，而是有没有那一瞬间——眼神撞上，心跳漏了一拍。",
+    catchphrase: "别尴尬，让灯光替我们说话。",
+    soundtrack: "告五人《爱人错过》/ Taylor Swift《Lover》",
+    best_time: "傍晚 6 点起，最适合从下午茶聊到夜宵",
+    companion: "和 ta · 二人世界（初次版）",
+    avoid: "别选太吵的餐厅、别一上来就吃辛辣大餐",
+    gift_from_city: "一个聊到打烊都没注意到的小角落",
+    keywords: ["暧昧", "初次", "心动", "灯光", "餐厅"],
+    routes: [
+      "约在有窗边位的精致咖啡馆，聊到天色变了",
+      "去一家氛围感强、又不吵的小酒馆喝一杯",
+      "饭后随便挑一条街，再走一段「不舍得回家」的路",
+    ],
+  },
+  {
+    id: "card_014",
+    rarity: "R",
+    identity: "今天把全家都带出门的家长",
+    mood: "有点累，但被笑声治愈着",
+    mission: "找一个让小孩和大人都能玩开的地方",
+    colors: ["#fff8d6", "#cfe3a8", "#ffe0a8"],
+    illustration_keyword: "family_day_out",
+    story: "一周里难得的空闲，TA 决定把家人都拉出门。不为多高级的体验，就想要那种「全家人都在一张照片里笑得很傻」的画面。",
+    catchphrase: "今天，全家都在 frame 里。",
+    soundtrack: "宫崎骏配乐串烧 / 周杰伦《听妈妈的话》",
+    best_time: "上午 10 点出门，下午 5 点前撤回",
+    companion: "全家 · 家庭日",
+    avoid: "别排长队、别去太精致不能撒野的地方",
+    gift_from_city: "一张全家人都在笑的合照",
+    keywords: ["家庭", "亲子", "公园", "野餐", "笑声"],
+    routes: [
+      "去一座大公园野餐，带上飞盘和泡泡机",
+      "找一家可以让小孩跑跳的亲子餐厅吃顿正经的",
+      "傍晚去江边/海边走一段，看夕阳收尾",
+    ],
+  },
+  {
+    id: "card_015",
+    rarity: "N",
+    identity: "想喊上闺蜜大聊一下午的人",
+    mood: "想笑、想八卦、想被理解",
+    mission: "和姐妹找一家拍得好看的店，从下午坐到天黑",
+    colors: ["#f3e8ff", "#e0c3f5", "#fff0f6"],
+    illustration_keyword: "girls_afternoon",
+    story: "最近发生了太多想说的事，工作群里没法讲、男朋友也讲不通——只有姐妹懂。今天就是要面对面，从奶茶喝到火锅，把上半年的瓜补完。",
+    catchphrase: "这事，只能和你说。",
+    soundtrack: "孙燕姿《我怀念的》/ 莫文蔚《盛夏的果实》",
+    best_time: "下午 2 点开始，一路聊到深夜",
+    companion: "1-3 个姐妹 · 朋友局",
+    avoid: "别带男朋友、别去太安静的图书馆类场所",
+    gift_from_city: "一个比男朋友更懂你的瞬间",
+    keywords: ["姐妹", "下午茶", "八卦", "拍照", "甜品"],
+    routes: [
+      "约一家颜值在线的下午茶店，拍照拍到没电",
+      "去一家粉色 / 花艺主题的小店逛着聊",
+      "晚上转战火锅或者甜品店，把没说完的接着说",
+    ],
+  },
+  {
+    id: "card_016",
+    rarity: "SR",
+    identity: "想叫上兄弟撸串喝一杯的人",
+    mood: "想吼、想放空、想笑到呛酒",
+    mission: "找一家有烟火气的小馆子，喝到话变多",
+    colors: ["#2f3e46", "#f4a261", "#e9c46a"],
+    illustration_keyword: "bros_night_out",
+    story: "工作上的事憋了一周。今天 TA 想约几个最铁的兄弟，找个有烟火气的地儿，一边撸串一边把那些不能发朋友圈的话都讲出来。",
+    catchphrase: "啤酒满上，话就来了。",
+    soundtrack: "朴树《平凡之路》/ 痛仰乐队《再见杰克》",
+    best_time: "晚上 7 点开桌，凌晨 12 点散场",
+    companion: "2-4 个兄弟 · 朋友局",
+    avoid: "别带工作搭子、别 AA 算太细",
+    gift_from_city: "一段第二天醒来还在嘴角的笑话",
+    keywords: ["兄弟", "撸串", "夜宵", "啤酒", "解压"],
+    routes: [
+      "找一家烟雾缭绕的烧烤摊，先点 50 串再说",
+      "转场到小酒馆，开一打啤酒慢慢聊",
+      "夜骑或者夜走一段，把酒气吹散再各回各家",
+    ],
+  },
 ];
 
 export const PERSONA_CARDS: PersonaCard[] = _PERSONA_CARDS_BASE.map((c) => ({
@@ -252,12 +397,14 @@ export const PERSONA_CARDS: PersonaCard[] = _PERSONA_CARDS_BASE.map((c) => ({
 }));
 
 // 抽卡权重（百分比，合计 100）
+
 const RARITY_WEIGHTS: Record<Rarity, number> = {
   N: 50,
   R: 30,
   SR: 15,
   SSR: 5,
 };
+
 
 export function drawCard(exclude?: string): PersonaCard {
   // 按稀有度先抽稀有度，再从该稀有度内随机一张
