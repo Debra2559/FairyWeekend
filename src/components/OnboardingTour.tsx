@@ -1,31 +1,35 @@
 import { useEffect, useState } from "react";
+import imgCards from "@/assets/onb-1-cards.jpg.asset.json";
+import imgRoute from "@/assets/onb-2-route.jpg.asset.json";
+import imgWalk from "@/assets/onb-3-walk.jpg.asset.json";
+import imgMeituan from "@/assets/onb-4-meituan.jpg.asset.json";
 
-const STORAGE_KEY = "tp_onboarded_v1";
+const STORAGE_KEY = "tp_onboarded_v2";
 
 const STEPS = [
   {
+    badge: "WHY",
+    title: "周末刷半天美团，还是不知道去哪？",
+    desc: "今日人设替你决定——抽一张卡，AI 把你的下午写成一段真实可走的故事。",
+    img: imgCards.url,
+  },
+  {
     badge: "STEP 01",
-    title: "抽一张今日人设",
-    desc: "AI 对话陪你聊几句心情，或自己挑、塔罗随机——拿到属于今天的身份卡。",
-    art: "🎴",
+    title: "AI 为你写一条路线",
+    desc: "结合你所在的城市、时段和情绪，生成 3–4 个真实地点和一段属于今天的小故事。",
+    img: imgRoute.url,
   },
   {
     badge: "STEP 02",
-    title: "AI 为你写一条路线",
-    desc: "结合你所在的城市、时段和情绪，生成 3–4 个有故事的真实地点。",
-    art: "🗺️",
+    title: "走进手绘叙事地图",
+    desc: "点亮场景、读人设视角的小段叙事、完成轻量任务——像在过另一种生活。",
+    img: imgWalk.url,
   },
   {
     badge: "STEP 03",
-    title: "走进手绘叙事地图",
-    desc: "点亮场景、读人设视角的小段叙事、完成轻量任务，像在过另一种生活。",
-    art: "✦",
-  },
-  {
-    badge: "STEP 04",
     title: "美团一键直达",
-    desc: "每个地点内嵌美团跳转，吃喝玩订都在一步之内——结束后自动生成你的连载。",
-    art: "🥡",
+    desc: "每个地点都内嵌美团搜索：吃、喝、玩、订、外卖——从规划到下单，一步不绕。",
+    img: imgMeituan.url,
   },
 ];
 
@@ -37,7 +41,6 @@ export function OnboardingTour() {
     if (typeof window === "undefined") return;
     try {
       if (!localStorage.getItem(STORAGE_KEY)) {
-        // 轻微延迟，让首屏先呈现
         const t = setTimeout(() => setOpen(true), 350);
         return () => clearTimeout(t);
       }
@@ -66,50 +69,55 @@ export function OnboardingTour() {
       aria-modal="true"
     >
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm onb-fade"
+        className="absolute inset-0 bg-black/45 backdrop-blur-sm onb-fade"
         onClick={close}
       />
       <div className="relative w-full max-w-md rounded-3xl bg-[var(--card)] border border-[var(--border)] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.45)] overflow-hidden onb-pop">
-        {/* skip */}
         <button
           onClick={close}
-          className="absolute top-3 right-3 z-10 display text-[10px] tracking-[0.25em] text-[var(--ink-soft)] hover:text-[var(--ink)] px-2 py-1"
+          className="absolute top-3 right-3 z-10 display text-[10px] tracking-[0.25em] text-[var(--ink-soft)] hover:text-[var(--ink)] bg-[var(--card)]/80 backdrop-blur rounded-full px-3 py-1"
         >
           跳过
         </button>
 
-        {/* art */}
-        <div
-          className="h-44 flex items-center justify-center text-6xl relative"
-          style={{
-            background:
-              "linear-gradient(160deg, color-mix(in oklab, var(--accent) 18%, var(--card)) 0%, var(--card) 100%)",
-          }}
-        >
-          <span aria-hidden className="onb-art">{s.art}</span>
+        {/* image */}
+        <div className="relative h-48 sm:h-56 overflow-hidden bg-[var(--muted)]">
+          <img
+            key={s.img}
+            src={s.img}
+            alt={s.title}
+            width={768}
+            height={512}
+            loading="eager"
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-cover onb-img"
+          />
+          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[var(--card)] to-transparent" />
         </div>
 
         {/* content */}
-        <div className="px-6 pt-5 pb-6 text-center">
+        <div className="px-6 pt-2 pb-6 text-center">
           <div className="display text-[10px] tracking-[0.35em] text-[var(--ink-soft)]">
             {s.badge}
           </div>
           <h3 className="cn-serif text-[20px] text-[var(--ink)] mt-2">
             {s.title}
           </h3>
-          <p className="cn-serif text-[13px] leading-relaxed text-[var(--ink-soft)] mt-2">
+          <p className="cn-serif text-[13px] leading-relaxed text-[var(--ink-soft)] mt-2 min-h-[3.6em]">
             {s.desc}
           </p>
 
           {/* dots */}
           <div className="mt-5 flex items-center justify-center gap-1.5">
             {STEPS.map((_, i) => (
-              <span
+              <button
                 key={i}
+                onClick={() => setStep(i)}
+                aria-label={`第 ${i + 1} 步`}
                 className={`h-1.5 rounded-full transition-all ${
                   i === step
                     ? "w-6 bg-[var(--ink)]"
-                    : "w-1.5 bg-[var(--border)]"
+                    : "w-1.5 bg-[var(--border)] hover:bg-[var(--ink-soft)]"
                 }`}
               />
             ))}
@@ -136,16 +144,16 @@ export function OnboardingTour() {
 
       <style>{`
         .onb-fade { animation: onbFade .25s ease-out both; }
-        .onb-pop { animation: onbPop .35s cubic-bezier(.22,1,.36,1) both; }
-        .onb-art { animation: onbArt 2.4s ease-in-out infinite; display:inline-block; }
+        .onb-pop  { animation: onbPop .35s cubic-bezier(.22,1,.36,1) both; }
+        .onb-img  { animation: onbImgIn .5s ease-out both; }
         @keyframes onbFade { from { opacity: 0 } to { opacity: 1 } }
         @keyframes onbPop {
           from { opacity: 0; transform: translateY(12px) scale(.96) }
           to   { opacity: 1; transform: translateY(0) scale(1) }
         }
-        @keyframes onbArt {
-          0%,100% { transform: translateY(0) rotate(-2deg) }
-          50%     { transform: translateY(-6px) rotate(2deg) }
+        @keyframes onbImgIn {
+          from { opacity: 0; transform: scale(1.04) }
+          to   { opacity: 1; transform: scale(1) }
         }
       `}</style>
     </div>
