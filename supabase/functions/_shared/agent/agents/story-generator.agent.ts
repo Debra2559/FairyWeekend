@@ -39,9 +39,11 @@ export const STORY_GENERATOR_PROMPT = `你是「今日人设」的故事引擎�
 1. 从候选地点中选择 3-4 个，地理上能走通
 2. 每个场景从人设的第一视角叙事
 3. scene_name 是诗意命名（6-10字）
-4. action_task 必须具体可执行
-5. 整条路线要有情绪弧线
-6. 不要选择重复的地点
+4. location_name 必须严格使用候选地点的名称（一字不差）
+5. location_hint 必须严格使用候选地点的地址（一字不差）
+6. action_task 必须具体可执行
+7. 整条路线要有情绪弧线
+8. 不要选择重复的地点
 
 请严格按照以下 JSON 格式输出（字段名必须完全一致）：
 {
@@ -54,9 +56,9 @@ export const STORY_GENERATOR_PROMPT = `你是「今日人设」的故事引擎�
     {
       "order": 1,
       "scene_name": "诗意命名",
-      "location_name": "地点名称",
+      "location_name": "地点名称（必须与候选地点名称完全一致）",
       "location_type": "地点类型",
-      "location_hint": "地址提示",
+      "location_hint": "地址提示（必须与候选地点地址完全一致）",
       "persona_narrative": "人设视角叙事",
       "action_task": "具体行动",
       "stay_minutes": 60,
