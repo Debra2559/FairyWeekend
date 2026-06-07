@@ -1660,6 +1660,28 @@ function ReservationSummaryCard({
         </span>
       </button>
 
+      {!allDone && pendingItems.length > 0 && (
+        <div className="px-4 pb-3">
+          <button
+            onClick={reserveAll}
+            className="w-full cn-serif text-[13px] py-2.5 rounded-xl transition hover:opacity-90 flex items-center justify-center gap-1.5"
+            style={{
+              background: "linear-gradient(135deg,#e85d3a 0%,#ff7a4d 100%)",
+              color: "#fff",
+              boxShadow: "0 6px 18px -8px rgba(232,93,58,0.55)",
+            }}
+          >
+            <span>✦</span>
+            <span>一键预定全部 {pendingItems.length} 处</span>
+            <span className="opacity-80 text-[11px]">· 美团跳转</span>
+          </button>
+          <div className="cn-serif text-[10.5px] text-[var(--ink-soft)] text-center mt-1.5">
+            将依次在新标签打开美团预订页 · 同步标记本地已预约
+          </div>
+        </div>
+      )}
+
+
       {expanded && (
         <div className="px-4 pb-4 space-y-2">
           {items.map(({ scene, kind, reserved }) => (
