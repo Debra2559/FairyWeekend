@@ -14,6 +14,7 @@ import cover012 from "@/assets/persona/card_012.webp";
 import cover013 from "@/assets/persona/card_013.webp";
 import cover014 from "@/assets/persona/card_014.webp";
 import cover015 from "@/assets/persona/card_015.webp";
+import cover016 from "@/assets/persona/card_016.webp";
 import cover017 from "@/assets/persona/card_017.webp";
 import cover018 from "@/assets/persona/card_018.webp";
 import cover019 from "@/assets/persona/card_019.webp";
