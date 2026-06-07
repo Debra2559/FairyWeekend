@@ -13,6 +13,7 @@ import {
 } from "@/lib/user-photo";
 import { toSimplified } from "@/lib/zh-simplify";
 import { pickEmoji } from "@/lib/text-emoji";
+import { DualAgentOverlay } from "@/components/DualAgentOverlay";
 
 export const Route = createFileRoute("/card")({ component: CardPage });
 
@@ -290,6 +291,7 @@ function CardPage() {
 
   return (
     <div className="min-h-screen px-5 pt-10 pb-16 max-w-xl mx-auto fade-up">
+      <DualAgentOverlay visible={generating} />
       <button
         onClick={() => navigate({ to: "/" })}
         className="display text-[11px] tracking-[0.3em] text-[var(--ink-soft)] mb-6"
