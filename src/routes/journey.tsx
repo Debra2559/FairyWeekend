@@ -1055,23 +1055,43 @@ function JourneyMap({
       })}
 
       {/* Route summary + open in maps */}
-      <div className="absolute left-3 right-3 bottom-3 flex items-center justify-between gap-2">
-        <div
-          className="display italic text-[10px] tracking-[0.15em] px-2.5 py-1 rounded-full"
-          style={{ background: "rgba(255,253,243,0.92)", color: "#5a4a3a", boxShadow: "0 2px 8px rgba(0,0,0,0.12)" }}
-        >
-          全程 · {totalLabel} · 步行约 {totalMinutes}min
+      <div className="absolute left-3 right-3 bottom-3 flex items-end justify-between gap-2">
+        <div className="flex flex-col gap-1.5 items-start">
+          <button
+            onClick={() => {
+              const order = ["步行", "骑行", "公交", "打车", "自驾"];
+              const next = order[(order.indexOf(transport) + 1) % order.length];
+              setTransport(next);
+              try { localStorage.setItem("today.transport", next); } catch {}
+            }}
+            className="display italic text-[10px] tracking-[0.15em] px-2.5 py-1 rounded-full hover:opacity-90 transition"
+            style={{ background: "rgba(255,253,243,0.92)", color: "#5a4a3a", boxShadow: "0 2px 8px rgba(0,0,0,0.12)" }}
+            title="点击切换交通方式"
+          >
+            {transportMeta.icon} {transportMeta.label} · {totalLabel} · 约 {totalMinutes}min
+          </button>
         </div>
-        <a
-          href={routeHref}
-          target="_blank"
-          rel="noreferrer"
-          className="cn-serif text-[11.5px] px-3 py-1.5 rounded-full flex items-center gap-1.5 transition hover:opacity-90"
-          style={{ background: "#3d3530", color: "#fffdf3", boxShadow: "0 4px 12px rgba(0,0,0,0.25)" }}
-        >
-          <span>🧭</span>
-          <span>完整路线</span>
-        </a>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={shareRoute}
+            className="cn-serif text-[11.5px] px-3 py-1.5 rounded-full flex items-center gap-1.5 transition hover:opacity-90"
+            style={{ background: "rgba(255,253,243,0.95)", color: "#3d3530", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}
+            title="分享路线给朋友"
+          >
+            <span>{copied ? "✓" : "🔗"}</span>
+            <span>{copied ? "已复制" : "分享"}</span>
+          </button>
+          <a
+            href={routeHref}
+            target="_blank"
+            rel="noreferrer"
+            className="cn-serif text-[11.5px] px-3 py-1.5 rounded-full flex items-center gap-1.5 transition hover:opacity-90"
+            style={{ background: "#3d3530", color: "#fffdf3", boxShadow: "0 4px 12px rgba(0,0,0,0.25)" }}
+          >
+            <span>🧭</span>
+            <span>完整路线</span>
+          </a>
+        </div>
       </div>
     </div>
   );
