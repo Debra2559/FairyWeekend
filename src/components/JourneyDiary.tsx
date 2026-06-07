@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { JourneyScene, SceneRecord } from "@/lib/persona-types";
 import { VenueIcon, detectVenue } from "./VenueIcon";
 
