@@ -1185,12 +1185,13 @@ function JourneyMap({
 /* ============ Scene bottom sheet ============ */
 
 function SceneSheet({
-  scene, done, record, city, onClose, onUpdated, onCheckedIn, bundlePurchased,
+  scene, done, record, city, card, onClose, onUpdated, onCheckedIn, bundlePurchased,
 }: {
   scene: JourneyScene;
   done: boolean;
   record?: SceneRecord;
   city?: string;
+  card?: PersonaCard;
   onClose: () => void;
   onUpdated: () => void;
   onCheckedIn?: () => void;
