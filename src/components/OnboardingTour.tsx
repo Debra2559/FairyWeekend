@@ -4,7 +4,7 @@ import imgRoute from "@/assets/onb-2-route.jpg.asset.json";
 import imgWalk from "@/assets/onb-3-walk.jpg.asset.json";
 import imgMeituan from "@/assets/onb-4-meituan.jpg.asset.json";
 
-const STORAGE_KEY = "tp_onboarded_v2";
+const STORAGE_KEY = "tp_onboarded_v3";
 
 const STEPS = [
   {
@@ -42,10 +42,18 @@ export function OnboardingTour() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      if (!localStorage.getItem(STORAGE_KEY)) {
-        const t = setTimeout(() => setOpen(true), 350);
-        return () => clearTimeout(t);
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw === "done") {
+        // 已完成，不再显示
+        return;
       }
+      const savedStep = raw ? parseInt(raw, 10) : NaN;
+      if (!Number.isNaN(savedStep) && savedStep >= 0 && savedStep < STEPS.length) {
+        // 有保存的进度，从该步骤继续
+        setStep(savedStep);
+      }
+      const t = setTimeout(() => setOpen(true), 350);
+      return () => clearTimeout(t);
     } catch {
       /* ignore */
     }
@@ -53,15 +61,27 @@ export function OnboardingTour() {
 
   function close() {
     try {
-      localStorage.setItem(STORAGE_KEY, "1");
+      localStorage.setItem(STORAGE_KEY, "done");
     } catch {
       /* ignore */
     }
     setOpen(false);
   }
 
+  function saveStep(next: number) {
+    try {
+      localStorage.setItem(STORAGE_KEY, String(next));
+    } catch {
+      /* ignore */
+    }
+  }
+
   function go(delta: number) {
-    setStep((n) => Math.max(0, Math.min(STEPS.length - 1, n + delta)));
+    setStep((n) => {
+      const next = Math.max(0, Math.min(STEPS.length - 1, n + delta));
+      saveStep(next);
+      return next;
+    });
   }
 
   // 键盘 ← →
@@ -157,7 +177,10 @@ export function OnboardingTour() {
             {STEPS.map((_, i) => (
               <button
                 key={i}
-                onClick={() => setStep(i)}
+                onClick={() => {
+                  setStep(i);
+                  saveStep(i);
+                }}
                 aria-label={`第 ${i + 1} 步`}
                 className={`h-1.5 rounded-full transition-all ${
                   i === step
