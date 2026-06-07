@@ -42,6 +42,7 @@ import {
 } from "@/lib/persona-store";
 import { VenueIcon, detectVenue } from "@/components/VenueIcon";
 import { UserPhotoCard } from "@/components/UserPhotoCard";
+import { RouteOverviewMap } from "@/components/RouteOverviewMap";
 import type * as ExportPdf from "@/lib/export-pdf";
 const loadExportPdf = () => import("@/lib/export-pdf");
 const elementToImageBlob: typeof ExportPdf.elementToImageBlob = (...args) =>
@@ -562,9 +563,11 @@ function MainTabs({ active, onChange }: { active: MainTab; onChange: (tab: MainT
 function OverviewStats({
   stats,
   syncLabel,
+  sagas,
 }: {
   stats: { chapters: number; scenes: number; enhanced: number; rarities: number };
   syncLabel: string;
+  sagas: ArchivedChapter[];
 }) {
   const items = [
     { icon: <RouteIcon size={16} strokeWidth={1.7} />, value: stats.chapters, label: "条路线", hint: "已经走完并归档的路线条数" },
@@ -594,6 +597,7 @@ function OverviewStats({
           </div>
         ))}
       </div>
+      <RouteOverviewMap sagas={sagas} />
     </section>
   );
 }
@@ -735,7 +739,7 @@ function RoutesHome({
   if (!latest) return <EmptyState onGo={onCreate} />;
   return (
     <div className="space-y-5">
-      <OverviewStats stats={stats} syncLabel={syncLabel} />
+      <OverviewStats stats={stats} syncLabel={syncLabel} sagas={sagas} />
       <section>
         <div className="mb-2 cn-serif text-[14px] text-[var(--ink)]">今日进度</div>
         <RouteSummaryCard
