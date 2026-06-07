@@ -17,7 +17,9 @@ import { Route as FinaleRouteImport } from './routes/finale'
 import { Route as CardRouteImport } from './routes/card'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PartyIdRouteImport } from './routes/party.$id'
+import { Route as ApiPublicUnderstandIntentRouteImport } from './routes/api/public/understand-intent'
 import { Route as ApiPublicSceneBuzzRouteImport } from './routes/api/public/scene-buzz'
+import { Route as ApiPublicRecommendCardRouteImport } from './routes/api/public/recommend-card'
 import { Route as ApiPublicPersonalizeIntroRouteImport } from './routes/api/public/personalize-intro'
 import { Route as ApiPublicPersonalizeCardRouteImport } from './routes/api/public/personalize-card'
 
@@ -61,9 +63,20 @@ const PartyIdRoute = PartyIdRouteImport.update({
   path: '/party/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicUnderstandIntentRoute =
+  ApiPublicUnderstandIntentRouteImport.update({
+    id: '/api/public/understand-intent',
+    path: '/api/public/understand-intent',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicSceneBuzzRoute = ApiPublicSceneBuzzRouteImport.update({
   id: '/api/public/scene-buzz',
   path: '/api/public/scene-buzz',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicRecommendCardRoute = ApiPublicRecommendCardRouteImport.update({
+  id: '/api/public/recommend-card',
+  path: '/api/public/recommend-card',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPersonalizeIntroRoute =
@@ -90,7 +103,9 @@ export interface FileRoutesByFullPath {
   '/party/$id': typeof PartyIdRoute
   '/api/public/personalize-card': typeof ApiPublicPersonalizeCardRoute
   '/api/public/personalize-intro': typeof ApiPublicPersonalizeIntroRoute
+  '/api/public/recommend-card': typeof ApiPublicRecommendCardRoute
   '/api/public/scene-buzz': typeof ApiPublicSceneBuzzRoute
+  '/api/public/understand-intent': typeof ApiPublicUnderstandIntentRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -103,7 +118,9 @@ export interface FileRoutesByTo {
   '/party/$id': typeof PartyIdRoute
   '/api/public/personalize-card': typeof ApiPublicPersonalizeCardRoute
   '/api/public/personalize-intro': typeof ApiPublicPersonalizeIntroRoute
+  '/api/public/recommend-card': typeof ApiPublicRecommendCardRoute
   '/api/public/scene-buzz': typeof ApiPublicSceneBuzzRoute
+  '/api/public/understand-intent': typeof ApiPublicUnderstandIntentRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -117,7 +134,9 @@ export interface FileRoutesById {
   '/party/$id': typeof PartyIdRoute
   '/api/public/personalize-card': typeof ApiPublicPersonalizeCardRoute
   '/api/public/personalize-intro': typeof ApiPublicPersonalizeIntroRoute
+  '/api/public/recommend-card': typeof ApiPublicRecommendCardRoute
   '/api/public/scene-buzz': typeof ApiPublicSceneBuzzRoute
+  '/api/public/understand-intent': typeof ApiPublicUnderstandIntentRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -132,7 +151,9 @@ export interface FileRouteTypes {
     | '/party/$id'
     | '/api/public/personalize-card'
     | '/api/public/personalize-intro'
+    | '/api/public/recommend-card'
     | '/api/public/scene-buzz'
+    | '/api/public/understand-intent'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -145,7 +166,9 @@ export interface FileRouteTypes {
     | '/party/$id'
     | '/api/public/personalize-card'
     | '/api/public/personalize-intro'
+    | '/api/public/recommend-card'
     | '/api/public/scene-buzz'
+    | '/api/public/understand-intent'
   id:
     | '__root__'
     | '/'
@@ -158,7 +181,9 @@ export interface FileRouteTypes {
     | '/party/$id'
     | '/api/public/personalize-card'
     | '/api/public/personalize-intro'
+    | '/api/public/recommend-card'
     | '/api/public/scene-buzz'
+    | '/api/public/understand-intent'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -172,7 +197,9 @@ export interface RootRouteChildren {
   PartyIdRoute: typeof PartyIdRoute
   ApiPublicPersonalizeCardRoute: typeof ApiPublicPersonalizeCardRoute
   ApiPublicPersonalizeIntroRoute: typeof ApiPublicPersonalizeIntroRoute
+  ApiPublicRecommendCardRoute: typeof ApiPublicRecommendCardRoute
   ApiPublicSceneBuzzRoute: typeof ApiPublicSceneBuzzRoute
+  ApiPublicUnderstandIntentRoute: typeof ApiPublicUnderstandIntentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -233,11 +260,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PartyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/understand-intent': {
+      id: '/api/public/understand-intent'
+      path: '/api/public/understand-intent'
+      fullPath: '/api/public/understand-intent'
+      preLoaderRoute: typeof ApiPublicUnderstandIntentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/scene-buzz': {
       id: '/api/public/scene-buzz'
       path: '/api/public/scene-buzz'
       fullPath: '/api/public/scene-buzz'
       preLoaderRoute: typeof ApiPublicSceneBuzzRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/recommend-card': {
+      id: '/api/public/recommend-card'
+      path: '/api/public/recommend-card'
+      fullPath: '/api/public/recommend-card'
+      preLoaderRoute: typeof ApiPublicRecommendCardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/personalize-intro': {
@@ -268,7 +309,9 @@ const rootRouteChildren: RootRouteChildren = {
   PartyIdRoute: PartyIdRoute,
   ApiPublicPersonalizeCardRoute: ApiPublicPersonalizeCardRoute,
   ApiPublicPersonalizeIntroRoute: ApiPublicPersonalizeIntroRoute,
+  ApiPublicRecommendCardRoute: ApiPublicRecommendCardRoute,
   ApiPublicSceneBuzzRoute: ApiPublicSceneBuzzRoute,
+  ApiPublicUnderstandIntentRoute: ApiPublicUnderstandIntentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

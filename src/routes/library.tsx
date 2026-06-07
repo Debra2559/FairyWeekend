@@ -154,6 +154,8 @@ function LibraryPage() {
           ))}
         </div>
 
+        {/* 故事书装订入口已迁移至「我的 · 故事书」tab */}
+
         {/* 视图切换 */}
         {sagas.length > 0 && (
           <div className="flex items-center justify-center gap-1 mb-5">
@@ -490,6 +492,8 @@ function ChapterDetail({ chapter, onClose }: { chapter: ArchivedChapter; onClose
             <X className="w-4 h-4" />
           </button>
         </div>
+
+
 
         <div className="p-5">
           {/* 期号 + 日期 */}

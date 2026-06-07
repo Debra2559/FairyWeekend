@@ -16,6 +16,7 @@ import {
   Heart,
   Image as ImageIcon,
   Stamp,
+  BookMarked,
   MapPinned,
   MoreHorizontal,
   PenLine,
@@ -29,7 +30,6 @@ import {
   SlidersHorizontal,
   Sparkles,
   Star,
-  UserRound,
   WandSparkles,
   X,
 } from "lucide-react";
@@ -46,6 +46,8 @@ import { VenueIcon, detectVenue } from "@/components/VenueIcon";
 import { UserPhotoCard } from "@/components/UserPhotoCard";
 import { RouteOverviewMap } from "@/components/RouteOverviewMap";
 import type * as ExportPdf from "@/lib/export-pdf";
+import { exportSeriesStorybook } from "@/lib/series-export";
+import { toast } from "sonner";
 const loadExportPdf = () => import("@/lib/export-pdf");
 const elementToImageBlob: typeof ExportPdf.elementToImageBlob = (...args) =>
   loadExportPdf().then((m) => m.elementToImageBlob(...args));
@@ -544,8 +546,8 @@ function TagPill({
 function MainTabs({ active, onChange }: { active: MainTab; onChange: (tab: MainTab) => void }) {
   const tabs: Array<{ key: MainTab; label: string; icon: React.ReactNode }> = [
     { key: "routes", label: "路线", icon: <RouteIcon size={17} strokeWidth={1.7} /> },
-    { key: "collection", label: "素材", icon: <Stamp size={17} strokeWidth={1.7} /> },
-    { key: "profile", label: "画像", icon: <UserRound size={17} strokeWidth={1.7} /> },
+    { key: "collection", label: "集邮", icon: <Stamp size={17} strokeWidth={1.7} /> },
+    { key: "profile", label: "故事书", icon: <BookMarked size={17} strokeWidth={1.7} /> },
     { key: "generate", label: "生成", icon: <WandSparkles size={17} strokeWidth={1.7} /> },
   ];
   return (
@@ -2433,6 +2435,7 @@ function ProfilePage({
           </TagPill>
         ))}
       </div>
+      <SerialStorybookSection sagas={sagas} />
       <ProfileInsights profile={profile} memory={memory} rangeLabel={rangeLabel} />
       <ProfilePosterCollection sagas={sagas} onNotify={onNotify} />
       <PrimaryActionButton
@@ -2442,6 +2445,123 @@ function ProfilePage({
         查看更多数据与明细
       </PrimaryActionButton>
     </div>
+  );
+}
+
+function SerialStorybookSection({ sagas }: { sagas: ArchivedChapter[] }) {
+  const sorted = useMemo(
+    () => [...sagas].sort((a, b) => (b.archivedAt ?? b.createdAt) - (a.archivedAt ?? a.createdAt)),
+    [sagas],
+  );
+  const [bookExporting, setBookExporting] = useState(false);
+  const [chapterExporting, setChapterExporting] = useState<string | null>(null);
+
+  async function handleExportAll() {
+    if (bookExporting || sorted.length === 0) return;
+    setBookExporting(true);
+    try {
+      toast("📖 正在装订你的连载故事书…", { description: `共 ${sorted.length} 本 · 稍等几秒钟` });
+      const result = await exportSeriesStorybook(sorted, "download");
+      toast.success(result === "shared" ? "已分享你的连载故事书 ✦" : "📖 连载故事书已生成", {
+        description: `共 ${sorted.length} 本 · 已保存到本地`,
+      });
+    } catch (e) {
+      toast.error("生成失败", { description: (e as Error).message });
+    } finally {
+      setBookExporting(false);
+    }
+  }
+
+  async function handleExportOne(chapter: ArchivedChapter) {
+    if (chapterExporting) return;
+    setChapterExporting(chapter.chapterId);
+    try {
+      toast("📖 正在装订本期…", { description: chapter.card.identity });
+      const result = await exportSeriesStorybook([chapter], "download");
+      toast.success(result === "shared" ? "已分享本期 ✦" : "📖 本期已生成", {
+        description: `${chapter.card.identity} · 已保存到本地`,
+      });
+    } catch (e) {
+      toast.error("生成失败", { description: (e as Error).message });
+    } finally {
+      setChapterExporting(null);
+    }
+  }
+
+  return (
+    <section className="rounded-[26px] border border-[#ead8d0] bg-[#fffaf2]/92 p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="cn-serif text-[16px] text-[var(--ink)]">连载故事书</div>
+          <div className="mt-0.5 cn-serif text-[11px] text-[var(--ink-soft)]">
+            把走过的连载装订成可翻阅的 PDF 故事书
+          </div>
+        </div>
+        <div className="rounded-full bg-[#fff4ec] px-3 py-1 cn-serif text-[10px] text-[#8f5f68]">
+          {sorted.length} 本
+        </div>
+      </div>
+
+      {sorted.length === 0 ? (
+        <div className="mt-4 rounded-[20px] border border-dashed border-[#e0c89c] bg-white/60 p-5 text-center cn-serif text-[12.5px] text-[var(--ink-soft)] leading-relaxed">
+          走完第一条路线后，这里会出现你的第一本故事书。
+        </div>
+      ) : (
+        <>
+          <button
+            onClick={handleExportAll}
+            disabled={bookExporting}
+            className="mt-4 w-full rounded-2xl px-4 py-3.5 flex items-center justify-center gap-2 cn-serif text-[13px] text-[var(--bg)] transition disabled:opacity-60"
+            style={{
+              background: "linear-gradient(135deg, #6f5850 0%, #8a6a48 100%)",
+              boxShadow: "0 6px 18px -8px rgba(111,88,80,0.55), inset 0 1px 0 rgba(255,255,255,0.18)",
+            }}
+          >
+            <BookMarked className="w-4 h-4" />
+            {bookExporting
+              ? "正在装订连载故事书…"
+              : `📖 一键装订连载故事书（${sorted.length} 本 · PDF）`}
+          </button>
+
+          <div className="mt-4">
+            <div className="cn-serif text-[12.5px] text-[var(--ink-soft)] mb-2">单本导出</div>
+            <div className="grid gap-2">
+              {sorted.slice(0, 8).map((chapter) => {
+                const busy = chapterExporting === chapter.chapterId;
+                return (
+                  <div
+                    key={chapter.chapterId}
+                    className="flex items-center gap-3 rounded-[18px] border border-[#ead8d0] bg-white/72 px-3 py-2.5"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="cn-serif text-[13px] text-[var(--ink)] truncate">
+                        {chapter.card.identity}
+                      </div>
+                      <div className="cn-serif text-[11px] text-[var(--ink-soft)] truncate">
+                        {chapter.city || "某座城市"} · {formatArchiveDate(chapter.archivedAt ?? chapter.createdAt)}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleExportOne(chapter)}
+                      disabled={busy}
+                      className="shrink-0 h-8 px-3 rounded-full bg-[#fff4ec] hover:bg-[#fce4d0] flex items-center gap-1 cn-serif text-[11px] text-[#7f4f5c] disabled:opacity-60"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      {busy ? "装订中…" : "导出"}
+                    </button>
+                  </div>
+                );
+              })}
+              {sorted.length > 8 && (
+                <div className="cn-serif text-[11px] text-[var(--ink-soft)] text-center mt-1">
+                  还有 {sorted.length - 8} 本 · 去「书架」查看全部
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </section>
   );
 }
 
@@ -4186,6 +4306,8 @@ function ChapterDetail({
   const done = ch.completedSceneOrders.length;
   const enhanced = Object.values(ch.sceneRecords ?? {}).filter((r) => r.note || r.photo).length;
 
+  const [bookExporting, setBookExporting] = useState(false);
+
   // 奖励：本章点亮的地点 + 活动
   const rewards = ch.journey.scenes
     .filter((s) => ch.completedSceneOrders.includes(s.order))
@@ -4195,6 +4317,22 @@ function ChapterDetail({
       type: s.location_type,
       action: s.action_task,
     }));
+
+  async function handleExportStorybook() {
+    if (bookExporting) return;
+    setBookExporting(true);
+    try {
+      toast("📖 正在装订本期故事书…", { description: ch.card.identity });
+      const result = await exportSeriesStorybook([ch], "download");
+      toast.success(result === "shared" ? "已分享本期 ✦" : "📖 本期故事书已生成", {
+        description: `${ch.card.identity} · 已保存到本地`,
+      });
+    } catch (e) {
+      toast.error("生成失败", { description: (e as Error).message });
+    } finally {
+      setBookExporting(false);
+    }
+  }
 
   // 关闭：ESC + 锁滚动
   useEffect(() => {
@@ -4274,7 +4412,7 @@ function ChapterDetail({
         {rewards.length > 0 && (
           <div className="px-5 mt-5">
             <div className="display text-[10px] tracking-[0.3em] text-[var(--ink-soft)] mb-2">
-              REWARDS · 本章解锁
+              STAMPS · 本章集邮
             </div>
             <div className="flex flex-wrap gap-1.5">
               {rewards.map((r) => (
@@ -4284,7 +4422,7 @@ function ChapterDetail({
                   title={r.action}
                 >
                   <VenueIcon kind={detectVenue(r.type, r.place)} size={14} />
-                  {r.place} <span className="text-[var(--accent)]">+1</span>
+                  {r.place} <span className="text-[var(--accent)]">+1 枚</span>
                 </span>
               ))}
             </div>
@@ -4378,6 +4516,21 @@ function ChapterDetail({
           <p className="cn-serif text-[14px] leading-[1.95] text-[var(--ink)] mt-1.5">
             {ch.journey.closing}
           </p>
+        </div>
+
+        {/* Storybook */}
+        <div className="px-5 mt-5">
+          <div className="display text-[10px] tracking-[0.3em] text-[var(--ink-soft)] mb-2">
+            STORYBOOK · 本期故事书
+          </div>
+          <button
+            onClick={handleExportStorybook}
+            disabled={bookExporting}
+            className="w-full rounded-2xl border border-[#ead8d0] bg-[#fffaf2] px-4 py-3 flex items-center justify-center gap-2 cn-serif text-[13px] text-[var(--ink)] transition hover:bg-[#fdf6ed] disabled:opacity-60"
+          >
+            <BookMarked size={16} strokeWidth={1.7} />
+            {bookExporting ? "正在装订本期故事书…" : "📖 装订本期故事书"}
+          </button>
         </div>
 
         {/* Footer */}
