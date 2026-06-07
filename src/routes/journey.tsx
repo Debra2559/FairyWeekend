@@ -181,6 +181,16 @@ function JourneyPage() {
           }}
         />
       )}
+
+      <JourneyChatPanel
+        card={card}
+        city={city}
+        journey={journey}
+        onUpdated={() => {
+          refresh();
+          setOpenScene(null);
+        }}
+      />
     </div>
   );
 }
