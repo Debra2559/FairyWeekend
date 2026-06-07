@@ -566,24 +566,24 @@ function OverviewStats({
   stats: { chapters: number; scenes: number; enhanced: number; rarities: number };
   syncLabel: string;
 }) {
-  const missing = Math.max(1, stats.chapters - stats.enhanced);
   const items = [
-    { icon: <RouteIcon size={16} strokeWidth={1.7} />, value: stats.chapters, label: "条路线" },
-    { icon: <MapPinned size={16} strokeWidth={1.7} />, value: stats.scenes, label: "个地点" },
-    { icon: <PenLine size={16} strokeWidth={1.7} />, value: missing, label: "待完善" },
+    { icon: <RouteIcon size={16} strokeWidth={1.7} />, value: stats.chapters, label: "条路线", hint: "已经走完并归档的路线条数" },
+    { icon: <MapPinned size={16} strokeWidth={1.7} />, value: stats.scenes, label: "已打卡", hint: "累计打卡的地点数（每去一次记一次）" },
+    { icon: <PenLine size={16} strokeWidth={1.7} />, value: stats.enhanced, label: "已补记", hint: "已经上传照片或写下文字记录的地点数" },
   ];
   return (
     <section className="rounded-[22px] border border-[#ead8d0] bg-[#fffaf2]/90 px-3 py-3">
       <div className="mb-2 flex items-center justify-between">
         <div className="cn-serif text-[12px] text-[var(--ink-soft)]">路线总览 · {syncLabel}</div>
         <span className="rounded-full bg-[#fff4ec] px-2 py-1 cn-serif text-[10px] text-[#7f4f5c]">
-          轻量概览
+          打卡 & 补记
         </span>
       </div>
       <div className="grid grid-cols-3 gap-2">
         {items.map((item) => (
           <div
             key={item.label}
+            title={item.hint}
             className="flex min-h-14 items-center justify-center gap-2 rounded-[18px] border border-[#eee0d8] bg-white/60 px-2"
           >
             <span className="text-[#6f5850]">{item.icon}</span>
