@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { loadParty, joinParty, setMemberCheck, subscribeParty, getOrCreateMeId, type PartyRow, type PartyMember } from "@/lib/party";
 import { groupPreset } from "@/lib/group-mode";
-import { VenueIcon } from "@/components/VenueIcon";
+import { VenueIcon, detectVenue } from "@/components/VenueIcon";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/party/$id")({ component: PartyPage });
@@ -165,7 +165,7 @@ function PartyPage() {
             <div key={s.order} className="rounded-2xl bg-[var(--card)] border border-[var(--border)] p-4">
               <div className="flex items-start gap-3">
                 <div className="shrink-0 w-9 h-9 rounded-full bg-[var(--bg)] border border-[var(--border)] flex items-center justify-center">
-                  <VenueIcon type={s.location_type} className="w-4 h-4 text-[var(--ink)]" />
+                  <VenueIcon kind={detectVenue(s.location_type, s.location_name)} size={24} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="display italic text-[10.5px] tracking-[0.2em] text-[var(--ink-soft)]">SCENE {s.order}</div>
