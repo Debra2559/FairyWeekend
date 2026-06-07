@@ -1,12 +1,17 @@
 /**
  * LangGraph Nodes 实现
  * 节点编排层，调用 agents 和 tools
+ *
+ * 更新：
+ * - 使用类型化工具函数
+ * - 增强错误处理
  */
 
 import type { QuestStateType } from "./state.ts";
 import {
-  getPlayerProfileTool,
-  reverseGeocodeTool,
+  getPlayerProfileTyped,
+  reverseGeocodeTyped,
+  searchPoiTyped,
 } from "./tools/index.ts";
 import { runPOIPlanner } from "./agents/poi-planner.agent.ts";
 import { runStoryGenerator } from "./agents/story-generator.agent.ts";
@@ -44,26 +49,39 @@ export async function fetchProfile(state: QuestStateType) {
 
   log("fetchProfile", "📥 获取玩家画像...", { playerKey: state.playerKey });
 
-  try {
-    const result = await getPlayerProfileTool.invoke({
-      playerKey: state.playerKey,
-    });
+  // 使用类型化函数
+  const result = await getPlayerProfileTyped(state.playerKey);
 
-    // 工具返回 JSON 字符串，需要解析
-    const profile = typeof result === "string" ? JSON.parse(result) : result;
-
-    log("fetchProfile", "✅ 成功获取画像", {
-      profile: profile.profile?.slice(0, 50) + "...",
-      loved_tags: profile.loved_tags?.slice(0, 5),
-      disliked_tags: profile.disliked_tags?.slice(0, 5),
-      visited_count: profile.visited_pois?.length || 0,
-    });
-
-    return { playerProfile: profile };
-  } catch (e) {
-    logWarn("fetchProfile", "❌ 获取失败", e);
+  if (!result.success) {
+    logWarn("fetchProfile", "❌ 获取失败", result.error);
     return { playerProfile: undefined };
   }
+
+  const profile = result.data;
+
+  // 检查是否有错误元数据
+  if (profile._meta.error) {
+    logWarn("fetchProfile", `⚠️ 查询有问题: ${profile._meta.error.message}`);
+    return { playerProfile: undefined };
+  }
+
+  log("fetchProfile", "✅ 成功获取画像", {
+    found: profile._meta.found,
+    profile: profile.profile?.slice(0, 50) + "...",
+    loved_tags: profile.loved_tags?.slice(0, 5),
+    disliked_tags: profile.disliked_tags?.slice(0, 5),
+    visited_count: profile.visited_pois?.length || 0,
+  });
+
+  // 返回不带 _meta 的 profile
+  return {
+    playerProfile: {
+      profile: profile.profile,
+      loved_tags: profile.loved_tags,
+      disliked_tags: profile.disliked_tags,
+      visited_pois: profile.visited_pois,
+    },
+  };
 }
 
 // ===== Node 2: resolveLocation =====
@@ -84,35 +102,32 @@ export async function resolveLocation(state: QuestStateType) {
     wgs84: { lng: state.lng, lat: state.lat },
   });
 
-  try {
-    const result = await reverseGeocodeTool.invoke({
-      lat: state.lat,
-      lng: state.lng,
-    });
+  // 使用类型化函数
+  const result = await reverseGeocodeTyped(state.lat, state.lng);
 
-    // 工具返回 JSON 字符串，需要解析
-    const geo = typeof result === "string" ? JSON.parse(result) : result;
-
-    if (geo.error) {
-      logWarn("resolveLocation", "❌ 逆地理编码失败", geo.error);
-      return { gcjCoords: undefined };
-    }
-
-    log("resolveLocation", "✅ 成功解析位置", {
-      city: geo.city,
-      district: geo.district,
-      label: geo.label,
-      gcj: geo.gcj,
-    });
-
-    return {
-      gcjCoords: geo.gcj,
-      city: state.city || geo.label,
-    };
-  } catch (e) {
-    logWarn("resolveLocation", "❌ 解析失败", e);
+  if (!result.success) {
+    logWarn("resolveLocation", "❌ 逆地理编码失败", result.error);
     return { gcjCoords: undefined };
   }
+
+  const geo = result.data;
+
+  if (!geo._meta.success || geo._meta.error) {
+    logWarn("resolveLocation", "❌ 解析失败", geo._meta.error);
+    return { gcjCoords: undefined };
+  }
+
+  log("resolveLocation", "✅ 成功解析位置", {
+    city: geo.city,
+    district: geo.district,
+    label: geo.label,
+    gcj: geo.gcj,
+  });
+
+  return {
+    gcjCoords: geo.gcj,
+    city: state.city || geo.label,
+  };
 }
 
 // ===== Node 3: planPois (调用 Agent 1) =====
@@ -163,7 +178,7 @@ export async function planPois(state: QuestStateType) {
   });
 
   if (candidates.length > 0) {
-    log("planPois", "📍 候选 POI 示例", candidates.slice(0, 3).map(p => ({
+    log("planPois", "📍 候选 POI 示例", candidates.slice(0, 3).map((p) => ({
       name: p.name,
       type: p.type,
       address: p.address?.slice(0, 30),
@@ -265,7 +280,7 @@ export async function generateJourney(state: QuestStateType) {
 
   log("generateJourney", "📖 故事开篇", journey.story_opening?.slice(0, 100) + "...");
 
-  log("generateJourney", "🎬 场景列表", (journey.scenes || []).map(s => ({
+  log("generateJourney", "🎬 场景列表", (journey.scenes || []).map((s) => ({
     order: s.order,
     scene_name: s.scene_name,
     location: s.location_name,
