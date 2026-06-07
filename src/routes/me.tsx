@@ -15,6 +15,7 @@ import {
   FileText,
   Heart,
   Image as ImageIcon,
+  Stamp,
   MapPinned,
   MoreHorizontal,
   PenLine,
