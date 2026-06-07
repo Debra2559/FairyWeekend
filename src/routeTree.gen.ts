@@ -16,6 +16,7 @@ import { Route as FinaleRouteImport } from './routes/finale'
 import { Route as CardRouteImport } from './routes/card'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicSceneBuzzRouteImport } from './routes/api/public/scene-buzz'
+import { Route as ApiPublicPersonalizeIntroRouteImport } from './routes/api/public/personalize-intro'
 import { Route as ApiPublicPersonalizeCardRouteImport } from './routes/api/public/personalize-card'
 
 const ShareRoute = ShareRouteImport.update({
@@ -53,6 +54,12 @@ const ApiPublicSceneBuzzRoute = ApiPublicSceneBuzzRouteImport.update({
   path: '/api/public/scene-buzz',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPersonalizeIntroRoute =
+  ApiPublicPersonalizeIntroRouteImport.update({
+    id: '/api/public/personalize-intro',
+    path: '/api/public/personalize-intro',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPersonalizeCardRoute =
   ApiPublicPersonalizeCardRouteImport.update({
     id: '/api/public/personalize-card',
@@ -68,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/me': typeof MeRoute
   '/share': typeof ShareRoute
   '/api/public/personalize-card': typeof ApiPublicPersonalizeCardRoute
+  '/api/public/personalize-intro': typeof ApiPublicPersonalizeIntroRoute
   '/api/public/scene-buzz': typeof ApiPublicSceneBuzzRoute
 }
 export interface FileRoutesByTo {
@@ -78,6 +86,7 @@ export interface FileRoutesByTo {
   '/me': typeof MeRoute
   '/share': typeof ShareRoute
   '/api/public/personalize-card': typeof ApiPublicPersonalizeCardRoute
+  '/api/public/personalize-intro': typeof ApiPublicPersonalizeIntroRoute
   '/api/public/scene-buzz': typeof ApiPublicSceneBuzzRoute
 }
 export interface FileRoutesById {
@@ -89,6 +98,7 @@ export interface FileRoutesById {
   '/me': typeof MeRoute
   '/share': typeof ShareRoute
   '/api/public/personalize-card': typeof ApiPublicPersonalizeCardRoute
+  '/api/public/personalize-intro': typeof ApiPublicPersonalizeIntroRoute
   '/api/public/scene-buzz': typeof ApiPublicSceneBuzzRoute
 }
 export interface FileRouteTypes {
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
     | '/me'
     | '/share'
     | '/api/public/personalize-card'
+    | '/api/public/personalize-intro'
     | '/api/public/scene-buzz'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '/me'
     | '/share'
     | '/api/public/personalize-card'
+    | '/api/public/personalize-intro'
     | '/api/public/scene-buzz'
   id:
     | '__root__'
@@ -121,6 +133,7 @@ export interface FileRouteTypes {
     | '/me'
     | '/share'
     | '/api/public/personalize-card'
+    | '/api/public/personalize-intro'
     | '/api/public/scene-buzz'
   fileRoutesById: FileRoutesById
 }
@@ -132,6 +145,7 @@ export interface RootRouteChildren {
   MeRoute: typeof MeRoute
   ShareRoute: typeof ShareRoute
   ApiPublicPersonalizeCardRoute: typeof ApiPublicPersonalizeCardRoute
+  ApiPublicPersonalizeIntroRoute: typeof ApiPublicPersonalizeIntroRoute
   ApiPublicSceneBuzzRoute: typeof ApiPublicSceneBuzzRoute
 }
 
@@ -186,6 +200,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSceneBuzzRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/personalize-intro': {
+      id: '/api/public/personalize-intro'
+      path: '/api/public/personalize-intro'
+      fullPath: '/api/public/personalize-intro'
+      preLoaderRoute: typeof ApiPublicPersonalizeIntroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/personalize-card': {
       id: '/api/public/personalize-card'
       path: '/api/public/personalize-card'
@@ -204,8 +225,19 @@ const rootRouteChildren: RootRouteChildren = {
   MeRoute: MeRoute,
   ShareRoute: ShareRoute,
   ApiPublicPersonalizeCardRoute: ApiPublicPersonalizeCardRoute,
+  ApiPublicPersonalizeIntroRoute: ApiPublicPersonalizeIntroRoute,
   ApiPublicSceneBuzzRoute: ApiPublicSceneBuzzRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
