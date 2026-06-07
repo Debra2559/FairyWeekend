@@ -40,6 +40,7 @@ import {
   type ArchivedChapter,
   type LibraryEntry,
 } from "@/lib/persona-store";
+import { getCoverById } from "@/lib/cards";
 import { VenueIcon, detectVenue } from "@/components/VenueIcon";
 import { UserPhotoCard } from "@/components/UserPhotoCard";
 import { RouteOverviewMap } from "@/components/RouteOverviewMap";
@@ -481,7 +482,10 @@ function completedScenes(chapter: ArchivedChapter) {
 
 function imageForChapter(chapter?: ArchivedChapter | null) {
   return (
-    chapter?.card.cover || chapter?.sceneRecords?.[chapter.completedSceneOrders[0]]?.photo || ""
+    chapter?.card.cover ||
+    getCoverById(chapter?.card.id) ||
+    chapter?.sceneRecords?.[chapter.completedSceneOrders[0]]?.photo ||
+    ""
   );
 }
 
@@ -3329,9 +3333,9 @@ function PostchainCommandCenter({
 
   return (
     <section className="relative min-h-[254px] overflow-hidden rounded-[30px] border border-[#e0d4bd] bg-[#6f5850] text-[#ffffff] shadow-[0_26px_78px_-48px_rgba(61,53,48,0.88)]">
-      {latestChapter?.card.cover ? (
+      {imageForChapter(latestChapter) ? (
         <img
-          src={latestChapter.card.cover}
+          src={imageForChapter(latestChapter)}
           alt=""
           className="absolute inset-0 h-full w-full object-cover opacity-34"
         />
@@ -3615,6 +3619,7 @@ function NovelView({
             const total = ch.journey.scenes.length;
             const done = ch.completedSceneOrders.length;
             const pct = total ? Math.round((done / total) * 100) : 0;
+            const cover = imageForChapter(ch);
             if (chapterViewMode === "list") {
               return (
                 <button
@@ -3648,16 +3653,16 @@ function NovelView({
                 <div
                   className="relative h-36 overflow-hidden"
                   style={
-                    ch.card.cover
+                    cover
                       ? undefined
                       : {
                           background: `linear-gradient(135deg, ${ch.card.colors[0]}, ${ch.card.colors[1]})`,
                         }
                   }
                 >
-                  {ch.card.cover && (
+                  {cover && (
                     <img
-                      src={ch.card.cover}
+                      src={cover}
                       alt={ch.card.identity}
                       className="w-full h-full object-cover"
                     />
@@ -3668,7 +3673,7 @@ function NovelView({
                       ✦ {ch.card.rarity}
                     </div>
                     <div className="rounded-full bg-white/82 px-2.5 py-1 cn-serif text-[10px] text-[var(--ink)]">
-                      {ch.card.cover ? "系统封面" : "默认封面"}
+                      {cover ? "人设封面" : "默认封面"}
                     </div>
                   </div>
                   <div className="absolute bottom-3 left-4 right-4 text-white">
@@ -3823,16 +3828,16 @@ function SingleChapterNovel({
         <div
           className="relative h-36 overflow-hidden"
           style={
-            ch.card.cover
+            imageForChapter(ch)
               ? undefined
               : {
                   background: `linear-gradient(135deg, ${ch.card.colors[0]}, ${ch.card.colors[1]})`,
                 }
           }
         >
-          {ch.card.cover && (
+          {imageForChapter(ch) && (
             <img
-              src={ch.card.cover}
+              src={imageForChapter(ch)}
               alt={ch.card.identity}
               className="w-full h-full object-cover"
             />
@@ -3847,7 +3852,7 @@ function SingleChapterNovel({
             </div>
           </div>
           <div className="absolute right-3 top-12 rounded-full bg-white/78 px-2.5 py-1 cn-serif text-[10px] text-[var(--ink-soft)]">
-            {ch.card.cover ? "系统封面" : "默认封面"}
+            {imageForChapter(ch) ? "人设封面" : "默认封面"}
           </div>
           <div className="absolute bottom-4 left-4 right-4 text-white">
             <div className="display italic text-[11px] opacity-80">
