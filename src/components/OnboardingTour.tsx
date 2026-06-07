@@ -9,30 +9,24 @@ const STORAGE_KEY = "tp_onboarded_v2";
 const STEPS = [
   {
     badge: "WHY",
-    title: "周末不知道去哪？",
-    desc: "刷半天美团也挑不出来——那就不如换个玩法：今天，让一张人设卡替你决定。",
+    title: "周末刷半天美团，还是不知道去哪？",
+    desc: "今日人设替你决定——抽一张卡，AI 把你的下午写成一段真实可走的故事。",
     img: imgCards.url,
   },
   {
     badge: "STEP 01",
-    title: "抽一张今日人设",
-    desc: "AI 对话陪你聊几句心情，或自己挑、塔罗随机——拿到属于今天的身份卡。",
-    img: imgCards.url,
-  },
-  {
-    badge: "STEP 02",
     title: "AI 为你写一条路线",
-    desc: "结合你所在的城市、时段和情绪，生成 3–4 个真实可走的地点和一段小故事。",
+    desc: "结合你所在的城市、时段和情绪，生成 3–4 个真实地点和一段属于今天的小故事。",
     img: imgRoute.url,
   },
   {
-    badge: "STEP 03",
+    badge: "STEP 02",
     title: "走进手绘叙事地图",
-    desc: "点亮场景、读人设视角的小段叙事、完成轻量任务，像在过另一种生活。",
+    desc: "点亮场景、读人设视角的小段叙事、完成轻量任务——像在过另一种生活。",
     img: imgWalk.url,
   },
   {
-    badge: "STEP 04",
+    badge: "STEP 03",
     title: "美团一键直达",
     desc: "每个地点都内嵌美团搜索：吃、喝、玩、订、外卖——从规划到下单，一步不绕。",
     img: imgMeituan.url,
