@@ -50,6 +50,16 @@ const CITY_PRESETS = [
   "北京", "上海", "广州", "深圳", "杭州", "成都",
   "南京", "苏州", "重庆", "武汉", "西安", "厦门",
 ];
+const CITY_MORE = [
+  "天津", "青岛", "长沙", "郑州", "济南", "合肥",
+  "福州", "宁波", "无锡", "佛山", "东莞", "珠海",
+  "昆明", "大连", "沈阳", "哈尔滨", "长春", "石家庄",
+  "南昌", "贵阳", "南宁", "海口", "三亚", "兰州",
+  "太原", "呼和浩特", "乌鲁木齐", "拉萨", "银川", "西宁",
+  "温州", "嘉兴", "绍兴", "金华", "泉州", "中山",
+  "惠州", "汕头", "桂林", "丽江", "大理", "香港", "澳门",
+];
+
 
 function CardPage() {
   const navigate = useNavigate();
@@ -64,6 +74,7 @@ function CardPage() {
   const [needLocationHint, setNeedLocationHint] = useState(false);
   const [loadingIdx, setLoadingIdx] = useState(0);
   const [userPhoto, setUserPhotoState] = useState<string | null>(null);
+  const [showMoreCities, setShowMoreCities] = useState(false);
   const [personalCover, setPersonalCover] = useState<string | null>(null);
   const [personalizing, setPersonalizing] = useState(false);
   const [personalizeErr, setPersonalizeErr] = useState<string | null>(null);
@@ -454,7 +465,7 @@ function CardPage() {
           或挑一个城市
         </div>
         <div className="flex flex-wrap gap-2">
-          {CITY_PRESETS.map((c) => {
+          {[...CITY_PRESETS, ...(showMoreCities ? CITY_MORE : [])].map((c) => {
             const active = city === c && !autoLocated;
             return (
               <button
@@ -474,6 +485,13 @@ function CardPage() {
               </button>
             );
           })}
+          <button
+            onClick={() => setShowMoreCities((v) => !v)}
+            className="chip"
+            style={{ borderStyle: "dotted" }}
+          >
+            {showMoreCities ? "收起 ▲" : `查看更多 (${CITY_MORE.length}) ▾`}
+          </button>
         </div>
       </div>
 
