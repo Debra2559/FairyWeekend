@@ -15,6 +15,7 @@ import {
   FileText,
   Heart,
   Image as ImageIcon,
+  Stamp,
   MapPinned,
   MoreHorizontal,
   PenLine,
@@ -96,7 +97,7 @@ type MainTab = "routes" | "collection" | "profile" | "generate";
 type RouteScreen = "overview" | "detail" | "poster";
 type RouteDetailTab = "overview" | "timeline" | "records";
 type RangeKey = "30d" | "90d" | "year" | "all";
-type CollectionKind = "all" | "routes" | "places" | "activities" | "planned";
+type CollectionKind = "all" | "places" | "activities" | "planned";
 type CollectionDateRange = { from: string; to: string };
 type SortKey = "recent" | "enhanced" | "order";
 type PendingPlan = {
@@ -301,7 +302,7 @@ function MePage() {
       return next;
     });
     setCollectionKind("planned");
-    notify("已加入待出行，可在收藏页查看");
+    notify("已加入待出行，可在素材库查看");
   }
 
   function openRoute(chapter: ArchivedChapter) {
@@ -543,7 +544,7 @@ function TagPill({
 function MainTabs({ active, onChange }: { active: MainTab; onChange: (tab: MainTab) => void }) {
   const tabs: Array<{ key: MainTab; label: string; icon: React.ReactNode }> = [
     { key: "routes", label: "路线", icon: <RouteIcon size={17} strokeWidth={1.7} /> },
-    { key: "collection", label: "收藏", icon: <Heart size={17} strokeWidth={1.7} /> },
+    { key: "collection", label: "素材", icon: <Stamp size={17} strokeWidth={1.7} /> },
     { key: "profile", label: "画像", icon: <UserRound size={17} strokeWidth={1.7} /> },
     { key: "generate", label: "生成", icon: <WandSparkles size={17} strokeWidth={1.7} /> },
   ];
@@ -1026,18 +1027,18 @@ function RouteDetailPage({
       {panel === "saved" && (
         <FlowPanel
           title="已加入收藏"
-          description="这条路线已经保存到收藏页，后续可以通过搜索、日期或路线分类找到。"
+          description="这条路线已经保存到素材库，后续可以通过搜索、日期或路线分类找到。"
           onClose={() => setPanel(null)}
         >
           <div className="grid gap-2">
             <button
               onClick={() => {
                 setPanel(null);
-                onNotify("可以在收藏页查看这条路线");
+                onNotify("可以在素材库查看这条路线");
               }}
               className="min-h-11 rounded-[16px] border border-[#ead8d0] bg-white/66 cn-serif text-[13px] text-[var(--ink)]"
             >
-              稍后去收藏页查看
+              稍后去素材库查看
             </button>
             <button
               onClick={() => setPanel(null)}
@@ -1555,7 +1556,6 @@ function CollectionSearch({
   const filters: Array<[CollectionKind, string]> = [
     ["all", "全部"],
     ["planned", "待出行"],
-    ["routes", "路线"],
     ["places", "地点"],
     ["activities", "活动"],
   ];
@@ -1576,7 +1576,7 @@ function CollectionSearch({
         <input
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="搜索路线、地点、关键词"
+          placeholder="搜索地点、活动或关键词"
           className="h-12 w-full rounded-[20px] border border-[#e3ddd4] bg-[#fffaf2]/92 pl-11 pr-4 cn-serif text-[13px] text-[var(--ink)] outline-none placeholder:text-[var(--ink-soft)]"
         />
       </div>
@@ -1787,21 +1787,8 @@ function CollectionPage({
   onAddPlan: (plan: Omit<PendingPlan, "id" | "createdAt">) => void;
 }) {
   const normalized = query.trim().toLowerCase();
-  const routeItems = sagas.filter(
-    (chapter) =>
-      isDateInRange(chapter.createdAt, dateRange) &&
-      [
-        chapter.card.identity,
-        chapter.city,
-        chapter.card.rarity,
-        formatArchiveDate(chapter.createdAt),
-        ...chapter.journey.scenes.map((scene) => scene.location_name),
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(normalized),
-  );
+  void sagas;
+  void onOpenRoute;
   const placeItems = library.places.filter(
     (item) =>
       isDateInRange(item.lastAt, dateRange) &&
@@ -1822,11 +1809,48 @@ function CollectionPage({
   );
   return (
     <div className="space-y-5">
-      <section className="rounded-[24px] border border-[#ead8d0] bg-[#fffaf2]/94 p-4">
-        <h1 className="cn-serif text-[20px] text-[var(--ink)]">收藏</h1>
+      <section className="relative overflow-hidden rounded-[24px] border border-[#ead8d0] bg-[#fffaf2]/94 p-4">
+        {/* 集章本封面：右上角红色印章 */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-2 top-3 rotate-[14deg] select-none rounded-[8px] border-[2px] border-[#c0463a] px-2.5 py-1 cn-serif text-[10px] font-semibold tracking-[0.18em] text-[#c0463a] opacity-80"
+          style={{ fontFamily: "'Noto Serif SC', serif" }}
+        >
+          素 材 库
+        </div>
+        <div className="cn-serif text-[10.5px] tracking-[0.32em] text-[var(--ink-soft)]">
+          STAMP · LIBRARY
+        </div>
+        <h1 className="mt-1 cn-serif text-[20px] text-[var(--ink)]">收藏的章子</h1>
         <p className="mt-1 cn-serif text-[12px] text-[var(--ink-soft)]">
-          保存你走过的路线、地点和活动。
+          地点、活动、想去的清单——每一枚都可以盖到下一段路线里。
         </p>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {[
+            { label: "地点", count: library.places.length, tone: "#c0463a" },
+            { label: "活动", count: library.activities.length, tone: "#5a7a4a" },
+            { label: "待出行", count: pendingPlans.length, tone: "#8a5a2a" },
+          ].map((stamp) => (
+            <div
+              key={stamp.label}
+              className="relative flex flex-col items-center justify-center rounded-[14px] border-[1.5px] border-dashed bg-white/55 px-2 py-2.5"
+              style={{ borderColor: `${stamp.tone}55` }}
+            >
+              <div
+                className="cn-serif text-[20px] font-semibold leading-none"
+                style={{ color: stamp.tone, fontFamily: "'Noto Serif SC', serif" }}
+              >
+                {stamp.count}
+              </div>
+              <div
+                className="mt-1 cn-serif text-[10.5px] tracking-[0.18em]"
+                style={{ color: stamp.tone }}
+              >
+                {stamp.label}
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
       <CollectionSearch
         query={query}
@@ -1850,18 +1874,7 @@ function CollectionPage({
                   </p>
                 </div>
               ))}
-        {(kind === "all" || kind === "routes") &&
-          routeItems
-            .slice(0, kind === "all" ? 3 : 20)
-            .map((chapter, index) => (
-              <RouteSummaryCard
-                key={chapter.chapterId}
-                chapter={chapter}
-                index={index}
-                compact
-                onOpen={() => onOpenRoute(chapter)}
-              />
-            ))}
+        {/* 路线数据移到「路线」tab，素材库只保留可复用的地点/活动/待出行 */}
         {(kind === "all" || kind === "places") &&
           placeItems.slice(0, kind === "all" ? 3 : 20).map((entry) => (
             <CollectionAssetCard
@@ -1918,7 +1931,19 @@ function CollectionAssetCard({
   const [panel, setPanel] = useState<"record" | "action" | null>(null);
   const lastDate = entry.lastAt ? formatArchiveDate(entry.lastAt) : "最近";
   return (
-    <article className="rounded-[20px] border border-[#ead8d0] bg-[#fffaf2]/92 p-3">
+    <article className="relative overflow-hidden rounded-[20px] border border-[#ead8d0] bg-[#fffaf2]/92 p-3">
+      {/* 收藏盖章印记 */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-2 top-2 rotate-[-8deg] select-none rounded-[6px] border-[1.5px] px-1.5 py-0.5 cn-serif text-[9px] tracking-[0.14em] opacity-75"
+        style={{
+          borderColor: kind === "地点" ? "#c0463a" : "#5a7a4a",
+          color: kind === "地点" ? "#c0463a" : "#5a7a4a",
+          fontFamily: "'Noto Serif SC', serif",
+        }}
+      >
+        {kind === "地点" ? "已收藏" : "再安排"} · {lastDate}
+      </div>
       {panel === "record" && (
         <FlowPanel
           title={`${entry.name} · 来源记录`}
