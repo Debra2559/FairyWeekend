@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { PERSONA_CARDS, RARITY_LABEL } from "@/lib/cards";
 import type { PersonaCard } from "@/lib/persona-types";
 import { pickEmoji } from "@/lib/text-emoji";
+import { isVoiceSupported, startVoiceSession, type VoiceSession } from "@/lib/voice-input";
 
 type Step = "mood" | "duration" | "vibe" | "transport" | "extra" | "result";
 
