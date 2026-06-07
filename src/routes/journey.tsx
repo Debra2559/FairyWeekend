@@ -9,6 +9,7 @@ import { getSceneDeals, type SceneDeal } from "@/lib/scene-deals";
 import { needsReservation, getReservationHint, getReservationLabel, buildMeituanReserveHref, buildDianpingReserveHref } from "@/lib/reservation";
 import { toast } from "sonner";
 import { JourneyChatPanel } from "@/components/JourneyChatPanel";
+import { JourneyDiary } from "@/components/JourneyDiary";
 
 import { groupPreset, type GroupMode } from "@/lib/group-mode";
 
@@ -67,9 +68,14 @@ function JourneyPage() {
         <div className="rarity-chip" data-rarity={card.rarity}>✦ {card.rarity}</div>
       </div>
 
-      {/* Title */}
+      {/* Title — serial / 连载感 */}
       <div className="max-w-xl mx-auto px-5 mt-4">
-        <h1 className="cn-serif text-[22px] text-[var(--ink)] leading-snug">{card.identity}</h1>
+        <div className="display italic text-[10px] tracking-[0.35em] text-[var(--ink-soft)]">
+          DAY 1 · 第 {completedSceneOrders.length + 1 > journey.scenes.length ? journey.scenes.length : completedSceneOrders.length + 1} 话
+          <span className="not-italic mx-1.5 opacity-50">/</span>
+          共 {journey.scenes.length} 话
+        </div>
+        <h1 className="cn-serif text-[22px] text-[var(--ink)] leading-snug mt-1">{card.identity}</h1>
         <div className="cn-serif text-[13px] text-[var(--ink-soft)] mt-1 flex items-center gap-2 flex-wrap">
           <span>「{card.mission}」</span>
           {city && <span className="display italic text-[11px]">· {city}</span>}
@@ -87,6 +93,17 @@ function JourneyPage() {
         <div className="display italic text-[11px] text-[var(--ink-soft)] mt-2">
           {journey.emotion_arc.start} → {journey.emotion_arc.end}
         </div>
+      </div>
+
+      {/* ✦ 今日连载 DIARY — 打卡 / 记录 / 故事 一眼看懂 */}
+      <div className="max-w-xl mx-auto mt-6">
+        <JourneyDiary
+          scenes={journey.scenes}
+          records={run.sceneRecords ?? {}}
+          completed={completedSceneOrders}
+          onPick={(s) => setOpenScene(s)}
+          createdAt={run.createdAt}
+        />
       </div>
 
       {/* ✦ 全程套装 Bundle */}
@@ -119,44 +136,21 @@ function JourneyPage() {
         />
       </div>
 
-      {/* Legend / progress */}
+      {/* Finale CTA — diary 已展示进度，这里只保留行动按钮 */}
       <div className="max-w-xl mx-auto px-5 mt-5 text-center">
-        <div className="display italic text-[10.5px] tracking-[0.25em] text-[var(--ink-soft)]">
-          TODAY · PROGRESS
-        </div>
-        <div className="flex items-center justify-center gap-2 mt-2.5">
-          {journey.scenes.map((s) => {
-            const done = completedSceneOrders.includes(s.order);
-            return (
-              <div key={s.order} className="flex items-center gap-2">
-                <button
-                  onClick={() => setOpenScene(s)}
-                  className={`w-7 h-7 rounded-full cn-serif text-[11px] flex items-center justify-center transition ${
-                    done
-                      ? "bg-[var(--ink)] text-[var(--card)] shadow-[0_4px_12px_-4px_rgba(60,40,30,0.5)]"
-                      : "bg-[var(--card)] border border-dashed border-[var(--ink-soft)]/50 text-[var(--ink-soft)]"
-                  }`}
-                  aria-label={`场景 ${s.order}`}
-                >
-                  {done ? "✓" : s.order}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-        <div className="cn-serif text-[12px] text-[var(--ink-soft)] mt-3">
+        <div className="cn-serif text-[12px] text-[var(--ink-soft)]">
           {allDone
             ? "今天的剧本走完了 ✶"
-            : `点亮全部 ${journey.scenes.length} 处，今日结语就会浮现`}
+            : `点亮全部 ${journey.scenes.length} 话，今日结语就会浮现`}
         </div>
         <button
           onClick={() => navigate({ to: "/finale" })}
           disabled={!allDone}
-          className="btn-soft mt-4"
+          className="btn-soft mt-3"
         >
           {allDone
             ? "解锁今日结语 ✶"
-            : `还差 ${journey.scenes.length - completedSceneOrders.length} 处 · 继续打卡`}
+            : `还差 ${journey.scenes.length - completedSceneOrders.length} 话 · 继续打卡`}
         </button>
       </div>
 
