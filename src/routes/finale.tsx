@@ -15,6 +15,7 @@ function FinalePage() {
   const [run, setRun] = useState<JourneyRunState | null>(null);
   const [shown, setShown] = useState("");
   const [rewardOpen, setRewardOpen] = useState(false);
+  const [bookExporting, setBookExporting] = useState(false);
 
   useEffect(() => {
     const r = loadRun();
