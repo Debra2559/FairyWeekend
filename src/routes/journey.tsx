@@ -1092,24 +1092,31 @@ function JourneyMap({
         );
       })}
 
-      {/* Route summary + open in maps */}
-      <div className="absolute left-3 right-3 bottom-3 flex items-end justify-between gap-2">
-        <div className="flex flex-col gap-1.5 items-start">
-          <button
-            onClick={() => {
-              const order = ["步行", "骑行", "公交", "打车", "自驾"];
-              const next = order[(order.indexOf(transport) + 1) % order.length];
-              setTransport(next);
-              try { localStorage.setItem("today.transport", next); } catch {}
-            }}
-            className="display italic text-[10px] tracking-[0.15em] px-2.5 py-1 rounded-full hover:opacity-90 transition"
-            style={{ background: "rgba(255,253,243,0.92)", color: "#5a4a3a", boxShadow: "0 2px 8px rgba(0,0,0,0.12)" }}
-            title="点击切换交通方式"
-          >
-            {transportMeta.icon} 全程约 {fmtDur(totalMinutes)} · {transportMeta.label} {totalLabel}（游览 {fmtDur(stayMinutes)}）
-          </button>
-        </div>
-        <div className="flex items-center gap-1.5">
+      {/* Route summary — top center as overview badge */}
+      <div className="absolute left-1/2 -translate-x-1/2 top-3 z-10">
+        <button
+          onClick={() => {
+            const order = ["步行", "骑行", "公交", "打车", "自驾"];
+            const next = order[(order.indexOf(transport) + 1) % order.length];
+            setTransport(next);
+            try { localStorage.setItem("today.transport", next); } catch {}
+          }}
+          className="display italic text-[10px] tracking-[0.15em] px-3 py-1.5 rounded-full hover:opacity-90 transition whitespace-nowrap"
+          style={{
+            background: "rgba(255,253,243,0.95)",
+            color: "#5a4a3a",
+            boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
+            backdropFilter: "blur(8px)",
+          }}
+          title="点击切换交通方式"
+        >
+          {transportMeta.icon} 全程约 {fmtDur(totalMinutes)} · {transportMeta.label} {totalLabel}（游览 {fmtDur(stayMinutes)}）
+        </button>
+      </div>
+
+      {/* Bottom actions */}
+      <div className="absolute right-3 bottom-3 flex items-center gap-1.5">
+
           <button
             onClick={shareRoute}
             className="cn-serif text-[11.5px] px-3 py-1.5 rounded-full flex items-center gap-1.5 transition hover:opacity-90"
@@ -1129,9 +1136,9 @@ function JourneyMap({
             <span>📍</span>
             <span>一键添加到地图</span>
           </a>
-        </div>
       </div>
     </div>
+
   );
 }
 
