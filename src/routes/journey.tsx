@@ -1353,8 +1353,10 @@ function SceneSheet({
               done={done}
               record={record}
               onUpdated={onUpdated}
+              onCheckedIn={onCheckedIn}
             />
           )}
+
 
 
         </div>
