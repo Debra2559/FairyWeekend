@@ -270,6 +270,15 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
       push({ who: "agent", text: "想要的氛围是哪种？（可多选）" }, 250);
       push({ who: "agent", chips: VIBE_CHIPS, step: "vibe", freeInput: false, multi: true }, 450);
     } else if (fromStep === "vibe") {
+      push({ who: "agent", text: "你今天想用什么方式去这些地方？" }, 250);
+      push({ who: "agent", chips: TRANSPORT_CHIPS, step: "transport", freeInput: false }, 450);
+    } else if (fromStep === "transport") {
+      // 记下交通偏好
+      try {
+        const t = curTags.find((x) => TRANSPORT_TAGS.has(x));
+        if (t) localStorage.setItem("today.transport", t);
+        else localStorage.removeItem("today.transport");
+      } catch {}
       push({ who: "agent", text: "想再用一句话补充吗？（可选）" }, 250);
       push({ who: "agent", chips: [{ label: "不用了，给我推荐吧 →", tag: "" }], step: "extra", freeInput: true }, 450);
     } else if (fromStep === "extra") {
