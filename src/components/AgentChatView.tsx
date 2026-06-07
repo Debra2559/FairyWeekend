@@ -27,18 +27,37 @@ const MOOD_CHIPS = [
   { label: "想独处 🌙", tag: "独处" },
   { label: "想热闹 🎈", tag: "热闹" },
   { label: "有点感伤 🥀", tag: "感伤" },
+  { label: "想发呆 ☁️", tag: "放空" },
+  { label: "心情有点闷 🌧", tag: "低气压" },
+  { label: "想撒野 🏃", tag: "释放" },
+  { label: "想找灵感 🎨", tag: "灵感" },
+  { label: "想被宠一下 🍰", tag: "宠爱" },
+  { label: "想运动出汗 💦", tag: "运动" },
+  { label: "想恋爱感 💌", tag: "心动" },
 ];
 const DURATION_CHIPS = [
   { label: "1 小时左右", tag: "短时" },
   { label: "2–3 小时", tag: "" },
   { label: "半天", tag: "长时" },
   { label: "一整天", tag: "长时" },
+  { label: "只是想出门走走", tag: "随性" },
+  { label: "晚饭后那段时间", tag: "夜晚" },
 ];
 const VIBE_CHIPS = [
   { label: "安静的角落", tag: "安静" },
   { label: "烟火气", tag: "热闹" },
   { label: "自然/绿意", tag: "自然" },
   { label: "复古/旧时光", tag: "复古" },
+  { label: "文艺/书香", tag: "文艺" },
+  { label: "市井小巷", tag: "市井" },
+  { label: "城市天际线", tag: "都市" },
+  { label: "水边/江河湖海", tag: "水边" },
+  { label: "屋顶/高处", tag: "高处" },
+  { label: "夜色微醺", tag: "夜晚" },
+  { label: "咖啡香", tag: "咖啡" },
+  { label: "甜品时刻", tag: "甜品" },
+  { label: "小众/有意思", tag: "小众" },
+  { label: "运动出汗", tag: "运动" },
   { label: "随便都好", tag: "随性" },
 ];
 
