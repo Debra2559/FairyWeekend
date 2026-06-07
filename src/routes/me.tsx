@@ -669,8 +669,9 @@ function OverviewStats({
               onClick={() => handleClick(item.key)}
               className={`flex min-h-14 items-center justify-center gap-2 rounded-[18px] border px-2 text-left transition active:scale-[0.98] ${
                 active
-                  ? "border-[#7f4f5c] bg-[#fff1e8] shadow-[0_4px_12px_-6px_rgba(127,79,92,0.4)]"
+                  ? "bg-[#fff1e8] shadow-[0_4px_12px_-6px_rgba(127,79,92,0.4)] border-yellow-600"
                   : "border-[#eee0d8] bg-white/60 hover:border-[#d9c3b8] hover:bg-white/80"
+
               } ${item.disabled ? "cursor-not-allowed opacity-50" : ""}`}
             >
               <span className={active ? "text-[#7f4f5c]" : "text-[#6f5850]"}>{item.icon}</span>
