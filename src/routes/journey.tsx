@@ -1408,6 +1408,109 @@ function ReservationCard({
   );
 }
 
+/* ============ Reservation summary (global checklist) ============ */
+
+function ReservationSummaryCard({
+  scenes, sceneRecords, city, onPick,
+}: {
+  scenes: JourneyScene[];
+  sceneRecords: Record<number, SceneRecord>;
+  city?: string;
+  onPick: (scene: JourneyScene) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  const items = useMemo(() => {
+    return scenes
+      .map((s) => ({ scene: s, kind: detectVenue(s.location_type, s.location_name) }))
+      .filter(({ kind }) => needsReservation(kind))
+      .map(({ scene, kind }) => ({
+        scene,
+        kind,
+        reserved: !!sceneRecords[scene.order]?.reserved,
+      }));
+  }, [scenes, sceneRecords]);
+
+  if (items.length === 0) return null;
+
+  const reservedCount = items.filter((i) => i.reserved).length;
+  const allDone = reservedCount === items.length;
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden border transition"
+      style={{
+        background: allDone
+          ? "linear-gradient(135deg, #e8f5e9 0%, #d4edda 100%)"
+          : "linear-gradient(135deg, #fff8f0 0%, #fdf0e8 100%)",
+        borderColor: allDone ? "#c8e6c9" : "var(--border)",
+        boxShadow: "0 1px 0 rgba(0,0,0,0.02), 0 8px 24px -16px rgba(60,40,30,0.18)",
+      }}
+    >
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left"
+      >
+        <div className="flex items-center gap-3">
+          <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-base"
+            style={{ background: allDone ? "#a5d6a7" : "#ffcc80" }}>
+            {allDone ? "✓" : "⏰"}
+          </div>
+          <div>
+            <div className="cn-serif text-[14px] text-[var(--ink)]">
+              {allDone ? "今日预约已全部完成" : `今日有 ${items.length} 处建议预约`}
+            </div>
+            <div className="cn-serif text-[11px] text-[var(--ink-soft)] mt-0.5">
+              {allDone
+                ? "出发吧，一切已就绪 ✦"
+                : `已完成 ${reservedCount}/${items.length} · 点击展开清单`}
+            </div>
+          </div>
+        </div>
+        <span className="text-[var(--ink-soft)] transition-transform" style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}>
+          ▼
+        </span>
+      </button>
+
+      {expanded && (
+        <div className="px-4 pb-4 space-y-2">
+          {items.map(({ scene, kind, reserved }) => (
+            <button
+              key={scene.order}
+              onClick={() => onPick(scene)}
+              className="w-full flex items-center gap-3 p-3 rounded-xl text-left transition hover:bg-white/60"
+              style={{ background: "rgba(255,255,255,0.5)" }}
+            >
+              <div className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[11px]"
+                style={{
+                  background: reserved ? "#c8e6c9" : "#ffe0b2",
+                  color: reserved ? "#2e7d32" : "#e65100",
+                }}>
+                {reserved ? "✓" : scene.order}
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="cn-serif text-[13px] text-[var(--ink)] truncate">{scene.location_name}</div>
+                <div className="cn-serif text-[11px] text-[var(--ink-soft)]">
+                  {getReservationLabel(kind)} · {scene.scene_name}
+                </div>
+              </div>
+              {!reserved && (
+                <span className="shrink-0 cn-serif text-[11px] px-2 py-0.5 rounded-full"
+                  style={{ background: "#fff3e0", color: "#e65100" }}>
+                  待预约
+                </span>
+              )}
+            </button>
+          ))}
+          <div className="cn-serif text-[11px] text-[var(--ink-soft)] text-center pt-1">
+            点击场景可直接跳转预约 · 美团 / 大众点评
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ============ Per-scene deals & recommendations ============ */
 
 function SceneDeals({
