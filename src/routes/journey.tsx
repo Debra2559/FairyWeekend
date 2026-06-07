@@ -169,9 +169,38 @@ function JourneyPage() {
           city={city}
           onClose={() => setOpenScene(null)}
           onUpdated={refresh}
+          onCheckedIn={() => {
+            const justOrder = openScene.order;
+            setOpenScene(null);
+            // 计算下一站（未打卡且 order 更大；找不到则从头找任一未打卡）
+            const doneNow = Array.from(new Set([...completedSceneOrders, justOrder]));
+            const remaining = journey.scenes.filter((s) => !doneNow.includes(s.order));
+            const next =
+              remaining.find((s) => s.order > justOrder) ?? remaining[0];
+            if (next) {
+              toast.success("打卡完成 ✦", {
+                description: `下一站 · 「${next.scene_name}」${next.location_name}`,
+                action: {
+                  label: "去下一站 →",
+                  onClick: () => setOpenScene(next),
+                },
+                duration: 5000,
+              });
+            } else {
+              toast.success("今天的剧本走完了 ✶", {
+                description: "今日结语已经为你浮现",
+                action: {
+                  label: "解锁结语 ✶",
+                  onClick: () => navigate({ to: "/finale" }),
+                },
+                duration: 6000,
+              });
+            }
+          }}
           bundlePurchased={bundlePurchased}
         />
       )}
+
 
       {/* Bundle purchase sheet */}
       {bundleOpen && (
@@ -1146,7 +1175,7 @@ function JourneyMap({
 /* ============ Scene bottom sheet ============ */
 
 function SceneSheet({
-  scene, done, record, city, onClose, onUpdated, bundlePurchased,
+  scene, done, record, city, onClose, onUpdated, onCheckedIn, bundlePurchased,
 }: {
   scene: JourneyScene;
   done: boolean;
@@ -1154,8 +1183,10 @@ function SceneSheet({
   city?: string;
   onClose: () => void;
   onUpdated: () => void;
+  onCheckedIn?: () => void;
   bundlePurchased?: boolean;
 }) {
+
   const mapHref = `https://uri.amap.com/marker?name=${encodeURIComponent(scene.location_name)}&src=todaypersona&coordinate=gaode&callnative=1`;
   const meituanHref = `https://i.meituan.com/s/${encodeURIComponent(scene.meituan_keyword || scene.location_name)}`;
   const kind = detectVenue(scene.location_type, scene.location_name);
@@ -1223,8 +1254,10 @@ function SceneSheet({
               done={done}
               record={record}
               onUpdated={onUpdated}
+              onCheckedIn={onCheckedIn}
             />
           )}
+
 
 
           {needsReservation(kind) && (
@@ -1349,8 +1382,10 @@ function SceneSheet({
               done={done}
               record={record}
               onUpdated={onUpdated}
+              onCheckedIn={onCheckedIn}
             />
           )}
+
 
 
         </div>
@@ -1912,13 +1947,15 @@ function initialPhotos(record?: SceneRecord): string[] {
 }
 
 function CheckInPanel({
-  sceneOrder, done, record, onUpdated,
+  sceneOrder, done, record, onUpdated, onCheckedIn,
 }: {
   sceneOrder: number;
   done: boolean;
   record?: SceneRecord;
   onUpdated: () => void;
+  onCheckedIn?: () => void;
 }) {
+
   const [editing, setEditing] = useState(false);
   const [note, setNote] = useState(record?.note ?? "");
   const [photos, setPhotos] = useState<string[]>(initialPhotos(record));
@@ -1964,6 +2001,7 @@ function CheckInPanel({
   }
 
   function save() {
+    const wasDone = done;
     recordScene(sceneOrder, {
       note: note.trim() || undefined,
       photo: photos[0],            // 兼容旧字段
@@ -1972,12 +2010,20 @@ function CheckInPanel({
       rating: rating || undefined,
       companion,
     });
-    toast.success(done ? "已更新这条记录 ✦" : "打卡完成 ✦", {
-      description: note ? `「${note.slice(0, 24)}${note.length > 24 ? "…" : ""}」` : undefined,
-    });
-    setEditing(false);
-    onUpdated();
+    if (wasDone) {
+      toast.success("已更新这条记录 ✦", {
+        description: note ? `「${note.slice(0, 24)}${note.length > 24 ? "…" : ""}」` : undefined,
+      });
+      setEditing(false);
+      onUpdated();
+    } else {
+      // 首次打卡 — 关闭面板，由上层引导去下一站 / 结语
+      setEditing(false);
+      onUpdated();
+      onCheckedIn?.();
+    }
   }
+
 
   function undo() {
     clearSceneRecord(sceneOrder);
