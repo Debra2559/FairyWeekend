@@ -261,8 +261,10 @@ function MePage() {
       (s, c) => s + Object.values(c.sceneRecords ?? {}).filter((r) => r.note || r.photo).length,
       0,
     );
+    const citySet = new Set(sagas.map((c) => (c.city || "").trim()).filter(Boolean));
+    const cities = citySet.size;
     const rarities = new Set(sagas.map((c) => c.card.rarity));
-    return { chapters, scenes, enhanced, rarities: rarities.size };
+    return { chapters, scenes, enhanced, cities, rarities: rarities.size };
   }, [sagas]);
 
   const latestChapter = sagas[0] ?? null;
