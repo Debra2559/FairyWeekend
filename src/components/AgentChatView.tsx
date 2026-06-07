@@ -3,20 +3,6 @@ import { PERSONA_CARDS, RARITY_LABEL } from "@/lib/cards";
 import type { PersonaCard } from "@/lib/persona-types";
 import { pickEmoji } from "@/lib/text-emoji";
 
-/* -------- 卡片标签映射（用于快速匹配推荐） -------- */
-const CARD_TAGS: Record<string, string[]> = {
-  card_001: ["治愈", "自然", "安静", "独处"],
-  card_002: ["疲惫", "慵懒", "安静", "短时"],
-  card_003: ["好奇", "热闹", "复古", "陌生"],
-  card_004: ["冒险", "燥", "自然", "热闹", "长时"],
-  card_005: ["治愈", "感伤", "安静", "独处"],
-  card_006: ["感伤", "独处", "复古", "怀旧"],
-  card_007: ["感伤", "怀旧", "记录", "随性"],
-  card_008: ["好奇", "热闹", "冒险", "陌生"],
-  card_009: ["热闹", "治愈", "随性"],
-  card_010: ["复古", "安静", "怀旧", "独处"],
-};
-
 type Step = "mood" | "duration" | "vibe" | "transport" | "extra" | "result";
 
 const TRANSPORT_CHIPS = [
@@ -81,25 +67,6 @@ interface ChatMsg {
   freeInput?: boolean;
   multi?: boolean;
   card?: PersonaCard;
-}
-
-function scoreCards(tags: string[], freeText: string): PersonaCard[] {
-  const text = freeText.toLowerCase();
-  const scored = PERSONA_CARDS.map((c) => {
-    const ctags = CARD_TAGS[c.id] ?? [];
-    let score = 0;
-    for (const t of tags) if (ctags.includes(t)) score += 2;
-    // 自由文本里软匹配
-    if (text) {
-      for (const t of ctags) if (text.includes(t)) score += 1;
-      if (text.includes(c.identity.slice(0, 4))) score += 3;
-    }
-    // 加一点随机扰动避免总是同一张
-    score += Math.random() * 0.4;
-    return { c, score };
-  });
-  scored.sort((a, b) => b.score - a.score);
-  return scored.map((s) => s.c);
 }
 
 export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void }) {
@@ -262,7 +229,30 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
     setListening(false);
   }
 
-  function handleFreeSubmit(currentStep: Step) {
+  async function checkIntentComplete(text: string, currentStep: Step): Promise<{
+    isComplete: boolean;
+    extractedInfo: Record<string, string>;
+    reply: string;
+  }> {
+    try {
+      const res = await fetch("/api/public/understand-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, currentStep }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      const data = await res.json();
+      return {
+        isComplete: data.isCompleteIntent || false,
+        extractedInfo: data.extractedInfo || {},
+        reply: data.replyIfComplete || "",
+      };
+    } catch {
+      return { isComplete: false, extractedInfo: {}, reply: "" };
+    }
+  }
+
+  async function handleFreeSubmit(currentStep: Step) {
     const text = input.trim();
     if (!text) return;
     stopVoice();
@@ -276,7 +266,25 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
     setMsgs((m) => [...m, { id: nextId(), who: "user", text }]);
     const combined = freeText ? `${freeText} ${text}` : text;
     setFreeText(combined);
-    advance(currentStep, tags, combined);
+
+    // 检查用户意图是否已经完整
+    const intent = await checkIntentComplete(combined, currentStep);
+
+    if (intent.isComplete) {
+      // 意图完整，直接推荐
+      if (intent.reply) {
+        push({ who: "agent", text: intent.reply }, 200);
+      }
+      // 将提取的信息作为 tags
+      const extractedTags = Object.values(intent.extractedInfo).filter(Boolean);
+      if (extractedTags.length > 0) {
+        setTags((prev) => [...prev, ...extractedTags]);
+      }
+      finalize([...tags, ...extractedTags], combined, true);
+    } else {
+      // 意图不完整，继续问答流程
+      advance(currentStep, tags, combined);
+    }
   }
 
   function advance(fromStep: Step, curTags: string[], curText: string) {
@@ -351,11 +359,37 @@ export function AgentChatView({ onAccept }: { onAccept: (c: PersonaCard) => void
     }
   }
 
-  function finalize(_curTags: string[], _curText: string) {
-    const ranked = scoreCards(tags, freeText);
-    ranking.current = ranked;
+  async function fetchRecommendCard(): Promise<string> {
+    try {
+      const userTurns = msgs.filter((m) => m.who === "user" && m.text).map((m) => m.text!);
+      const res = await fetch("/api/public/recommend-card", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tags,
+          freeText,
+          userTurns,
+        }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      const data = (await res.json()) as { cardId?: string };
+      return data.cardId || PERSONA_CARDS[0].id;
+    } catch {
+      // 回退：随机选一张
+      return PERSONA_CARDS[Math.floor(Math.random() * PERSONA_CARDS.length)].id;
+    }
+  }
+
+  async function finalize(_curTags: string[], _curText: string, skipIntro = false) {
+    if (!skipIntro) {
+      push({ who: "agent", text: "让我想想哪张卡最适合你…" }, 200);
+    }
+    const cardId = await fetchRecommendCard();
+    const card = PERSONA_CARDS.find((c) => c.id === cardId) || PERSONA_CARDS[0];
+    // 初始化排名列表（用于换一张）
+    ranking.current = [card, ...PERSONA_CARDS.filter((c) => c.id !== cardId)];
     setRecIdx(0);
-    void presentCard(ranked[0], false);
+    void presentCard(card, false);
   }
 
   function reroll() {

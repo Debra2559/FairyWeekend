@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { callLLM } from "@/lib/llm";
 
 interface Body {
   tags?: string[];
   freeText?: string;
-  userTurns?: string[]; // 用户最近几条原话
+  userTurns?: string[];
   card: {
     identity: string;
     mood?: string;
@@ -17,9 +18,6 @@ export const Route = createFileRoute("/api/public/personalize-intro")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const key = process.env.LOVABLE_API_KEY;
-        if (!key) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
-
         let body: Body;
         try {
           body = (await request.json()) as Body;
@@ -52,35 +50,14 @@ export const Route = createFileRoute("/api/public/personalize-intro")({
 请直接输出那 1–2 句开场白，不要任何解释、引号或前后缀。`;
 
         try {
-          const upstream = await fetch(
-            "https://ai.gateway.lovable.dev/v1/chat/completions",
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${key}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                model: "google/gemini-2.5-flash",
-                temperature: 0.85,
-                messages: [
-                  { role: "system", content: sys },
-                  { role: "user", content: usr },
-                ],
-              }),
-              signal: request.signal,
-            },
+          let intro = await callLLM(
+            [
+              { role: "system", content: sys },
+              { role: "user", content: usr },
+            ],
+            { temperature: 0.85 }
           );
 
-          if (!upstream.ok) {
-            const text = await upstream.text();
-            return new Response(text || "AI failed", { status: upstream.status });
-          }
-
-          const json = (await upstream.json()) as {
-            choices?: Array<{ message?: { content?: string } }>;
-          };
-          let intro = (json.choices?.[0]?.message?.content || "").trim();
           // 清洗常见多余符号
           intro = intro.replace(/^[「『"'""]+|[」』"'""]+$/g, "").trim();
           if (!intro) intro = body.isReroll ? "那这张试试——" : "为你挑了这张卡 ✦";
@@ -90,9 +67,10 @@ export const Route = createFileRoute("/api/public/personalize-intro")({
             headers: { "Content-Type": "application/json" },
           });
         } catch (err) {
+          console.error("[personalize-intro] Error:", err);
           return new Response(
-            JSON.stringify({ error: err instanceof Error ? err.message : "failed" }),
-            { status: 500, headers: { "Content-Type": "application/json" } },
+            JSON.stringify({ intro: body.isReroll ? "那这张试试——" : "为你挑了这张卡 ✦" }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
           );
         }
       },
