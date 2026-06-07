@@ -562,9 +562,11 @@ function MainTabs({ active, onChange }: { active: MainTab; onChange: (tab: MainT
 function OverviewStats({
   stats,
   syncLabel,
+  sagas,
 }: {
   stats: { chapters: number; scenes: number; enhanced: number; rarities: number };
   syncLabel: string;
+  sagas: ArchivedChapter[];
 }) {
   const items = [
     { icon: <RouteIcon size={16} strokeWidth={1.7} />, value: stats.chapters, label: "条路线", hint: "已经走完并归档的路线条数" },
@@ -594,6 +596,7 @@ function OverviewStats({
           </div>
         ))}
       </div>
+      <RouteOverviewMap sagas={sagas} />
     </section>
   );
 }
