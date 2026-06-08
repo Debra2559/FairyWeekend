@@ -2644,6 +2644,268 @@ function StorybookPreview({ chapters }: { chapters: ArchivedChapter[] }) {
   );
 }
 
+type ReaderPage =
+  | { type: "cover"; ch: ArchivedChapter; chapterNo: number }
+  | { type: "opening"; ch: ArchivedChapter; chapterNo: number }
+  | { type: "scene"; ch: ArchivedChapter; chapterNo: number; scene: ArchivedChapter["journey"]["scenes"][number]; sceneIdx: number }
+  | { type: "closing"; ch: ArchivedChapter; chapterNo: number };
+
+function buildReaderPages(chapters: ArchivedChapter[]): ReaderPage[] {
+  const pages: ReaderPage[] = [];
+  chapters.forEach((ch, i) => {
+    const chapterNo = chapters.length - i;
+    pages.push({ type: "cover", ch, chapterNo });
+    pages.push({ type: "opening", ch, chapterNo });
+    ch.journey.scenes.forEach((scene, sceneIdx) => {
+      pages.push({ type: "scene", ch, chapterNo, scene, sceneIdx });
+    });
+    pages.push({ type: "closing", ch, chapterNo });
+  });
+  return pages;
+}
+
+function StorybookReader({
+  chapters,
+  onClose,
+}: {
+  chapters: ArchivedChapter[];
+  onClose: () => void;
+}) {
+  const pages = useMemo(() => buildReaderPages(chapters), [chapters]);
+  const [idx, setIdx] = useState(0);
+  const total = pages.length;
+  const page = pages[idx];
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") setIdx((i) => Math.max(0, i - 1));
+      if (e.key === "ArrowRight") setIdx((i) => Math.min(total - 1, i + 1));
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose, total]);
+
+  // touch swipe
+  const touchStartX = useRef<number | null>(null);
+  function onTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) > 40) {
+      if (dx < 0) setIdx((i) => Math.min(total - 1, i + 1));
+      else setIdx((i) => Math.max(0, i - 1));
+    }
+    touchStartX.current = null;
+  }
+
+  if (!page) return null;
+  const ch = page.ch;
+  const c0 = ch.card.colors?.[0] || "#b89a72";
+  const c1 = ch.card.colors?.[1] || "#6f5850";
+  const date = new Date(ch.createdAt);
+  const dateStr = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center"
+      style={{
+        background: "rgba(30,20,12,0.78)",
+        backdropFilter: "blur(8px)",
+      }}
+      onClick={onClose}
+    >
+      {/* Top bar */}
+      <div
+        className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 text-white"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="display text-[10px] tracking-[0.3em] opacity-80">
+          连载故事书 · READING
+        </div>
+        <button
+          onClick={onClose}
+          className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center"
+          aria-label="关闭"
+        >
+          <X size={18} />
+        </button>
+      </div>
+
+      {/* Page */}
+      <div
+        className="relative mx-4"
+        style={{ width: "min(92vw, 440px)", height: "min(78vh, 680px)" }}
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
+        <div
+          className="w-full h-full rounded-[20px] overflow-hidden relative"
+          style={{
+            background:
+              page.type === "cover"
+                ? `linear-gradient(135deg, ${c0}, ${c1})`
+                : "linear-gradient(180deg, #fffaf0 0%, #fdf2e0 100%)",
+            boxShadow:
+              "0 30px 60px -20px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.3)",
+          }}
+        >
+          {page.type === "cover" && (
+            <>
+              {ch.card.cover && (
+                <img
+                  src={ch.card.cover}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={{ opacity: 0.92 }}
+                />
+              )}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.65) 100%)",
+                }}
+              />
+              <div className="absolute inset-0 p-7 flex flex-col text-white">
+                <div className="flex items-center justify-between display text-[10px] tracking-[0.3em] opacity-90">
+                  <span>✦ {ch.card.rarity}</span>
+                  <span>CH.{String(page.chapterNo).padStart(2, "0")}</span>
+                </div>
+                <div className="mt-auto">
+                  <div className="display italic text-[11px] opacity-85">
+                    {dateStr}
+                    {ch.city ? ` · ${ch.city}` : ""}
+                  </div>
+                  <div className="cn-serif text-[28px] leading-tight mt-2">
+                    「{ch.card.identity}」
+                  </div>
+                  <div className="cn-serif italic text-[14px] opacity-90 mt-1">
+                    {ch.card.mood}
+                  </div>
+                  {ch.card.mission && (
+                    <div className="cn-serif text-[12.5px] opacity-80 mt-3 leading-relaxed">
+                      {ch.card.mission}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
+          {page.type === "opening" && (
+            <div className="absolute inset-0 p-7 flex flex-col text-[#5a4736] overflow-y-auto">
+              <div className="display text-[10px] tracking-[0.3em] text-[#a07a3e]">
+                序章 · OPENING
+              </div>
+              <div className="cn-serif text-[18px] mt-2 text-[#3d2f24]">
+                「{ch.card.identity}」
+              </div>
+              <p className="mt-4 cn-serif text-[14px] leading-[1.95]">
+                {ch.journey.story_opening}
+              </p>
+            </div>
+          )}
+
+          {page.type === "scene" && (
+            <div className="absolute inset-0 p-7 flex flex-col text-[#5a4736] overflow-y-auto">
+              <div className="display text-[10px] tracking-[0.3em] text-[#a07a3e]">
+                § {page.scene.order} · {page.scene.scene_name}
+              </div>
+              <div className="cn-serif text-[12px] text-[#a07a3e] mt-1">
+                @ {page.scene.location_name}
+              </div>
+              <p className="mt-4 cn-serif text-[14px] leading-[1.95]">
+                {page.scene.persona_narrative}
+              </p>
+              {ch.sceneRecords?.[page.scene.order]?.note && (
+                <blockquote
+                  className="mt-4 cn-serif italic text-[13px] leading-relaxed text-[#7a5e44]"
+                  style={{
+                    borderLeft: "2px solid rgba(200,154,90,0.5)",
+                    paddingLeft: 12,
+                  }}
+                >
+                  "{ch.sceneRecords[page.scene.order]?.note}"
+                </blockquote>
+              )}
+              {ch.sceneRecords?.[page.scene.order]?.photo && (
+                <img
+                  src={ch.sceneRecords[page.scene.order]?.photo}
+                  alt=""
+                  className="mt-4 w-full rounded-xl object-cover"
+                  style={{ maxHeight: 220 }}
+                />
+              )}
+            </div>
+          )}
+
+          {page.type === "closing" && (
+            <div className="absolute inset-0 p-7 flex flex-col text-[#5a4736] overflow-y-auto">
+              <div className="display text-[10px] tracking-[0.3em] text-[#a07a3e]">
+                终章 · CLOSING
+              </div>
+              <p className="mt-4 cn-serif text-[14px] leading-[1.95]">
+                {ch.journey.closing}
+              </p>
+              <div className="mt-auto pt-6 display text-[10px] tracking-[0.3em] text-[#a07a3e] text-center">
+                — 第 {page.chapterNo} 章完 —
+              </div>
+            </div>
+          )}
+
+          {/* page number */}
+          <div
+            className={`absolute bottom-3 right-4 display text-[9px] tracking-[0.28em] ${page.type === "cover" ? "text-white/70" : "text-[#a07a3e]"}`}
+          >
+            P. {String(idx + 1).padStart(2, "0")} / {total}
+          </div>
+        </div>
+
+        {/* Side arrows */}
+        <button
+          onClick={() => setIdx((i) => Math.max(0, i - 1))}
+          disabled={idx === 0}
+          className="absolute left-[-44px] top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white disabled:opacity-30 max-[520px]:left-1 max-[520px]:bg-white/10"
+          aria-label="上一页"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <button
+          onClick={() => setIdx((i) => Math.min(total - 1, i + 1))}
+          disabled={idx === total - 1}
+          className="absolute right-[-44px] top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white disabled:opacity-30 max-[520px]:right-1 max-[520px]:bg-white/10"
+          aria-label="下一页"
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
+
+      {/* Bottom progress */}
+      <div
+        className="absolute bottom-5 left-0 right-0 flex flex-col items-center gap-2 text-white"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <input
+          type="range"
+          min={0}
+          max={total - 1}
+          value={idx}
+          onChange={(e) => setIdx(Number(e.target.value))}
+          className="w-[min(80vw,360px)] accent-[#c89a5a]"
+        />
+        <div className="display text-[10px] tracking-[0.3em] opacity-80">
+          第 {page.chapterNo} 章 · P. {idx + 1} / {total}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 function SerialStorybookSection({ sagas }: { sagas: ArchivedChapter[] }) {
 
   const sorted = useMemo(
