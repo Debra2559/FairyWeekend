@@ -17,10 +17,9 @@ import {
   Image as ImageIcon,
   Stamp,
   BookMarked,
-  BookOpen,
   ChevronLeft,
-  ChevronRight,
   MapPinned,
+
   MoreHorizontal,
   PenLine,
   Plus,
