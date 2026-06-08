@@ -2972,9 +2972,17 @@ function SerialStorybookSection({ sagas }: { sagas: ArchivedChapter[] }) {
           <StorybookPreview chapters={sorted} />
 
           <button
+            onClick={() => setReaderOpen(true)}
+            className="mt-4 w-full rounded-2xl px-4 py-3.5 flex items-center justify-center gap-2 cn-serif text-[13px] text-[var(--ink)] transition border border-[#ead8d0] bg-white/75 hover:bg-white"
+          >
+            <BookOpen className="w-4 h-4" />
+            完整预览 · 在应用内翻阅
+          </button>
+
+          <button
             onClick={handleExportAll}
             disabled={bookExporting}
-            className="mt-4 w-full rounded-2xl px-4 py-3.5 flex items-center justify-center gap-2 cn-serif text-[13px] text-[var(--bg)] transition disabled:opacity-60"
+            className="mt-2 w-full rounded-2xl px-4 py-3.5 flex items-center justify-center gap-2 cn-serif text-[13px] text-[var(--bg)] transition disabled:opacity-60"
             style={{
               background: "linear-gradient(135deg, #6f5850 0%, #8a6a48 100%)",
               boxShadow: "0 6px 18px -8px rgba(111,88,80,0.55), inset 0 1px 0 rgba(255,255,255,0.18)",
@@ -2985,6 +2993,11 @@ function SerialStorybookSection({ sagas }: { sagas: ArchivedChapter[] }) {
               ? "正在装订连载故事书…"
               : `📖 一键装订连载故事书（${sorted.length} 本 · PDF）`}
           </button>
+
+          {readerOpen && (
+            <StorybookReader chapters={sorted} onClose={() => setReaderOpen(false)} />
+          )}
+
 
 
           <div className="mt-4">
