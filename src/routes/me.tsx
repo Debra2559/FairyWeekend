@@ -2914,6 +2914,8 @@ function SerialStorybookSection({ sagas }: { sagas: ArchivedChapter[] }) {
   );
   const [bookExporting, setBookExporting] = useState(false);
   const [chapterExporting, setChapterExporting] = useState<string | null>(null);
+  const [readerOpen, setReaderOpen] = useState(false);
+
 
   async function handleExportAll() {
     if (bookExporting || sorted.length === 0) return;
