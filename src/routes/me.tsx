@@ -17,6 +17,9 @@ import {
   Image as ImageIcon,
   Stamp,
   BookMarked,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
   MapPinned,
   MoreHorizontal,
   PenLine,
@@ -33,6 +36,7 @@ import {
   WandSparkles,
   X,
 } from "lucide-react";
+
 import {
   loadSagas,
   hydrateSagasFromCloud,
